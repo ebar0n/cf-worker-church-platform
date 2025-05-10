@@ -23,7 +23,7 @@ The visual design and user experience follow the official Seventh-day Adventist 
 ## Project Structure
 
 ```
-cf-worker-church/
+cf-worker-church-platform/
 ├── src/
 │   ├── app/           # Next.js app directory
 │   ├── lib/           # Utility functions and shared logic
@@ -93,15 +93,9 @@ yarn deploy
   yarn format
   ```
 
-- **Lint code:**
-
-  ```bash
-  yarn lint
-  ```
-
 - **Generate Cloudflare types:**
   ```bash
-  yarn cf-typegen
+  yarn cf:typegen
   ```
 
 ## Environment Variables
