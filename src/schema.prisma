@@ -1,0 +1,47 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+  output   = "prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DB")
+}
+
+model Member {
+  id                Int      @id @default(autoincrement())
+  documentID        String   @unique
+  name              String
+  birthDate         DateTime
+  address           String
+  phone             String
+  email             String?
+  baptismYear       Int?
+  ministry          String?
+  areasToServe      String?
+  educationLevel    String?
+  profession        String?
+  technicalSkills   String?
+  softSkills        String?
+  languages         String?
+  availability      String?
+  willingToLead     Boolean?
+  suggestions       String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model FriendRequest {
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String
+  address   String?
+  reason    String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

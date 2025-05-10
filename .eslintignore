@@ -1,0 +1,9 @@
+# Ignore build output
+.next
+out
+
+# Ignore node modules
+node_modules
+
+# Ignore API routes that use next/server
+src/app/api/**/*.ts

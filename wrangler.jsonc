@@ -1,0 +1,36 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "cf-worker-church",
+	"main": ".open-next/worker.js",
+	"workers_dev": true,
+	"compatibility_date": "2025-03-01",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"assets": {
+		"binding": "ASSETS",
+		"directory": ".open-next/assets"
+	},
+	"observability": {
+		"enabled": true
+	},
+
+	/**
+	 * Bindings
+	 * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
+	 * databases, object storage, AI inference, real-time communication and more.
+	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
+	 */
+
+	 "d1_databases": [
+        {
+          "binding": "DB",
+			"database_name": "church-jordan",
+      		"database_id": "0fa5b870-cbc8-4a76-a556-1687e42bf99d"
+        }
+      ]
+}
