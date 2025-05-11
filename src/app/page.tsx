@@ -4,6 +4,7 @@ import Hero from '@/app/components/Hero';
 import Welcome from '@/app/components/Welcome';
 import Services from '@/app/components/Services';
 import Contact from '@/app/components/Contact';
+import Footer from '@/app/components/Footer';
 
 export default async function Home() {
   return (
@@ -14,6 +15,7 @@ export default async function Home() {
       <Services />
       <InstagramFeed />
       <Contact />
+      <Footer />
     </div>
   );
 }
