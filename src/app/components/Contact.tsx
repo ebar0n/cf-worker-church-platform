@@ -52,7 +52,7 @@ export default function Contact() {
                   />
                 </svg>
                 <div>
-                  <h3 className="font-semibold text-[#2f557f]">Teléfono</h3>
+                  <h3 className="font-semibold text-[#2f557f]">Pastor Sergio Sana</h3>
                   <p className="text-[#5e3929]">+57 320 854 0929</p>
                 </div>
               </div>
