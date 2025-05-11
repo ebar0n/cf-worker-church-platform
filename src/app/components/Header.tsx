@@ -14,7 +14,7 @@ export default function Header() {
             priority
           />
           <span
-            className="text-xl font-bold tracking-wide text-white md:text-2xl"
+            className="text-xl font-bold tracking-wide text-white md:text-2xl pt-1"
             style={{ fontFamily: 'Advent Pro, Arial, sans-serif' }}
           >
             Iglesia Adventista del 7mo día

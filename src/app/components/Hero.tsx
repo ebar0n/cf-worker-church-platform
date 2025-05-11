@@ -14,7 +14,7 @@ export default function Hero() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black/70" />
       </div>
       <div className="relative flex h-full items-center justify-center px-4 text-center text-white">
-        <div className="mx-auto flex max-w-3xl flex-col items-center gap-6">
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 pt-64">
           <h1 className="mb-2 text-4xl font-bold text-[#ffa92d] drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)] md:text-6xl">
             Iglesia Adventista del 7mo día
           </h1>

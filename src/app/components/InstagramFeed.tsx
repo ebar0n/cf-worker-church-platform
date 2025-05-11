@@ -2,12 +2,12 @@
 
 export default function InstagramFeed() {
   return (
-    <section className="bg-white px-4 py-20">
+    <section className="bg-white px-4 py-10 md:py-20">
       <div className="mx-auto max-w-6xl">
-        <h2 className="mb-12 text-center text-3xl font-bold text-[#7f264a] md:text-4xl">
+        <h2 className="mb-8 md:mb-12 text-center text-3xl font-bold text-[#7f264a] md:text-4xl">
           Síguenos en Instagram
         </h2>
-        <div className="flex w-full flex-col items-center gap-6">
+        <div className="flex w-full flex-col items-center gap-4 md:gap-6">
           <div className="flex w-full justify-center">
             <a
               href="https://www.instagram.com/iglesia.jordan.ibague/"
@@ -24,7 +24,7 @@ export default function InstagramFeed() {
 
           <iframe
             src="https://www.instagram.com/iglesia.jordan.ibague/embed"
-            className="h-[750px] w-full max-w-3xl rounded-xl shadow-lg"
+            className="h-[500px] md:h-[750px] w-full max-w-3xl rounded-xl shadow-lg"
             frameBorder="0"
             scrolling="no"
           ></iframe>
