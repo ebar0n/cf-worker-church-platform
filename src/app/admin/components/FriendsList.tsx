@@ -99,8 +99,24 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
         f.address || '',
         f.reason,
         f.isRead ? 'Leído' : 'No leído',
-        new Date(f.createdAt).toLocaleString(),
-        new Date(f.updatedAt).toLocaleString()
+        new Date(f.createdAt).toLocaleString('es-ES', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        }),
+        new Date(f.updatedAt).toLocaleString('es-ES', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        })
       ].join(','))
     ].join('\n');
 
@@ -258,7 +274,15 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
               >
                 <td className="px-4 py-3 font-medium text-[#4b207f]">{f.name}</td>
                 <td className="px-4 py-3">{f.phone}</td>
-                <td className="px-4 py-3">{new Date(f.createdAt).toLocaleString()}</td>
+                <td className="px-4 py-3">{new Date(f.createdAt).toLocaleString('es-ES', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                })}</td>
                 <td className="px-4 py-3 capitalize">{f.reason}</td>
                 <td className="px-4 py-3">
                   <div className="flex gap-3">
@@ -339,7 +363,15 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
               }`}>{f.reason}</span>
             </div>
             <div className="text-sm mb-1"><span className="font-semibold">Teléfono:</span> {f.phone}</div>
-            <div className="text-sm mb-1"><span className="font-semibold">Fecha:</span> {new Date(f.createdAt).toLocaleString()}</div>
+            <div className="text-sm mb-1"><span className="font-semibold">Fecha:</span> {new Date(f.createdAt).toLocaleString('es-ES', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true
+            })}</div>
             <div className="flex gap-3">
               <button
                 onClick={() => handleOpenDetails(f)}
@@ -468,11 +500,27 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
               </div>
               <div>
                 <span className="font-semibold">Fecha de creación:</span>{' '}
-                {new Date(selectedFriend.createdAt).toLocaleString()}
+                {new Date(selectedFriend.createdAt).toLocaleString('es-ES', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                })}
               </div>
               <div>
                 <span className="font-semibold">Última actualización:</span>{' '}
-                {new Date(selectedFriend.updatedAt).toLocaleString()}
+                {new Date(selectedFriend.updatedAt).toLocaleString('es-ES', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                })}
               </div>
             </div>
             <div className="mt-6 flex justify-end">

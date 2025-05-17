@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 interface PersonalInfoStepProps {
   formData: {
@@ -23,12 +23,34 @@ export default function PersonalInfoStep({
   onPrev,
   onBlur,
 }: PersonalInfoStepProps) {
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateFields = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'El nombre es requerido';
+    }
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'El teléfono es requerido';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (validateFields()) {
+      onNext();
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-6 md:grid-cols-2">
         <div className="flex flex-col gap-2">
           <label htmlFor="name" className="text-sm font-medium text-[#5e3929]">
-            Nombre completo
+            Nombre completo <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -37,10 +59,29 @@ export default function PersonalInfoStep({
             value={formData.name}
             onChange={onChange}
             onBlur={onBlur}
-            className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
+            className={`w-full rounded-lg border ${errors.name ? 'border-red-500' : 'border-[#d4c5b9]'} px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none`}
             placeholder="Tu nombre completo"
             required
           />
+          {errors.name && <span className="text-sm text-red-500">{errors.name}</span>}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="phone" className="text-sm font-medium text-[#5e3929]">
+            Teléfono <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            value={formData.phone}
+            onChange={onChange}
+            onBlur={onBlur}
+            className={`w-full rounded-lg border ${errors.phone ? 'border-red-500' : 'border-[#d4c5b9]'} px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none`}
+            placeholder="Tu número de teléfono"
+            required
+          />
+          {errors.phone && <span className="text-sm text-red-500">{errors.phone}</span>}
         </div>
 
         <div className="flex flex-col gap-2">
@@ -55,29 +96,7 @@ export default function PersonalInfoStep({
             onChange={onChange}
             onBlur={onBlur}
             className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:hover:opacity-100"
-            required
           />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label htmlFor="maritalStatus" className="text-sm font-medium text-[#5e3929]">
-            Estado civil
-          </label>
-          <select
-            id="maritalStatus"
-            name="maritalStatus"
-            value={formData.maritalStatus}
-            onChange={onChange}
-            onBlur={onBlur}
-            className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
-            required
-          >
-            <option value="">Selecciona tu estado civil</option>
-            <option value="soltero">Soltero(a)</option>
-            <option value="casado">Casado(a)</option>
-            <option value="divorciado">Divorciado(a)</option>
-            <option value="viudo">Viudo(a)</option>
-          </select>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -93,25 +112,27 @@ export default function PersonalInfoStep({
             onBlur={onBlur}
             className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
             placeholder="Tu dirección actual"
-            required
           />
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="phone" className="text-sm font-medium text-[#5e3929]">
-            Teléfono
+          <label htmlFor="maritalStatus" className="text-sm font-medium text-[#5e3929]">
+            Estado civil
           </label>
-          <input
-            type="tel"
-            id="phone"
-            name="phone"
-            value={formData.phone}
+          <select
+            id="maritalStatus"
+            name="maritalStatus"
+            value={formData.maritalStatus}
             onChange={onChange}
             onBlur={onBlur}
             className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
-            placeholder="Tu número de teléfono"
-            required
-          />
+          >
+            <option value="">Selecciona tu estado civil</option>
+            <option value="soltero">Soltero(a)</option>
+            <option value="casado">Casado(a)</option>
+            <option value="divorciado">Divorciado(a)</option>
+            <option value="viudo">Viudo(a)</option>
+          </select>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -141,7 +162,6 @@ export default function PersonalInfoStep({
             onChange={onChange}
             onBlur={onBlur}
             className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
-            required
           >
             <option value="">Selecciona tu método preferido</option>
             <option value="phone">Teléfono</option>
@@ -161,7 +181,7 @@ export default function PersonalInfoStep({
         </button>
         <button
           type="button"
-          onClick={onNext}
+          onClick={handleNext}
           className="flex-1 rounded-lg bg-[#4b207f] px-6 py-2 text-white hover:bg-[#3a1a5f] md:flex-none md:px-8"
         >
           Siguiente

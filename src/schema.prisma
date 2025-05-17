@@ -20,10 +20,10 @@ model Member {
 
   // Personal information
   name                      String
-  birthDate                 DateTime
-  maritalStatus             String?
-  address                   String
   phone                     String
+  birthDate                 DateTime?
+  maritalStatus             String?
+  address                   String?
   email                     String?
   preferredContactMethod    String?
 

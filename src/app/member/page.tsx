@@ -174,7 +174,50 @@ export default function MemberFormPage() {
 
   // Navigation
   const nextStep = async () => {
-    if (step > 0 && formData.documentID && formData.termsAccepted) {
+    // Validar que el nombre esté lleno en el paso de información personal
+    if (step === 1 && !formData.name.trim()) {
+      setError('Por favor, ingresa el nombre antes de continuar');
+      return;
+    }
+
+    // Crear el registro inicial cuando se avanza del paso de información personal
+    if (step === 1 && !isExisting && formData.name.trim()) {
+      try {
+        // Solo enviar los campos requeridos según el schema
+        const initialData = {
+          documentID: formData.documentID,
+          name: formData.name,
+          birthDate: formData.birthDate,
+          address: formData.address,
+          phone: formData.phone,
+          termsAccepted: true,
+        };
+
+        const createRes = await fetch('/api/member', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(initialData),
+        });
+
+        if (createRes.ok) {
+          const newMember = await createRes.json() as MemberResponse;
+          setRegisterInfo({
+            createdAt: newMember.createdAt,
+            updatedAt: newMember.updatedAt,
+          });
+          setIsExisting(true);
+        } else {
+          const errorData = await createRes.json() as ErrorResponse;
+          setError(errorData.error || 'Error al crear el registro. Intenta de nuevo.');
+          return;
+        }
+      } catch (error) {
+        setError('Error al crear el registro. Intenta de nuevo.');
+        return;
+      }
+    }
+
+    if (step > 1 && formData.documentID && formData.termsAccepted) {
       await autoSave();
     }
     setStep((s) => Math.min(s + 1, steps.length - 1));
@@ -262,36 +305,12 @@ export default function MemberFormPage() {
             termsAccepted: true,
           });
         } else {
-          // Si no existe, crear el registro inicial
+          // Si no existe, solo avanzar al siguiente paso
           setIsExisting(false);
-          const initialData = {
-            documentID: formData.documentID,
-            termsAccepted: true,
-          };
-
-          const createRes = await fetch('/api/member', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(initialData),
-          });
-
-          if (createRes.ok) {
-            const newMember = await createRes.json() as MemberResponse;
-            setRegisterInfo({
-              createdAt: newMember.createdAt,
-              updatedAt: newMember.updatedAt,
-            });
-            setFormData({
-              ...initialFormData,
-              documentID: formData.documentID,
-              termsAccepted: true,
-            });
-          } else {
-            const errorData = await createRes.json() as ErrorResponse;
-            setError(errorData.error || 'Error al crear el registro. Intenta de nuevo.');
-            setLoading(false);
-            return;
-          }
+          setFormData(prev => ({
+            ...prev,
+            termsAccepted: true
+          }));
         }
         setStep(1);
       } else {

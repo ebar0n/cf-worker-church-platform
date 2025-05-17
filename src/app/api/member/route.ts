@@ -4,14 +4,14 @@ import { z } from 'zod';
 
 const memberSchema = z.object({
   documentID: z.string().min(1),
-  name: z.string().min(2).optional(),
+  name: z.string(),
+  phone: z.string().min(5),
   birthDate: z.string().optional(),
   maritalStatus: z.string().optional(),
-  address: z.string().min(1).optional(),
-  phone: z.string().min(5).optional(),
-  email: z.string().email().optional(),
+  address: z.string().optional(),
+  email: z.string().optional(),
   preferredContactMethod: z.string().optional(),
-  baptismYear: z.number().optional(),
+  baptismYear: z.string().optional(),
   ministry: z.string().optional(),
   areasToServe: z.string().optional(),
   willingToLead: z.boolean().optional(),
@@ -36,8 +36,6 @@ const memberSchema = z.object({
 const initialMemberSchema = z.object({
   documentID: z.string().min(1),
   name: z.string().min(2),
-  birthDate: z.string(),
-  address: z.string().min(1),
   phone: z.string().min(5),
 });
 
@@ -83,13 +81,11 @@ export async function POST(request: NextRequest) {
     const now = new Date().toISOString();
     const result = await env.DB.prepare(`
       INSERT INTO Member (
-        documentID, name, birthDate, address, phone, createdAt, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        documentID, name, phone, createdAt, updatedAt
+      ) VALUES (?, ?, ?, ?, ?)
     `).bind(
       parse.data.documentID,
       parse.data.name,
-      parse.data.birthDate,
-      parse.data.address,
       parse.data.phone,
       now,
       now
@@ -138,7 +134,7 @@ export async function PUT(request: NextRequest) {
 
     // Función helper para agregar campos a la actualización
     const addField = (field: string, value: any) => {
-      if (field in parse.data) {
+      if (field in parse.data && value) {
         updateFields.push(`${field} = ?`);
         bindValues.push(value);
       }
@@ -152,7 +148,7 @@ export async function PUT(request: NextRequest) {
     addField('phone', parse.data.phone);
     addField('email', parse.data.email || null);
     addField('preferredContactMethod', parse.data.preferredContactMethod || null);
-    addField('baptismYear', parse.data.baptismYear || null);
+    addField('baptismYear', parseInt(parse.data.baptismYear || '') || null);
     addField('ministry', parse.data.ministry || null);
     addField('areasToServe', parse.data.areasToServe || null);
     addField('willingToLead', parse.data.willingToLead ? 1 : 0);
