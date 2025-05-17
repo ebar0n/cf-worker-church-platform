@@ -39,7 +39,6 @@ export default function Header() {
               d="M11.25 9V5.25A2.25 2.25 0 0013.5 3h6A2.25 2.25 0 0121.75 5.25v13.5A2.25 2.25 0 0119.5 21h-6a2.25 2.25 0 01-2.25-2.25V15m-3-3h8.25m0 0l-3-3m3 3l-3 3"
             />
           </svg>
-          Administración
         </Link>
       </header>
       <div className="h-20" /> {/* Spacer for fixed header */}
