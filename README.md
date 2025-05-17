@@ -27,8 +27,6 @@ cf-worker-church-platform/
 ├── src/
 │   ├── app/           # Next.js app directory
 │   ├── lib/           # Utility functions and shared logic
-│   ├── prisma/        # Prisma client and database utilities
-│   ├── types/         # TypeScript type definitions
 │   └── schema.prisma  # Database schema definition
 ├── migrations/        # SQL migration files
 ├── public/           # Static assets

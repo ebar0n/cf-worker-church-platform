@@ -3,8 +3,7 @@ export default function Footer() {
     <footer className="bg-[#4b207f] px-4 py-8 text-center text-white">
       <div className="mx-auto max-w-3xl">
         <p className="mb-2 text-lg">
-          Este sitio web es un proyecto open source. Si deseas implementar algo similar para tu
-          iglesia, contáctanos.
+          Este sitio web es un proyecto open source. El código está disponible para que cualquier iglesia lo use, adapte o implemente libremente.
         </p>
         <a
           href="https://github.com/ebar0n/cf-worker-church-platform"

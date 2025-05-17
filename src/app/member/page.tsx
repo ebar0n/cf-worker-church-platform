@@ -478,8 +478,8 @@ export default function MemberFormPage() {
           {registerInfo && (
             <div className="mt-2 flex flex-col items-center">
               <div className="flex w-fit flex-col gap-1 rounded-lg bg-[#f3f0fa] px-4 py-2 text-sm text-[#4b207f] shadow-sm">
-                <div>Fecha de creación: {formatDateVerbose(registerInfo.createdAt)}</div>
-                <div>Última actualización: {formatDateVerbose(registerInfo.updatedAt)}</div>
+                <div className="whitespace-nowrap">Fecha de creación: {formatDateVerbose(registerInfo.createdAt)}</div>
+                <div className="whitespace-nowrap">Última actualización: {formatDateVerbose(registerInfo.updatedAt)}</div>
               </div>
             </div>
           )}
