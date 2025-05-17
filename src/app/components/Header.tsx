@@ -23,7 +23,7 @@ export default function Header() {
         </a>
         <Link
           href="/admin"
-          className="flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-white hover:bg-white/20"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#4b207f] px-6 py-3 text-white transition-colors hover:bg-[#4b207f]/90"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -36,9 +36,10 @@ export default function Header() {
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+              d="M11.25 9V5.25A2.25 2.25 0 0013.5 3h6A2.25 2.25 0 0121.75 5.25v13.5A2.25 2.25 0 0119.5 21h-6a2.25 2.25 0 01-2.25-2.25V15m-3-3h8.25m0 0l-3-3m3 3l-3 3"
             />
           </svg>
+          Administración
         </Link>
       </header>
       <div className="h-20" /> {/* Spacer for fixed header */}
