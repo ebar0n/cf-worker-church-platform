@@ -15,7 +15,8 @@
 	],
 	"compatibility_date": "2025-05-05",
 	"compatibility_flags": [
-		"nodejs_compat"
+		"nodejs_compat",
+		"global_fetch_strictly_public"
 	],
 	"assets": {
 		"binding": "ASSETS",

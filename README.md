@@ -54,6 +54,12 @@ make env
 yarn install
 ```
 
+### Generate Types
+
+```bash
+yarn cf:typegen
+```
+
 ### Generate Prisma client
 
 ```bash

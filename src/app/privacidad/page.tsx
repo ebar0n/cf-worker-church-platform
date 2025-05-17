@@ -13,19 +13,20 @@ export default function PrivacyPolicy() {
 
           <div className="prose prose-lg max-w-none">
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-[#4b207f]">1. Información que Recopilamos</h2>
+              <h2 className="text-2xl font-semibold text-[#4b207f]">
+                1. Información que Recopilamos
+              </h2>
               <p className="mt-4 text-gray-700">
-                Recopilamos información que usted nos proporciona directamente a través de nuestros formularios
-                y servicios, incluyendo datos personales necesarios para brindarle el servicio solicitado.
-                La información específica que recopilamos puede variar según el servicio o formulario que utilice.
+                Recopilamos información que usted nos proporciona directamente a través de nuestros
+                formularios y servicios, incluyendo datos personales necesarios para brindarle el
+                servicio solicitado. La información específica que recopilamos puede variar según el
+                servicio o formulario que utilice.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-[#4b207f]">2. Uso de la Información</h2>
-              <p className="mt-4 text-gray-700">
-                Utilizamos la información recopilada para:
-              </p>
+              <p className="mt-4 text-gray-700">Utilizamos la información recopilada para:</p>
               <ul className="mt-2 list-disc pl-6 text-gray-700">
                 <li>Contactarlo para responder a su solicitud</li>
                 <li>Brindarle el servicio o información solicitada</li>
@@ -37,14 +38,16 @@ export default function PrivacyPolicy() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-[#4b207f]">3. Protección de Datos</h2>
               <p className="mt-4 text-gray-700">
-                Nos comprometemos a proteger su información personal. Implementamos medidas de seguridad
-                técnicas y organizativas para proteger sus datos contra acceso no autorizado,
-                alteración, divulgación o destrucción.
+                Nos comprometemos a proteger su información personal. Implementamos medidas de
+                seguridad técnicas y organizativas para proteger sus datos contra acceso no
+                autorizado, alteración, divulgación o destrucción.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-[#4b207f]">4. Compartición de Información</h2>
+              <h2 className="text-2xl font-semibold text-[#4b207f]">
+                4. Compartición de Información
+              </h2>
               <p className="mt-4 text-gray-700">
                 No compartimos su información personal con terceros, excepto cuando:
               </p>
@@ -57,9 +60,7 @@ export default function PrivacyPolicy() {
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-[#4b207f]">5. Sus Derechos</h2>
-              <p className="mt-4 text-gray-700">
-                Usted tiene derecho a:
-              </p>
+              <p className="mt-4 text-gray-700">Usted tiene derecho a:</p>
               <ul className="mt-2 list-disc pl-6 text-gray-700">
                 <li>Acceder a sus datos personales</li>
                 <li>Rectificar sus datos personales</li>
@@ -72,8 +73,8 @@ export default function PrivacyPolicy() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-[#4b207f]">6. Contacto</h2>
               <p className="mt-4 text-gray-700">
-                Si tiene preguntas sobre esta política de privacidad o sobre cómo manejamos sus datos,
-                puede contactarnos a través de:
+                Si tiene preguntas sobre esta política de privacidad o sobre cómo manejamos sus
+                datos, puede contactarnos a través de:
               </p>
               <ul className="mt-2 list-disc pl-6 text-gray-700">
                 <li>Email: jordan.jordan.asurcol@gmail.com</li>
@@ -85,18 +86,18 @@ export default function PrivacyPolicy() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-[#4b207f]">7. Cambios en la Política</h2>
               <p className="mt-4 text-gray-700">
-                Nos reservamos el derecho de modificar esta política de privacidad en cualquier momento.
-                Cualquier cambio será publicado en esta página y, si los cambios son significativos,
-                le notificaremos por correo electrónico.
+                Nos reservamos el derecho de modificar esta política de privacidad en cualquier
+                momento. Cualquier cambio será publicado en esta página y, si los cambios son
+                significativos, le notificaremos por correo electrónico.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-semibold text-[#4b207f]">8. Consentimiento</h2>
               <p className="mt-4 text-gray-700">
-                Al utilizar nuestros servicios y proporcionar su información, usted acepta los términos
-                de esta política de privacidad. Si no está de acuerdo con esta política, por favor no
-                utilice nuestros servicios.
+                Al utilizar nuestros servicios y proporcionar su información, usted acepta los
+                términos de esta política de privacidad. Si no está de acuerdo con esta política,
+                por favor no utilice nuestros servicios.
               </p>
             </section>
           </div>

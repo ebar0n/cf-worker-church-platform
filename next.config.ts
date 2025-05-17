@@ -1,6 +1,9 @@
 import type { NextConfig } from 'next';
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  // ToDo size limit
+  // serverExternalPackages: ["@prisma/client", ".prisma/client"],
+};
 
 export default nextConfig;
 

@@ -72,7 +72,7 @@ export default function AdminDashboard({ adminEmail }: AdminDashboardProps) {
               data={yearChartData}
               index="year"
               categories={['count']}
-              colors={['#e36520']}
+              colors={['indigo']}
               className="h-72"
               showLegend={false}
               showGridLines={false}
@@ -88,7 +88,7 @@ export default function AdminDashboard({ adminEmail }: AdminDashboardProps) {
               data={chartData}
               index="name"
               categories={['value']}
-              colors={['#4b207f']}
+              colors={['amber']}
               yAxisWidth={48}
               className="h-72"
               valueFormatter={(v) => (v === 0 ? '' : String(v))}

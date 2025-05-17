@@ -17,7 +17,8 @@ export default function FriendForm() {
   const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const value = e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
+    const value =
+      e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
     setForm({ ...form, [e.target.name]: value });
   };
 
@@ -121,7 +122,8 @@ export default function FriendForm() {
           >
             política de privacidad
           </a>
-          . Entiendo que mis datos serán utilizados únicamente para contactarme y brindarme el servicio solicitado.
+          . Entiendo que mis datos serán utilizados únicamente para contactarme y brindarme el
+          servicio solicitado.
         </label>
       </div>
       <button

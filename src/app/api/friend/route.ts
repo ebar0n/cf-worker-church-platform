@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { PrismaD1 } from '@prisma/adapter-d1';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { z } from 'zod';
 
@@ -14,8 +12,6 @@ const friendRequestSchema = z.object({
 export async function POST(req: NextRequest) {
   const { env } = getCloudflareContext();
   console.log({ message: 'Hello World', env: env.DB });
-  const adapter = new PrismaD1(env.DB);
-  const prisma = new PrismaClient({ adapter });
 
   try {
     const data = await req.json();
@@ -27,15 +23,22 @@ export async function POST(req: NextRequest) {
       );
     }
     const { name, phone, address, reason } = parse.data;
+    const now = new Date().toISOString();
 
-    const friend = await prisma.friendRequest.create({
-      data: {
-        name,
-        phone,
-        address: address || '',
-        reason,
-      },
-    });
+    const result = await env.DB.prepare(
+      'INSERT INTO FriendRequest (name, phone, address, reason, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)'
+    ).bind(
+      name,
+      phone,
+      address || '',
+      reason,
+      now,
+      now
+    ).run();
+
+    const friend = await env.DB.prepare(
+      'SELECT * FROM FriendRequest WHERE id = ?'
+    ).bind(result.meta.last_row_id).first();
 
     return NextResponse.json({ success: true, friend });
   } catch (error) {
