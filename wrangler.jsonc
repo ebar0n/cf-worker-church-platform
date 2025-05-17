@@ -6,7 +6,7 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "cf-worker-church-platform",
 	"main": ".open-next/worker.js",
-	"workers_dev": true,
+	"workers_dev": false,
 	"routes": [
 		{
 			"pattern": "iglesiajordanibague.org",

@@ -13,7 +13,7 @@
     "cf:build": "prisma generate --schema src/schema.prisma && opennextjs-cloudflare build",
     "cf:deploy": "opennextjs-cloudflare deploy",
     "db:generate": "prisma generate --schema src/schema.prisma",
-    "db:migrate": "npx wrangler d1 migrations apply church-jordan --local"
+    "db:migrate": "npx wrangler d1 migrations apply church-jordan"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",

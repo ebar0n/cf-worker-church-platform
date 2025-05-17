@@ -26,56 +26,6 @@
   }
 }
 
-@font-face {
-  font-family: 'Advent Pro';
-  src: url('/fonts/adventpro-thin.ttf') format('truetype');
-  font-weight: 100;
-  font-style: thin;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Advent Pro';
-  src: url('/fonts/adventpro-extralight.ttf') format('truetype');
-  font-weight: 200;
-  font-style: extra-light;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Advent Pro';
-  src: url('/fonts/adventpro-light.ttf') format('truetype');
-  font-weight: 300;
-  font-style: light;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Advent Pro';
-  src: url('/fonts/adventpro-regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: regular;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Advent Pro';
-  src: url('/fonts/adventpro-medium.ttf') format('truetype');
-  font-weight: 500;
-  font-style: medium;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Advent Pro';
-  src: url('/fonts/adventpro-semibold.ttf') format('truetype');
-  font-weight: 600;
-  font-style: semibold;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Advent Pro';
-  src: url('/fonts/adventpro-bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: bold;
-  font-display: swap;
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -86,5 +36,5 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Advent Pro', Arial, Helvetica, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
 }
