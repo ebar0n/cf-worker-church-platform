@@ -1,7 +1,8 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '@/app/admin/components/AdminLayout';
-import { Card, Title, BarChart, Metric, Text, AreaChart } from '@tremor/react';
+import BarChartCustom from '@/app/admin/components/BarChartCustom';
+import AreaChartCustom from '@/app/admin/components/AreaChartCustom';
 
 interface ChartData {
   name: string;
@@ -47,55 +48,35 @@ export default function AdminDashboard({ adminEmail }: AdminDashboardProps) {
     <AdminLayout adminEmail={adminEmail}>
       <div className="space-y-8 px-4 py-4 md:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          <Card className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
-            <Title className="text-lg font-semibold text-[#4b207f]">Total de miembros</Title>
-            <Metric className="mt-2 text-4xl font-bold text-[#4b207f]">
+          <div className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-[#4b207f]">Total de miembros</h2>
+            <div className="mt-2 text-4xl font-bold text-[#4b207f]">
               {loading ? '...' : totalMembers}
-            </Metric>
-            <Text className="mt-2 text-[#7c7c7c]">Miembros registrados en la iglesia</Text>
-          </Card>
-          <Card className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
-            <Title className="text-lg font-semibold text-[#e36520]">Total de solicitudes</Title>
-            <Metric className="mt-2 text-4xl font-bold text-[#e36520]">
+            </div>
+            <div className="mt-2 text-[#7c7c7c]">Miembros registrados en la iglesia</div>
+          </div>
+          <div className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-[#e36520]">Total de solicitudes</h2>
+            <div className="mt-2 text-4xl font-bold text-[#e36520]">
               {loading ? '...' : totalFriends}
-            </Metric>
-            <Text className="mt-2 text-[#7c7c7c]">Solicitudes de amigos y visitas</Text>
-          </Card>
+            </div>
+            <div className="mt-2 text-[#7c7c7c]">Solicitudes de amigos y visitas</div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          <Card className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
-            <Title className="mb-4 text-lg font-semibold text-[#4b207f]">
+          <div className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
+            <h2 className="mb-4 text-lg font-semibold text-[#4b207f]">
               Miembros por año de bautismo
-            </Title>
-            <AreaChart
-              data={yearChartData}
-              index="year"
-              categories={['count']}
-              colors={['indigo']}
-              className="h-72"
-              showLegend={false}
-              showGridLines={false}
-              valueFormatter={(v) => (v === 0 ? '' : String(v))}
-              noDataText="No hay datos aún"
-            />
-          </Card>
-          <Card className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
-            <Title className="mb-4 text-lg font-semibold text-[#4b207f]">
+            </h2>
+            <AreaChartCustom data={yearChartData} />
+          </div>
+          <div className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
+            <h2 className="mb-4 text-lg font-semibold text-[#4b207f]">
               Solicitudes por tipo
-            </Title>
-            <BarChart
-              data={chartData}
-              index="name"
-              categories={['value']}
-              colors={['amber']}
-              yAxisWidth={48}
-              className="h-72"
-              valueFormatter={(v) => (v === 0 ? '' : String(v))}
-              showLegend={false}
-              showGridLines={false}
-            />
-          </Card>
+            </h2>
+            <BarChartCustom data={chartData} />
+          </div>
         </div>
       </div>
     </AdminLayout>

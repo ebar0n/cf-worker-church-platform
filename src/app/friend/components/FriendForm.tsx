@@ -113,17 +113,15 @@ export default function FriendForm() {
           required
         />
         <label className="text-sm text-gray-600">
-          Acepto la{' '}
+          Acepto el{' '}
           <a
-            href="/privacidad"
+            href="/privacy"
             target="_blank"
             rel="noopener noreferrer"
             className="text-[#4b207f] underline hover:text-[#e36520]"
           >
-            política de privacidad
+            tratamiento de mis datos personales
           </a>
-          . Entiendo que mis datos serán utilizados únicamente para contactarme y brindarme el
-          servicio solicitado.
         </label>
       </div>
       <button

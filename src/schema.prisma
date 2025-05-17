@@ -12,26 +12,49 @@ datasource db {
 }
 
 model Member {
-  id                Int      @id @default(autoincrement())
-  documentID        String   @unique
-  name              String
-  birthDate         DateTime
-  address           String
-  phone             String
-  email             String?
-  baptismYear       Int?
-  ministry          String?
-  areasToServe      String?
-  educationLevel    String?
-  profession        String?
-  technicalSkills   String?
-  softSkills        String?
-  languages         String?
-  availability      String?
-  willingToLead     Boolean?
-  suggestions       String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  // Identification and metadata
+  id                        Int      @id @default(autoincrement())
+  documentID                String   @unique
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  // Personal information
+  name                      String
+  birthDate                 DateTime
+  maritalStatus             String?
+  address                   String
+  phone                     String
+  email                     String?
+  preferredContactMethod    String?
+
+  // Church and spiritual information
+  baptismYear               Int?
+  ministry                  String?
+  areasToServe              String?
+  willingToLead             Boolean?
+  suggestions               String?
+  pastoralNotes             String?
+
+  // Professional and educational information
+  currentOccupation         String?
+  workOrStudyPlace          String?
+  professionalArea          String?
+  educationLevel            String?
+  profession                String?
+  workExperience            String?
+
+  // Skills and abilities
+  technicalSkills           String?
+  softSkills                String?
+  languages                 String?
+
+  // Health and special needs
+  medicalConditions         String?
+  specialNeeds              String?
+
+  // Other useful information
+  interestsHobbies          String?
+  volunteeringAvailability  String?
 }
 
 model FriendRequest {
