@@ -1441,37 +1441,37 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cloudflare/workerd-darwin-64@npm:1.20250507.0":
-  version: 1.20250507.0
-  resolution: "@cloudflare/workerd-darwin-64@npm:1.20250507.0"
+"@cloudflare/workerd-darwin-64@npm:1.20250508.0":
+  version: 1.20250508.0
+  resolution: "@cloudflare/workerd-darwin-64@npm:1.20250508.0"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@cloudflare/workerd-darwin-arm64@npm:1.20250507.0":
-  version: 1.20250507.0
-  resolution: "@cloudflare/workerd-darwin-arm64@npm:1.20250507.0"
+"@cloudflare/workerd-darwin-arm64@npm:1.20250508.0":
+  version: 1.20250508.0
+  resolution: "@cloudflare/workerd-darwin-arm64@npm:1.20250508.0"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@cloudflare/workerd-linux-64@npm:1.20250507.0":
-  version: 1.20250507.0
-  resolution: "@cloudflare/workerd-linux-64@npm:1.20250507.0"
+"@cloudflare/workerd-linux-64@npm:1.20250508.0":
+  version: 1.20250508.0
+  resolution: "@cloudflare/workerd-linux-64@npm:1.20250508.0"
   conditions: os=linux & cpu=x64
   languageName: node
   linkType: hard
 
-"@cloudflare/workerd-linux-arm64@npm:1.20250507.0":
-  version: 1.20250507.0
-  resolution: "@cloudflare/workerd-linux-arm64@npm:1.20250507.0"
+"@cloudflare/workerd-linux-arm64@npm:1.20250508.0":
+  version: 1.20250508.0
+  resolution: "@cloudflare/workerd-linux-arm64@npm:1.20250508.0"
   conditions: os=linux & cpu=arm64
   languageName: node
   linkType: hard
 
-"@cloudflare/workerd-windows-64@npm:1.20250507.0":
-  version: 1.20250507.0
-  resolution: "@cloudflare/workerd-windows-64@npm:1.20250507.0"
+"@cloudflare/workerd-windows-64@npm:1.20250508.0":
+  version: 1.20250508.0
+  resolution: "@cloudflare/workerd-windows-64@npm:1.20250508.0"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -2934,20 +2934,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/adapter-d1@npm:^6.7.0":
-  version: 6.7.0
-  resolution: "@prisma/adapter-d1@npm:6.7.0"
+"@prisma/adapter-d1@npm:^6.8.2":
+  version: 6.8.2
+  resolution: "@prisma/adapter-d1@npm:6.8.2"
   dependencies:
     "@cloudflare/workers-types": 4.20250214.0
-    "@prisma/driver-adapter-utils": 6.7.0
+    "@prisma/driver-adapter-utils": 6.8.2
     ky: 1.7.5
-  checksum: c72f16c7ea1b30e1c95659d7e7daa8e216ea3ef877ebc331755db9b5fae805816feacfa87a1acf53880b3b692ded320a292440c874672227ce87c630fdb09aee
+  checksum: 27493e6411e459e2dd26027cf724601174ad1213a69e1d5507d231a010a48642c45288cf6f72c0de9fa0cadb90f0afd64b092310c95009ce11eea2ebee67f91d
   languageName: node
   linkType: hard
 
-"@prisma/client@npm:^6.7.0":
-  version: 6.7.0
-  resolution: "@prisma/client@npm:6.7.0"
+"@prisma/client@npm:^6.8.2":
+  version: 6.8.2
+  resolution: "@prisma/client@npm:6.8.2"
   peerDependencies:
     prisma: "*"
     typescript: ">=5.1.0"
@@ -2956,72 +2956,71 @@ __metadata:
       optional: true
     typescript:
       optional: true
-  checksum: 8fd73c211482a63aa90af073e94ab523978e3524d9c1417197712b49ff02ec035622a83108e96b81214746bc9fd40a2daac52332dd013bdc26b834a8bb3ca74e
+  checksum: e6acce8c93818a921b6db650bcca9df7c18965a32c697ed6b112705a28b926bcfa15fed4178c365251709b5f92625ef42c92096a60017a79a0e34b7c0e68131d
   languageName: node
   linkType: hard
 
-"@prisma/config@npm:6.7.0":
-  version: 6.7.0
-  resolution: "@prisma/config@npm:6.7.0"
+"@prisma/config@npm:6.8.2":
+  version: 6.8.2
+  resolution: "@prisma/config@npm:6.8.2"
   dependencies:
-    esbuild: ">=0.12 <1"
-    esbuild-register: 3.6.0
-  checksum: 90271dfcc758c1260a7bd8145297c7e9e0579cf85a27251b71f08af6b844cd89326ff4088264ea47e6689a1b2b3ed2d20fc93d7fc94d1728c582143de876f623
+    jiti: 2.4.2
+  checksum: 3f7f8ce13497b1c8f9e07c5fa926ae640868291fcd79e0a6305317a97a054dae74b9a6245362ad877e0de539b61ea845ddf6e8e1a60a9acbf8d914369733ceef
   languageName: node
   linkType: hard
 
-"@prisma/debug@npm:6.7.0":
-  version: 6.7.0
-  resolution: "@prisma/debug@npm:6.7.0"
-  checksum: a4c58deccb86f76a2fb3d0316669f11bcccfd02224e88930a4ef5b6e7aa54953ede822152c7c482acc545d95a5270541a470a0db1b5caf86ace2b0c966d5a66d
+"@prisma/debug@npm:6.8.2":
+  version: 6.8.2
+  resolution: "@prisma/debug@npm:6.8.2"
+  checksum: 274db4b48408e31eeb6f1b84da0ad47b978ede3522340a8b275d74a4b9d63a8ae0d8b2397cf3ce64b0bfb8fed0b2360d3cd9ce7b991f4bb2acc398690208f20e
   languageName: node
   linkType: hard
 
-"@prisma/driver-adapter-utils@npm:6.7.0":
-  version: 6.7.0
-  resolution: "@prisma/driver-adapter-utils@npm:6.7.0"
+"@prisma/driver-adapter-utils@npm:6.8.2":
+  version: 6.8.2
+  resolution: "@prisma/driver-adapter-utils@npm:6.8.2"
   dependencies:
-    "@prisma/debug": 6.7.0
-  checksum: 5118020674bc632d299d344583c8d4eb399635c2ba2b2a3a26e6dbfac5b9cec56d47c31547e657ec0a76f43097e8c8bc99a8764f0c3d26a65243ae6da791946a
+    "@prisma/debug": 6.8.2
+  checksum: 190b09c5b1c542ac341bcb205f73b003eeccb6319ff0a754f0daaa61b4ded023985bc6409d00db92c024864e9312ffc0b1e66487d1db7d18801720a265dca73b
   languageName: node
   linkType: hard
 
-"@prisma/engines-version@npm:6.7.0-36.3cff47a7f5d65c3ea74883f1d736e41d68ce91ed":
-  version: 6.7.0-36.3cff47a7f5d65c3ea74883f1d736e41d68ce91ed
-  resolution: "@prisma/engines-version@npm:6.7.0-36.3cff47a7f5d65c3ea74883f1d736e41d68ce91ed"
-  checksum: 15335651b3467efe81fce39b4aee4bd6bbdfda7afec66027521400682bc72d5c62b3b5cfedabba89cb44f5865116375ea6520d0b7d57dcba646be20d7d74ae2a
+"@prisma/engines-version@npm:6.8.0-43.2060c79ba17c6bb9f5823312b6f6b7f4a845738e":
+  version: 6.8.0-43.2060c79ba17c6bb9f5823312b6f6b7f4a845738e
+  resolution: "@prisma/engines-version@npm:6.8.0-43.2060c79ba17c6bb9f5823312b6f6b7f4a845738e"
+  checksum: b6015cf43ffccc7403f4b432327a3640bb067eb4a9e93cbe64b14924d58e11ac1e0b2d359482f53303ff2f06bb92276c625ad77268f1c6eab8af2c98d8301d05
   languageName: node
   linkType: hard
 
-"@prisma/engines@npm:6.7.0":
-  version: 6.7.0
-  resolution: "@prisma/engines@npm:6.7.0"
+"@prisma/engines@npm:6.8.2":
+  version: 6.8.2
+  resolution: "@prisma/engines@npm:6.8.2"
   dependencies:
-    "@prisma/debug": 6.7.0
-    "@prisma/engines-version": 6.7.0-36.3cff47a7f5d65c3ea74883f1d736e41d68ce91ed
-    "@prisma/fetch-engine": 6.7.0
-    "@prisma/get-platform": 6.7.0
-  checksum: eea91d9de4bf683f7dd528aa644cfb0e6be507726e6f3c6b0995850b1e7ce1f6ae7c748b4ddbc91431d581c9ea043f1ba35c75598880679c095241cff707cbf5
+    "@prisma/debug": 6.8.2
+    "@prisma/engines-version": 6.8.0-43.2060c79ba17c6bb9f5823312b6f6b7f4a845738e
+    "@prisma/fetch-engine": 6.8.2
+    "@prisma/get-platform": 6.8.2
+  checksum: 12e18b7ee7ae230a325b750a144c50a7b1eb916c071ce9a54f6496face96a0b018ca52b1baa7ee343808e9530275cc3d48010d2a61532ff54b2d056e5e2a3e13
   languageName: node
   linkType: hard
 
-"@prisma/fetch-engine@npm:6.7.0":
-  version: 6.7.0
-  resolution: "@prisma/fetch-engine@npm:6.7.0"
+"@prisma/fetch-engine@npm:6.8.2":
+  version: 6.8.2
+  resolution: "@prisma/fetch-engine@npm:6.8.2"
   dependencies:
-    "@prisma/debug": 6.7.0
-    "@prisma/engines-version": 6.7.0-36.3cff47a7f5d65c3ea74883f1d736e41d68ce91ed
-    "@prisma/get-platform": 6.7.0
-  checksum: 5eacd086bdeb53706f673788ce506db9c3cea84f3113742466cdae29badcb5b0feacd12943b1a0fc47df8eb2b17a9aceaacfefecaed0f3ae7fa195063c861aeb
+    "@prisma/debug": 6.8.2
+    "@prisma/engines-version": 6.8.0-43.2060c79ba17c6bb9f5823312b6f6b7f4a845738e
+    "@prisma/get-platform": 6.8.2
+  checksum: 69a259a1d690d59ea7bcfaf951f22388728e86a42769ed2401831a25cf7c09b6acbe63d9c37a21f960d5ba38fe4ff7d8370f55601c238d7a58baade59136bc7e
   languageName: node
   linkType: hard
 
-"@prisma/get-platform@npm:6.7.0":
-  version: 6.7.0
-  resolution: "@prisma/get-platform@npm:6.7.0"
+"@prisma/get-platform@npm:6.8.2":
+  version: 6.8.2
+  resolution: "@prisma/get-platform@npm:6.8.2"
   dependencies:
-    "@prisma/debug": 6.7.0
-  checksum: 40abbccacca4ee2e20e15b6660b1058104bcf08b482b721b5125433a146c1d68ba83011e9b36eb98a71cc09b22a35e90ba971e49e4562a3d88ec02f4f6aba848
+    "@prisma/debug": 6.8.2
+  checksum: 991b8c969b012bceb2a9f34223b28ec87b24495689910c6a99d41c6fa9f7cf77ae21c8763b843fe6439099944d1f4e759dade204997b5c0dea7a5b0299999815
   languageName: node
   linkType: hard
 
@@ -5517,8 +5516,8 @@ __metadata:
     "@hookform/resolvers": ^5.0.1
     "@next/eslint-plugin-next": ^15.3.1
     "@opennextjs/cloudflare": ^1.0.2
-    "@prisma/adapter-d1": ^6.7.0
-    "@prisma/client": ^6.7.0
+    "@prisma/adapter-d1": ^6.8.2
+    "@prisma/client": ^6.8.2
     "@radix-ui/react-checkbox": ^1.0.4
     "@radix-ui/react-label": ^2.1.4
     "@radix-ui/react-radio-group": ^1.3.4
@@ -5538,7 +5537,7 @@ __metadata:
     next: 15.3.1
     prettier: ^3.2.5
     prettier-plugin-tailwindcss: ^0.5.12
-    prisma: ^6.7.0
+    prisma: ^6.8.2
     react: ^18.2.0
     react-dom: ^18.2.0
     react-hook-form: ^7.56.1
@@ -5547,7 +5546,7 @@ __metadata:
     tailwindcss: ^4
     tslib: ^2.6.2
     typescript: ^5
-    wrangler: ^4.13.0
+    wrangler: ^4.15.2
     zod: ^3.24.3
   languageName: unknown
   linkType: soft
@@ -6229,17 +6228,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild-register@npm:3.6.0":
-  version: 3.6.0
-  resolution: "esbuild-register@npm:3.6.0"
-  dependencies:
-    debug: ^4.3.4
-  peerDependencies:
-    esbuild: ">=0.12 <1"
-  checksum: 9221e26dde3366398a43183b600d8e9252b8003516cd766983a06c321eb07cf1b6b236948a21e4d1728c17a341c0fa52b49409c951d89fc7bf65d07d43c31a05
-  languageName: node
-  linkType: hard
-
 "esbuild@npm:0.19.2":
   version: 0.19.2
   resolution: "esbuild@npm:0.19.2"
@@ -6317,7 +6305,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild@npm:0.25.4, esbuild@npm:>=0.12 <1":
+"esbuild@npm:0.25.4":
   version: 0.25.4
   resolution: "esbuild@npm:0.25.4"
   dependencies:
@@ -7092,7 +7080,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fsevents@npm:2.3.3, fsevents@npm:~2.3.2":
+"fsevents@npm:~2.3.2":
   version: 2.3.3
   resolution: "fsevents@npm:2.3.3"
   dependencies:
@@ -7102,7 +7090,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fsevents@patch:fsevents@2.3.3#~builtin<compat/fsevents>, fsevents@patch:fsevents@~2.3.2#~builtin<compat/fsevents>":
+"fsevents@patch:fsevents@~2.3.2#~builtin<compat/fsevents>":
   version: 2.3.3
   resolution: "fsevents@patch:fsevents@npm%3A2.3.3#~builtin<compat/fsevents>::version=2.3.3&hash=df0bf1"
   dependencies:
@@ -7858,7 +7846,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jiti@npm:^2.4.2":
+"jiti@npm:2.4.2, jiti@npm:^2.4.2":
   version: 2.4.2
   resolution: "jiti@npm:2.4.2"
   bin:
@@ -8257,9 +8245,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"miniflare@npm:4.20250507.0":
-  version: 4.20250507.0
-  resolution: "miniflare@npm:4.20250507.0"
+"miniflare@npm:4.20250508.2":
+  version: 4.20250508.2
+  resolution: "miniflare@npm:4.20250508.2"
   dependencies:
     "@cspotcode/source-map-support": 0.8.1
     acorn: 8.14.0
@@ -8268,13 +8256,13 @@ __metadata:
     glob-to-regexp: 0.4.1
     stoppable: 1.1.0
     undici: ^5.28.5
-    workerd: 1.20250507.0
+    workerd: 1.20250508.0
     ws: 8.18.0
     youch: 3.3.4
     zod: 3.22.3
   bin:
     miniflare: bootstrap.js
-  checksum: a50cfcf68da3b4541b7a5a5f1ecda5174c8b8f586ee610fd2d6fa9b72849c4c36b8f705a8fda6fb7382600cc1fc860d1daa5399e7d289205f84323398d2f8544
+  checksum: e17485e9a801fea467787e790c9613dcfee70cf955b14a110ad599df15cdb398479598be50f11133bb95a1edb324bfd5dda56a440aee9cd11af9f3ca0a3ed995
   languageName: node
   linkType: hard
 
@@ -8987,24 +8975,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prisma@npm:^6.7.0":
-  version: 6.7.0
-  resolution: "prisma@npm:6.7.0"
+"prisma@npm:^6.8.2":
+  version: 6.8.2
+  resolution: "prisma@npm:6.8.2"
   dependencies:
-    "@prisma/config": 6.7.0
-    "@prisma/engines": 6.7.0
-    fsevents: 2.3.3
+    "@prisma/config": 6.8.2
+    "@prisma/engines": 6.8.2
   peerDependencies:
     typescript: ">=5.1.0"
-  dependenciesMeta:
-    fsevents:
-      optional: true
   peerDependenciesMeta:
     typescript:
       optional: true
   bin:
     prisma: build/index.js
-  checksum: 1ee7fb8ce0a4d3c18465070a9854d15f28a192cb546eef359e88824c0c37b3e2998f63f28d779a1b0dc8e6d7d19099e8b47207f9e71c926b8921745ccab3577b
+  checksum: 85f2ed260d7bcf883f2b47c44b827b38f2bed83759867855b44ea7b5bcfe9818ac04c95be8b10a112b2153f400d4d13110f10b914e125637fabf4dacda2a8bcb
   languageName: node
   linkType: hard
 
@@ -10576,15 +10560,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"workerd@npm:1.20250507.0":
-  version: 1.20250507.0
-  resolution: "workerd@npm:1.20250507.0"
+"workerd@npm:1.20250508.0":
+  version: 1.20250508.0
+  resolution: "workerd@npm:1.20250508.0"
   dependencies:
-    "@cloudflare/workerd-darwin-64": 1.20250507.0
-    "@cloudflare/workerd-darwin-arm64": 1.20250507.0
-    "@cloudflare/workerd-linux-64": 1.20250507.0
-    "@cloudflare/workerd-linux-arm64": 1.20250507.0
-    "@cloudflare/workerd-windows-64": 1.20250507.0
+    "@cloudflare/workerd-darwin-64": 1.20250508.0
+    "@cloudflare/workerd-darwin-arm64": 1.20250508.0
+    "@cloudflare/workerd-linux-64": 1.20250508.0
+    "@cloudflare/workerd-linux-arm64": 1.20250508.0
+    "@cloudflare/workerd-windows-64": 1.20250508.0
   dependenciesMeta:
     "@cloudflare/workerd-darwin-64":
       optional: true
@@ -10598,26 +10582,26 @@ __metadata:
       optional: true
   bin:
     workerd: bin/workerd
-  checksum: 4e1bf1ccc4f0e60e1713611a2b7248043c8423ff1faebcefe5386b1c8a3ddc8742c96bd305631221b05fb10c454189fed435f753a361703be7c03cf656df0734
+  checksum: ce4766175bd36b083d65bf5e52bd3114eaf904d95bedb4e2f6f0a76574162c7d0b350975f16be52bcf4c29224eb29f7df1b9653d33a74bebe9f649ac394de06a
   languageName: node
   linkType: hard
 
-"wrangler@npm:^4.13.0":
-  version: 4.14.4
-  resolution: "wrangler@npm:4.14.4"
+"wrangler@npm:^4.15.2":
+  version: 4.15.2
+  resolution: "wrangler@npm:4.15.2"
   dependencies:
     "@cloudflare/kv-asset-handler": 0.4.0
     "@cloudflare/unenv-preset": 2.3.1
     blake3-wasm: 2.1.5
     esbuild: 0.25.4
     fsevents: ~2.3.2
-    miniflare: 4.20250507.0
+    miniflare: 4.20250508.2
     path-to-regexp: 6.3.0
     sharp: ^0.33.5
     unenv: 2.0.0-rc.15
-    workerd: 1.20250507.0
+    workerd: 1.20250508.0
   peerDependencies:
-    "@cloudflare/workers-types": ^4.20250507.0
+    "@cloudflare/workers-types": ^4.20250508.0
   dependenciesMeta:
     fsevents:
       optional: true
@@ -10629,7 +10613,7 @@ __metadata:
   bin:
     wrangler: bin/wrangler.js
     wrangler2: bin/wrangler.js
-  checksum: 65909632a848cb301daaa3a92992c5bd343d44564442e702497c0ac7aeb8b0177a475db80491030797dd51c9c4cbe2259775f60db4de1939c4deb19ae9382550
+  checksum: 0b0af30f68bdd91c0aed71d05dd6fec51ada507e0b60f1253ab2e1a9621dc0b083529687eef4260388f2dad0bfb1ba85e78ebcee817b4356d2f33fb5d37a6588
   languageName: node
   linkType: hard
 

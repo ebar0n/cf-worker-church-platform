@@ -5,10 +5,10 @@ import Link from 'next/link';
 
 export default function AdminLayout({
   children,
-  adminName,
+  adminEmail,
 }: {
   children: React.ReactNode;
-  adminName?: string;
+  adminEmail: string;
 }) {
   const pathname = usePathname();
 
@@ -26,7 +26,7 @@ export default function AdminLayout({
       <header className="fixed left-0 top-0 z-40 flex h-20 w-full items-center bg-[#4b207f] px-8 shadow-md">
         <div className="flex flex-1 items-center gap-4">
           <span className="text-2xl font-bold tracking-tight text-white">Admin Dashboard</span>
-          {adminName && <span className="ml-6 text-lg text-white/80">Hola, {adminName}</span>}
+          {adminEmail && <span className="ml-6 text-lg text-white/80">Hola, {adminEmail}</span>}
         </div>
       </header>
       <div className="mx-auto flex max-w-7xl pt-20">
