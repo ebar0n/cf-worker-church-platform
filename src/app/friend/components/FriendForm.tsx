@@ -7,6 +7,7 @@ const initialState = {
   phone: '',
   address: '',
   reason: '',
+  privacyPolicy: false,
 };
 
 export default function FriendForm() {
@@ -16,11 +17,16 @@ export default function FriendForm() {
   const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const value = e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
+    setForm({ ...form, [e.target.name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.privacyPolicy) {
+      setError('Debes aceptar la política de privacidad para continuar');
+      return;
+    }
     setLoading(true);
     setError(null);
     setSuccess(false);
@@ -95,6 +101,28 @@ export default function FriendForm() {
           <option value="visita">Quiero que me visiten</option>
           <option value="informacion">Quiero más información</option>
         </select>
+      </div>
+      <div className="flex items-start gap-2">
+        <input
+          type="checkbox"
+          name="privacyPolicy"
+          checked={form.privacyPolicy}
+          onChange={handleChange}
+          className="mt-1 h-4 w-4 rounded border-gray-300 text-[#4b207f] focus:ring-[#4b207f]"
+          required
+        />
+        <label className="text-sm text-gray-600">
+          Acepto la{' '}
+          <a
+            href="/privacidad"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#4b207f] underline hover:text-[#e36520]"
+          >
+            política de privacidad
+          </a>
+          . Entiendo que mis datos serán utilizados únicamente para contactarme y brindarme el servicio solicitado.
+        </label>
       </div>
       <button
         type="submit"
