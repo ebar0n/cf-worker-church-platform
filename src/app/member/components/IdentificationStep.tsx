@@ -23,12 +23,16 @@ export default function IdentificationStep({
 }: IdentificationStepProps) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col items-center w-full justify-center">
-        <label htmlFor="documentID" className="block text-center text-base font-medium text-[#5e3929] mb-1">
+      <div className="flex w-full flex-col items-center justify-center">
+        <label
+          htmlFor="documentID"
+          className="mb-1 block text-center text-base font-medium text-[#5e3929]"
+        >
           Número de documento
         </label>
-        <span className="block text-xs text-[#8c7b6b] mb-2 text-center">
-          (Ejemplo: registro civil, cédula, pasaporte o cualquier documento legal vigente que permita identificarte)
+        <span className="mb-2 block text-center text-xs text-[#8c7b6b]">
+          (Ejemplo: registro civil, cédula, pasaporte o cualquier documento legal vigente que
+          permita identificarte)
         </span>
         <input
           id="documentID"
@@ -43,11 +47,7 @@ export default function IdentificationStep({
         />
       </div>
 
-      {error && (
-        <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600">
-          {error}
-        </div>
-      )}
+      {error && <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600">{error}</div>}
 
       <div className="flex items-center justify-center gap-2">
         <input

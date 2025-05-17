@@ -24,11 +24,11 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen bg-[#f7f6f3] font-sans">
       {/* Header fijo */}
-      <header className="fixed left-0 top-0 z-40 flex h-20 w-full items-center justify-between bg-[#4b207f] px-4 md:px-8 shadow-md">
+      <header className="fixed left-0 top-0 z-40 flex h-20 w-full items-center justify-between bg-[#4b207f] px-4 shadow-md md:px-8">
         <div className="flex items-center gap-4">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden text-white p-2"
+            className="p-2 text-white md:hidden"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -45,14 +45,19 @@ export default function AdminLayout({
               />
             </svg>
           </button>
-          <Link href="/admin" className="text-xl md:text-2xl font-bold tracking-tight text-white hover:text-white/90">
+          <Link
+            href="/admin"
+            className="text-xl font-bold tracking-tight text-white hover:text-white/90 md:text-2xl"
+          >
             Admin Dashboard
           </Link>
-          {adminEmail && <span className="hidden md:inline ml-6 text-lg text-white/80">Hola, {adminEmail}</span>}
+          {adminEmail && (
+            <span className="ml-6 hidden text-lg text-white/80 md:inline">Hola, {adminEmail}</span>
+          )}
         </div>
         <Link
           href="/"
-          className="flex items-center gap-2 rounded-lg bg-white/10 px-3 md:px-4 py-2 text-white hover:bg-white/20"
+          className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-white hover:bg-white/20 md:px-4"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -74,7 +79,7 @@ export default function AdminLayout({
 
       <div className="mx-auto flex max-w-7xl pt-20">
         {/* Menú lateral - Desktop */}
-        <nav className="hidden md:block w-56 flex-shrink-0 py-8 pr-6">
+        <nav className="hidden w-56 flex-shrink-0 py-8 pr-6 md:block">
           <ul className="flex flex-col gap-2">
             {menuItems.map((item) => (
               <li key={item.path}>
@@ -98,7 +103,7 @@ export default function AdminLayout({
         {/* Menú móvil */}
         <div
           className={`fixed inset-0 z-30 bg-black/50 transition-opacity md:hidden ${
-            isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            isMobileMenuOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
           }`}
           onClick={() => setIsMobileMenuOpen(false)}
         >

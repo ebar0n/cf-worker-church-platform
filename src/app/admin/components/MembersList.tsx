@@ -33,8 +33,7 @@ export default function MembersList({ adminEmail }: MembersListProps) {
       String(m.phone).toLowerCase().includes(searchLower) ||
       m.documentID.toLowerCase().includes(searchLower);
 
-    const matchesMinistry =
-      ministryFilter === 'todos' || m.ministry === ministryFilter;
+    const matchesMinistry = ministryFilter === 'todos' || m.ministry === ministryFilter;
 
     const matchesMaritalStatus =
       maritalStatusFilter === 'todos' || m.maritalStatus === maritalStatusFilter;
@@ -87,32 +86,34 @@ export default function MembersList({ adminEmail }: MembersListProps) {
       'Dispuesto a liderar',
       'Sugerencias',
       'Fecha de registro',
-      'Última actualización'
+      'Última actualización',
     ];
     const csvContent = [
       headers.join(','),
-      ...filteredMembers.map((m) => [
-        m.id,
-        m.name,
-        m.documentID,
-        new Date(m.birthDate).toLocaleDateString(),
-        m.address,
-        m.phone,
-        m.email || '',
-        m.baptismYear || '',
-        m.ministry || '',
-        m.areasToServe || '',
-        m.educationLevel || '',
-        m.profession || '',
-        m.technicalSkills || '',
-        m.softSkills || '',
-        m.languages || '',
-        m.availability || '',
-        m.willingToLead ? 'Sí' : 'No',
-        m.suggestions || '',
-        new Date(m.createdAt).toLocaleString(),
-        new Date(m.updatedAt).toLocaleString()
-      ].join(','))
+      ...filteredMembers.map((m) =>
+        [
+          m.id,
+          m.name,
+          m.documentID,
+          new Date(m.birthDate).toLocaleDateString(),
+          m.address,
+          m.phone,
+          m.email || '',
+          m.baptismYear || '',
+          m.ministry || '',
+          m.areasToServe || '',
+          m.educationLevel || '',
+          m.profession || '',
+          m.technicalSkills || '',
+          m.softSkills || '',
+          m.languages || '',
+          m.availability || '',
+          m.willingToLead ? 'Sí' : 'No',
+          m.suggestions || '',
+          new Date(m.createdAt).toLocaleString(),
+          new Date(m.updatedAt).toLocaleString(),
+        ].join(',')
+      ),
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -132,7 +133,9 @@ export default function MembersList({ adminEmail }: MembersListProps) {
 
   return (
     <AdminLayout adminEmail={adminEmail}>
-      <h2 className="mb-6 text-2xl font-bold text-[#4b207f] text-center md:text-left">Miembros Registrados</h2>
+      <h2 className="mb-6 text-center text-2xl font-bold text-[#4b207f] md:text-left">
+        Miembros Registrados
+      </h2>
 
       {/* Search and Filters */}
       <div className="mb-4 space-y-4">
@@ -184,12 +187,7 @@ export default function MembersList({ adminEmail }: MembersListProps) {
               onClick={exportToCSV}
               className="flex h-10 items-center gap-2 rounded-lg bg-[#4b207f] px-4 py-2 text-white hover:bg-[#4b207f]/90"
             >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -255,11 +253,21 @@ export default function MembersList({ adminEmail }: MembersListProps) {
         <table className="w-full divide-y divide-gray-200 rounded-xl bg-white shadow-md">
           <thead className="bg-[#ede9f6]">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-bold text-[#4b207f] uppercase tracking-wider">Documento</th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-[#4b207f] uppercase tracking-wider">Nombre</th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-[#4b207f] uppercase tracking-wider">Teléfono</th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-[#4b207f] uppercase tracking-wider">Última actualización</th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-[#4b207f] uppercase tracking-wider">Acciones</th>
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#4b207f]">
+                Documento
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#4b207f]">
+                Nombre
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#4b207f]">
+                Teléfono
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#4b207f]">
+                Última actualización
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#4b207f]">
+                Acciones
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -276,13 +284,13 @@ export default function MembersList({ adminEmail }: MembersListProps) {
                     day: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit',
-                    hour12: true
+                    hour12: true,
                   })}
                 </td>
                 <td className="px-4 py-3">
                   <button
                     onClick={() => handleOpenDetails(m)}
-                    className="p-2 text-[#4b207f] hover:text-[#e36520] transition-colors"
+                    className="p-2 text-[#4b207f] transition-colors hover:text-[#e36520]"
                     title="Ver detalles"
                   >
                     <svg
@@ -316,12 +324,16 @@ export default function MembersList({ adminEmail }: MembersListProps) {
       <div className="flex flex-col gap-4 md:hidden">
         {paginatedMembers.map((m) => (
           <div key={m.id} className="rounded-xl border border-[#ede9f6] bg-white p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-bold text-[#4b207f] text-lg">{m.documentID}</span>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-lg font-bold text-[#4b207f]">{m.documentID}</span>
             </div>
-            <div className="text-sm mb-1"><span className="font-semibold">Nombre:</span> {m.name}</div>
-            <div className="text-sm mb-1"><span className="font-semibold">Teléfono:</span> {m.phone}</div>
-            <div className="text-sm mb-1 text-gray-500">
+            <div className="mb-1 text-sm">
+              <span className="font-semibold">Nombre:</span> {m.name}
+            </div>
+            <div className="mb-1 text-sm">
+              <span className="font-semibold">Teléfono:</span> {m.phone}
+            </div>
+            <div className="mb-1 text-sm text-gray-500">
               <span className="font-semibold">Última actualización:</span>{' '}
               {new Date(m.updatedAt).toLocaleString('es-ES', {
                 weekday: 'long',
@@ -330,13 +342,13 @@ export default function MembersList({ adminEmail }: MembersListProps) {
                 day: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',
-                hour12: true
+                hour12: true,
               })}
             </div>
             <div className="flex justify-end">
               <button
                 onClick={() => handleOpenDetails(m)}
-                className="p-2 text-[#4b207f] hover:text-[#e36520] transition-colors"
+                className="p-2 text-[#4b207f] transition-colors hover:text-[#e36520]"
                 title="Ver detalles"
               >
                 <svg
@@ -390,13 +402,10 @@ export default function MembersList({ adminEmail }: MembersListProps) {
       {/* Modal de Detalles */}
       {selectedMember && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-4xl max-h-[90vh] rounded-xl bg-white shadow-lg overflow-hidden flex flex-col">
-            <div className="p-4 md:p-6 border-b border-gray-200 flex items-center justify-between">
+          <div className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-white shadow-lg">
+            <div className="flex items-center justify-between border-b border-gray-200 p-4 md:p-6">
               <h3 className="text-xl font-bold text-[#4b207f]">Detalles del miembro</h3>
-              <button
-                onClick={handleCloseDetails}
-                className="text-gray-500 hover:text-gray-700"
-              >
+              <button onClick={handleCloseDetails} className="text-gray-500 hover:text-gray-700">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -405,15 +414,11 @@ export default function MembersList({ adminEmail }: MembersListProps) {
                   stroke="currentColor"
                   className="h-6 w-6"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <div className="overflow-y-auto flex-1 p-4 md:p-6">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6">
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {/* Información Personal */}
                 <div className="space-y-4">
@@ -428,10 +433,12 @@ export default function MembersList({ adminEmail }: MembersListProps) {
                     <span className="font-semibold">Documento:</span> {selectedMember.documentID}
                   </div>
                   <div>
-                    <span className="font-semibold">Fecha de nacimiento:</span> {new Date(selectedMember.birthDate).toLocaleDateString()}
+                    <span className="font-semibold">Fecha de nacimiento:</span>{' '}
+                    {new Date(selectedMember.birthDate).toLocaleDateString()}
                   </div>
                   <div>
-                    <span className="font-semibold">Estado civil:</span> {selectedMember.maritalStatus}
+                    <span className="font-semibold">Estado civil:</span>{' '}
+                    {selectedMember.maritalStatus}
                   </div>
                   <div>
                     <span className="font-semibold">Dirección:</span> {selectedMember.address}
@@ -440,33 +447,43 @@ export default function MembersList({ adminEmail }: MembersListProps) {
                     <span className="font-semibold">Teléfono:</span> {selectedMember.phone}
                   </div>
                   <div>
-                    <span className="font-semibold">Email:</span> {selectedMember.email || 'No especificado'}
+                    <span className="font-semibold">Email:</span>{' '}
+                    {selectedMember.email || 'No especificado'}
                   </div>
                   <div>
-                    <span className="font-semibold">Método de contacto preferido:</span> {selectedMember.preferredContactMethod || 'No especificado'}
+                    <span className="font-semibold">Método de contacto preferido:</span>{' '}
+                    {selectedMember.preferredContactMethod || 'No especificado'}
                   </div>
                 </div>
 
                 {/* Información de la Iglesia */}
                 <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-[#4b207f]">Información de la Iglesia</h4>
+                  <h4 className="text-lg font-semibold text-[#4b207f]">
+                    Información de la Iglesia
+                  </h4>
                   <div>
-                    <span className="font-semibold">Año de bautismo:</span> {selectedMember.baptismYear || 'No especificado'}
+                    <span className="font-semibold">Año de bautismo:</span>{' '}
+                    {selectedMember.baptismYear || 'No especificado'}
                   </div>
                   <div>
-                    <span className="font-semibold">Ministerio:</span> {selectedMember.ministry || 'No especificado'}
+                    <span className="font-semibold">Ministerio:</span>{' '}
+                    {selectedMember.ministry || 'No especificado'}
                   </div>
                   <div>
-                    <span className="font-semibold">Áreas para servir:</span> {selectedMember.areasToServe || 'No especificado'}
+                    <span className="font-semibold">Áreas para servir:</span>{' '}
+                    {selectedMember.areasToServe || 'No especificado'}
                   </div>
                   <div>
-                    <span className="font-semibold">Dispuesto a liderar:</span> {selectedMember.willingToLead ? 'Sí' : 'No'}
+                    <span className="font-semibold">Dispuesto a liderar:</span>{' '}
+                    {selectedMember.willingToLead ? 'Sí' : 'No'}
                   </div>
                   <div>
-                    <span className="font-semibold">Sugerencias:</span> {selectedMember.suggestions || 'No especificado'}
+                    <span className="font-semibold">Sugerencias:</span>{' '}
+                    {selectedMember.suggestions || 'No especificado'}
                   </div>
                   <div>
-                    <span className="font-semibold">Notas pastorales:</span> {selectedMember.pastoralNotes || 'No especificado'}
+                    <span className="font-semibold">Notas pastorales:</span>{' '}
+                    {selectedMember.pastoralNotes || 'No especificado'}
                   </div>
                 </div>
 
@@ -474,53 +491,68 @@ export default function MembersList({ adminEmail }: MembersListProps) {
                 <div className="space-y-4">
                   <h4 className="text-lg font-semibold text-[#4b207f]">Información Profesional</h4>
                   <div>
-                    <span className="font-semibold">Ocupación actual:</span> {selectedMember.currentOccupation || 'No especificado'}
+                    <span className="font-semibold">Ocupación actual:</span>{' '}
+                    {selectedMember.currentOccupation || 'No especificado'}
                   </div>
                   <div>
-                    <span className="font-semibold">Lugar de trabajo/estudio:</span> {selectedMember.workOrStudyPlace || 'No especificado'}
+                    <span className="font-semibold">Lugar de trabajo/estudio:</span>{' '}
+                    {selectedMember.workOrStudyPlace || 'No especificado'}
                   </div>
                   <div>
-                    <span className="font-semibold">Área profesional:</span> {selectedMember.professionalArea || 'No especificado'}
+                    <span className="font-semibold">Área profesional:</span>{' '}
+                    {selectedMember.professionalArea || 'No especificado'}
                   </div>
                   <div>
-                    <span className="font-semibold">Nivel de educación:</span> {selectedMember.educationLevel || 'No especificado'}
+                    <span className="font-semibold">Nivel de educación:</span>{' '}
+                    {selectedMember.educationLevel || 'No especificado'}
                   </div>
                   <div>
-                    <span className="font-semibold">Profesión:</span> {selectedMember.profession || 'No especificado'}
+                    <span className="font-semibold">Profesión:</span>{' '}
+                    {selectedMember.profession || 'No especificado'}
                   </div>
                   <div>
-                    <span className="font-semibold">Experiencia laboral:</span> {selectedMember.workExperience || 'No especificado'}
+                    <span className="font-semibold">Experiencia laboral:</span>{' '}
+                    {selectedMember.workExperience || 'No especificado'}
                   </div>
                 </div>
 
                 {/* Habilidades y Disponibilidad */}
                 <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-[#4b207f]">Habilidades y Disponibilidad</h4>
+                  <h4 className="text-lg font-semibold text-[#4b207f]">
+                    Habilidades y Disponibilidad
+                  </h4>
                   <div>
-                    <span className="font-semibold">Habilidades técnicas:</span> {selectedMember.technicalSkills || 'No especificado'}
+                    <span className="font-semibold">Habilidades técnicas:</span>{' '}
+                    {selectedMember.technicalSkills || 'No especificado'}
                   </div>
                   <div>
-                    <span className="font-semibold">Habilidades blandas:</span> {selectedMember.softSkills || 'No especificado'}
+                    <span className="font-semibold">Habilidades blandas:</span>{' '}
+                    {selectedMember.softSkills || 'No especificado'}
                   </div>
                   <div>
-                    <span className="font-semibold">Idiomas:</span> {selectedMember.languages || 'No especificado'}
+                    <span className="font-semibold">Idiomas:</span>{' '}
+                    {selectedMember.languages || 'No especificado'}
                   </div>
                   <div>
-                    <span className="font-semibold">Disponibilidad:</span> {selectedMember.volunteeringAvailability || 'No especificado'}
+                    <span className="font-semibold">Disponibilidad:</span>{' '}
+                    {selectedMember.volunteeringAvailability || 'No especificado'}
                   </div>
                   <div>
-                    <span className="font-semibold">Condiciones médicas:</span> {selectedMember.medicalConditions || 'No especificado'}
+                    <span className="font-semibold">Condiciones médicas:</span>{' '}
+                    {selectedMember.medicalConditions || 'No especificado'}
                   </div>
                   <div>
-                    <span className="font-semibold">Necesidades especiales:</span> {selectedMember.specialNeeds || 'No especificado'}
+                    <span className="font-semibold">Necesidades especiales:</span>{' '}
+                    {selectedMember.specialNeeds || 'No especificado'}
                   </div>
                   <div>
-                    <span className="font-semibold">Intereses y pasatiempos:</span> {selectedMember.interestsHobbies || 'No especificado'}
+                    <span className="font-semibold">Intereses y pasatiempos:</span>{' '}
+                    {selectedMember.interestsHobbies || 'No especificado'}
                   </div>
                 </div>
               </div>
 
-              <div className="mt-6 flex flex-col md:flex-row md:justify-between text-sm text-gray-500 gap-2">
+              <div className="mt-6 flex flex-col gap-2 text-sm text-gray-500 md:flex-row md:justify-between">
                 <div>
                   <span className="font-semibold">Fecha de registro:</span>{' '}
                   {new Date(selectedMember.createdAt).toLocaleString('es-ES', {
@@ -530,7 +562,7 @@ export default function MembersList({ adminEmail }: MembersListProps) {
                     day: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit',
-                    hour12: true
+                    hour12: true,
                   })}
                 </div>
                 <div>
@@ -542,13 +574,13 @@ export default function MembersList({ adminEmail }: MembersListProps) {
                     day: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit',
-                    hour12: true
+                    hour12: true,
                   })}
                 </div>
               </div>
             </div>
 
-            <div className="p-4 md:p-6 border-t border-gray-200 flex justify-end">
+            <div className="flex justify-end border-t border-gray-200 p-4 md:p-6">
               <button
                 onClick={handleCloseDetails}
                 className="rounded-lg bg-[#4b207f] px-4 py-2 text-white hover:bg-[#4b207f]/90"

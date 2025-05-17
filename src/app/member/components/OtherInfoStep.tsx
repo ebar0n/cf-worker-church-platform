@@ -5,7 +5,9 @@ interface OtherInfoStepProps {
     interestsHobbies: string;
     volunteeringAvailability: string;
   };
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+  onChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => void;
   onSubmit: (e: React.FormEvent) => void;
   onPrev: () => void;
   submitting: boolean;
@@ -44,12 +46,8 @@ export default function OtherInfoStep({
         onBlur={onBlur}
         className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#4b207f]"
       />
-      <div className="flex justify-between mt-4">
-        <button
-          type="button"
-          onClick={onPrev}
-          className="text-[#4b207f] underline"
-        >
+      <div className="mt-4 flex justify-between">
+        <button type="button" onClick={onPrev} className="text-[#4b207f] underline">
           Atrás
         </button>
         <button
@@ -63,8 +61,8 @@ export default function OtherInfoStep({
               ? 'Actualizando...'
               : 'Registrando...'
             : isExisting
-            ? 'Actualizar mis datos'
-            : 'Registrarme'}
+              ? 'Actualizar mis datos'
+              : 'Registrarme'}
         </button>
       </div>
       {success && <div className="mt-2 text-green-600">{success}</div>}

@@ -5,14 +5,10 @@ export async function GET() {
   const { env } = await getCloudflareContext({ async: true });
 
   // Get friend requests
-  const friendRequests = await env.DB.prepare(
-    'SELECT * FROM FriendRequest'
-  ).all();
+  const friendRequests = await env.DB.prepare('SELECT * FROM FriendRequest').all();
 
   // Get members
-  const members = await env.DB.prepare(
-    'SELECT * FROM Member'
-  ).all();
+  const members = await env.DB.prepare('SELECT * FROM Member').all();
 
   // Agrupar solicitudes por tipo
   const requestTypes = ['oracion', 'visita', 'informacion'];

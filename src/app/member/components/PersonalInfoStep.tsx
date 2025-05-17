@@ -10,7 +10,9 @@ interface PersonalInfoStepProps {
     email: string;
     preferredContactMethod: string;
   };
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+  onChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => void;
   onNext: () => void;
   onPrev: () => void;
   onBlur: () => void;

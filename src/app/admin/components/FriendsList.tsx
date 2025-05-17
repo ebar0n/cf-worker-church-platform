@@ -27,7 +27,7 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
   }, []);
 
   const toggleReadStatus = async (id: string) => {
-    const friend = friends.find(f => f.id === id);
+    const friend = friends.find((f) => f.id === id);
     if (!friend) return;
 
     await fetch(`/api/admin/friends/${id}/read`, {
@@ -35,22 +35,18 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ isRead: !friend.isRead })
+      body: JSON.stringify({ isRead: !friend.isRead }),
     });
 
-    setFriends((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, isRead: !f.isRead } : f))
-    );
+    setFriends((prev) => prev.map((f) => (f.id === id ? { ...f, isRead: !f.isRead } : f)));
   };
 
   const filteredFriends = friends.filter((f) => {
     const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
-      f.name.toLowerCase().includes(searchLower) ||
-      f.phone.toLowerCase().includes(searchLower);
+      f.name.toLowerCase().includes(searchLower) || f.phone.toLowerCase().includes(searchLower);
 
-    const matchesRequestType =
-      requestType === 'todos' || f.reason === requestType;
+    const matchesRequestType = requestType === 'todos' || f.reason === requestType;
 
     const matchesReadStatus =
       readStatus === 'todos' ||
@@ -88,36 +84,38 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
       'Tipo de solicitud',
       'Estado',
       'Fecha de creación',
-      'Última actualización'
+      'Última actualización',
     ];
     const csvContent = [
       headers.join(','),
-      ...filteredFriends.map((f) => [
-        f.id,
-        f.name,
-        f.phone,
-        f.address || '',
-        f.reason,
-        f.isRead ? 'Leído' : 'No leído',
-        new Date(f.createdAt).toLocaleString('es-ES', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
-        }),
-        new Date(f.updatedAt).toLocaleString('es-ES', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
-        })
-      ].join(','))
+      ...filteredFriends.map((f) =>
+        [
+          f.id,
+          f.name,
+          f.phone,
+          f.address || '',
+          f.reason,
+          f.isRead ? 'Leído' : 'No leído',
+          new Date(f.createdAt).toLocaleString('es-ES', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+          }),
+          new Date(f.updatedAt).toLocaleString('es-ES', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+          }),
+        ].join(',')
+      ),
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -137,7 +135,9 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
 
   return (
     <AdminLayout adminEmail={adminEmail}>
-      <h2 className="mb-6 text-2xl font-bold text-[#4b207f] text-center md:text-left">Solicitudes registradas</h2>
+      <h2 className="mb-6 text-center text-2xl font-bold text-[#4b207f] md:text-left">
+        Solicitudes registradas
+      </h2>
 
       {/* Search and Filters */}
       <div className="mb-4 space-y-4">
@@ -189,12 +189,7 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
               onClick={exportToCSV}
               className="flex h-10 items-center gap-2 rounded-lg bg-[#4b207f] px-4 py-2 text-white hover:bg-[#4b207f]/90"
             >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -232,9 +227,7 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Estado
-                  </label>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">Estado</label>
                   <select
                     value={readStatus}
                     onChange={(e) => {
@@ -259,36 +252,45 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
         <table className="w-full divide-y divide-gray-200 rounded-xl bg-white shadow-md">
           <thead className="bg-[#ede9f6]">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-bold text-[#4b207f] uppercase tracking-wider">Nombre</th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-[#4b207f] uppercase tracking-wider">Teléfono</th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-[#4b207f] uppercase tracking-wider">Fecha de registro</th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-[#4b207f] uppercase tracking-wider">Tipo de solicitud</th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-[#4b207f] uppercase tracking-wider">Acciones</th>
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#4b207f]">
+                Nombre
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#4b207f]">
+                Teléfono
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#4b207f]">
+                Fecha de registro
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#4b207f]">
+                Tipo de solicitud
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#4b207f]">
+                Acciones
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {paginatedFriends.map((f) => (
-              <tr
-                key={f.id}
-                className={`hover:bg-gray-50 ${!f.isRead ? 'bg-[#f5f0ff]' : ''}`}
-              >
+              <tr key={f.id} className={`hover:bg-gray-50 ${!f.isRead ? 'bg-[#f5f0ff]' : ''}`}>
                 <td className="px-4 py-3 font-medium text-[#4b207f]">{f.name}</td>
                 <td className="px-4 py-3">{f.phone}</td>
-                <td className="px-4 py-3">{new Date(f.createdAt).toLocaleString('es-ES', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: true
-                })}</td>
+                <td className="px-4 py-3">
+                  {new Date(f.createdAt).toLocaleString('es-ES', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true,
+                  })}
+                </td>
                 <td className="px-4 py-3 capitalize">{f.reason}</td>
                 <td className="px-4 py-3">
                   <div className="flex gap-3">
                     <button
                       onClick={() => handleOpenDetails(f)}
-                      className="p-2 text-[#4b207f] hover:text-[#e36520] transition-colors"
+                      className="p-2 text-[#4b207f] transition-colors hover:text-[#e36520]"
                       title="Ver detalles"
                     >
                       <svg
@@ -354,28 +356,35 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
                 : 'border-[#ede9f6] bg-white shadow-sm'
             } p-4`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-bold text-[#4b207f] text-lg">{f.name}</span>
-              <span className={`text-xs px-2 py-1 rounded ${
-                !f.isRead
-                  ? 'bg-[#e6e0ff] text-[#4b207f]'
-                  : 'bg-[#ede9f6] text-[#4b207f]'
-              }`}>{f.reason}</span>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-lg font-bold text-[#4b207f]">{f.name}</span>
+              <span
+                className={`rounded px-2 py-1 text-xs ${
+                  !f.isRead ? 'bg-[#e6e0ff] text-[#4b207f]' : 'bg-[#ede9f6] text-[#4b207f]'
+                }`}
+              >
+                {f.reason}
+              </span>
             </div>
-            <div className="text-sm mb-1"><span className="font-semibold">Teléfono:</span> {f.phone}</div>
-            <div className="text-sm mb-1"><span className="font-semibold">Fecha:</span> {new Date(f.createdAt).toLocaleString('es-ES', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: true
-            })}</div>
+            <div className="mb-1 text-sm">
+              <span className="font-semibold">Teléfono:</span> {f.phone}
+            </div>
+            <div className="mb-1 text-sm">
+              <span className="font-semibold">Fecha:</span>{' '}
+              {new Date(f.createdAt).toLocaleString('es-ES', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+              })}
+            </div>
             <div className="flex gap-3">
               <button
                 onClick={() => handleOpenDetails(f)}
-                className="p-2 text-[#4b207f] hover:text-[#e36520] transition-colors"
+                className="p-2 text-[#4b207f] transition-colors hover:text-[#e36520]"
                 title="Ver detalles"
               >
                 <svg
@@ -456,10 +465,7 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
           <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-lg">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-xl font-bold text-[#4b207f]">Detalles de la solicitud</h3>
-              <button
-                onClick={handleCloseDetails}
-                className="text-gray-500 hover:text-gray-700"
-              >
+              <button onClick={handleCloseDetails} className="text-gray-500 hover:text-gray-700">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -468,11 +474,7 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
                   stroke="currentColor"
                   className="h-6 w-6"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
@@ -507,7 +509,7 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
                   day: 'numeric',
                   hour: '2-digit',
                   minute: '2-digit',
-                  hour12: true
+                  hour12: true,
                 })}
               </div>
               <div>
@@ -519,7 +521,7 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
                   day: 'numeric',
                   hour: '2-digit',
                   minute: '2-digit',
-                  hour12: true
+                  hour12: true,
                 })}
               </div>
             </div>

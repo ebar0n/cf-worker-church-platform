@@ -16,14 +16,30 @@ export default async function Home() {
       <div className="bg-[#f5f0ff] py-8">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-[#4b207f] mb-4">¿Eres miembro de nuestra iglesia?</h2>
-            <p className="text-gray-600 mb-6">Mantén tus datos actualizados para estar al día con nuestras actividades y ministerios.</p>
+            <h2 className="mb-4 text-2xl font-bold text-[#4b207f]">
+              ¿Eres miembro de nuestra iglesia?
+            </h2>
+            <p className="mb-6 text-gray-600">
+              Mantén tus datos actualizados para estar al día con nuestras actividades y
+              ministerios.
+            </p>
             <Link
               href="/member"
-              className="inline-flex items-center gap-2 rounded-lg bg-[#4b207f] px-6 py-3 text-white hover:bg-[#4b207f]/90 transition-colors"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#4b207f] px-6 py-3 text-white transition-colors hover:bg-[#4b207f]/90"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="h-5 w-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                />
               </svg>
               Actualizar mis datos
             </Link>

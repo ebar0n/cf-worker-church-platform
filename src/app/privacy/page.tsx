@@ -17,17 +17,25 @@ export default function PrivacyPolicy() {
                 1. Información que Recopilamos
               </h2>
               <p className="mt-4 text-gray-700">
-                En cumplimiento de la normativa vigente en materia de protección de datos personales, le informamos que la información proporcionada a través de nuestros formularios será incorporada a nuestros sistemas de información. La recopilación de datos se realiza con el propósito de mantener una relación pastoral efectiva y brindar los servicios solicitados.
+                En cumplimiento de la normativa vigente en materia de protección de datos
+                personales, le informamos que la información proporcionada a través de nuestros
+                formularios será incorporada a nuestros sistemas de información. La recopilación de
+                datos se realiza con el propósito de mantener una relación pastoral efectiva y
+                brindar los servicios solicitados.
               </p>
               <p className="mt-4 text-gray-700">
-                La información recopilada será la estrictamente necesaria para el cumplimiento de los fines establecidos en esta política.
+                La información recopilada será la estrictamente necesaria para el cumplimiento de
+                los fines establecidos en esta política.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-[#4b207f]">2. Finalidad del Tratamiento</h2>
+              <h2 className="text-2xl font-semibold text-[#4b207f]">
+                2. Finalidad del Tratamiento
+              </h2>
               <p className="mt-4 text-gray-700">
-                Los datos personales proporcionados serán utilizados para las siguientes finalidades:
+                Los datos personales proporcionados serán utilizados para las siguientes
+                finalidades:
               </p>
               <ul className="mt-2 list-disc pl-6 text-gray-700">
                 <li>Gestión administrativa y pastoral de la membresía</li>
@@ -51,11 +59,15 @@ export default function PrivacyPolicy() {
                 4. Compartición de Información
               </h2>
               <p className="mt-4 text-gray-700">
-                La información proporcionada será tratada con absoluta confidencialidad y solo podrá ser compartida en los siguientes supuestos:
+                La información proporcionada será tratada con absoluta confidencialidad y solo podrá
+                ser compartida en los siguientes supuestos:
               </p>
               <ul className="mt-2 list-disc pl-6 text-gray-700">
                 <li>Con el equipo pastoral para el cumplimiento de sus funciones</li>
-                <li>Con líderes de ministerios específicos cuando sea necesario para el desarrollo de sus actividades</li>
+                <li>
+                  Con líderes de ministerios específicos cuando sea necesario para el desarrollo de
+                  sus actividades
+                </li>
                 <li>Cuando exista una obligación legal que así lo requiera</li>
                 <li>Con su consentimiento previo y expreso</li>
               </ul>
@@ -76,7 +88,8 @@ export default function PrivacyPolicy() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-[#4b207f]">6. Contacto</h2>
               <p className="mt-4 text-gray-700">
-                Para ejercer sus derechos o realizar consultas sobre el tratamiento de sus datos personales, puede contactarnos a través de los siguientes medios:
+                Para ejercer sus derechos o realizar consultas sobre el tratamiento de sus datos
+                personales, puede contactarnos a través de los siguientes medios:
               </p>
               <ul className="mt-2 list-disc pl-6 text-gray-700">
                 <li>Correo electrónico: jordan.jordan.asurcol@gmail.com</li>
@@ -88,14 +101,20 @@ export default function PrivacyPolicy() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-[#4b207f]">7. Modificaciones</h2>
               <p className="mt-4 text-gray-700">
-                Nos reservamos el derecho de modificar esta política de tratamiento de datos personales en cualquier momento. Las modificaciones entrarán en vigor desde su publicación en esta página. Se recomienda consultar periódicamente esta política para estar al tanto de cualquier cambio.
+                Nos reservamos el derecho de modificar esta política de tratamiento de datos
+                personales en cualquier momento. Las modificaciones entrarán en vigor desde su
+                publicación en esta página. Se recomienda consultar periódicamente esta política
+                para estar al tanto de cualquier cambio.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-semibold text-[#4b207f]">8. Consentimiento</h2>
               <p className="mt-4 text-gray-700">
-                Al proporcionar sus datos personales a través de nuestros formularios, usted manifiesta su consentimiento expreso para el tratamiento de sus datos conforme a lo establecido en esta política. Si no está de acuerdo con estos términos, le recomendamos abstenerse de proporcionar sus datos personales.
+                Al proporcionar sus datos personales a través de nuestros formularios, usted
+                manifiesta su consentimiento expreso para el tratamiento de sus datos conforme a lo
+                establecido en esta política. Si no está de acuerdo con estos términos, le
+                recomendamos abstenerse de proporcionar sus datos personales.
               </p>
             </section>
           </div>

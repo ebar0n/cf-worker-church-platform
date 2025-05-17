@@ -27,18 +27,13 @@ export async function POST(req: NextRequest) {
 
     const result = await env.DB.prepare(
       'INSERT INTO FriendRequest (name, phone, address, reason, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)'
-    ).bind(
-      name,
-      phone,
-      address || '',
-      reason,
-      now,
-      now
-    ).run();
+    )
+      .bind(name, phone, address || '', reason, now, now)
+      .run();
 
-    const friend = await env.DB.prepare(
-      'SELECT * FROM FriendRequest WHERE id = ?'
-    ).bind(result.meta.last_row_id).first();
+    const friend = await env.DB.prepare('SELECT * FROM FriendRequest WHERE id = ?')
+      .bind(result.meta.last_row_id)
+      .first();
 
     return NextResponse.json({ success: true, friend });
   } catch (error) {

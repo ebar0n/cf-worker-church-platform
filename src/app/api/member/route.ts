@@ -49,9 +49,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const member = await env.DB.prepare(
-      'SELECT * FROM Member WHERE documentID = ?'
-    ).bind(documentID).first();
+    const member = await env.DB.prepare('SELECT * FROM Member WHERE documentID = ?')
+      .bind(documentID)
+      .first();
 
     if (!member) {
       return NextResponse.json({ documentID: null }, { status: 200 });
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
   const { env } = getCloudflareContext();
 
   try {
-    const data = await request.json() as Record<string, unknown>;
+    const data = (await request.json()) as Record<string, unknown>;
     const parse = initialMemberSchema.safeParse(data);
 
     if (!parse.success) {
@@ -79,36 +79,28 @@ export async function POST(request: NextRequest) {
     }
 
     const now = new Date().toISOString();
-    const result = await env.DB.prepare(`
+    const result = await env.DB.prepare(
+      `
       INSERT INTO Member (
         documentID, name, phone, createdAt, updatedAt
       ) VALUES (?, ?, ?, ?, ?)
-    `).bind(
-      parse.data.documentID,
-      parse.data.name,
-      parse.data.phone,
-      now,
-      now
-    ).run();
+    `
+    )
+      .bind(parse.data.documentID, parse.data.name, parse.data.phone, now, now)
+      .run();
 
-    const member = await env.DB.prepare(
-      'SELECT * FROM Member WHERE id = ?'
-    ).bind(result.meta.last_row_id).first();
+    const member = await env.DB.prepare('SELECT * FROM Member WHERE id = ?')
+      .bind(result.meta.last_row_id)
+      .first();
 
     if (!member) {
-      return NextResponse.json(
-        { error: 'Error retrieving created member' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Error retrieving created member' }, { status: 500 });
     }
 
     return NextResponse.json(member);
   } catch (error) {
     console.error('Error creating member:', error);
-    return NextResponse.json(
-      { error: 'Error creating member' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error creating member' }, { status: 500 });
   }
 }
 
@@ -182,18 +174,17 @@ export async function PUT(request: NextRequest) {
       WHERE documentID = ?
     `;
 
-    await env.DB.prepare(query).bind(...bindValues).run();
+    await env.DB.prepare(query)
+      .bind(...bindValues)
+      .run();
 
-    const member = await env.DB.prepare(
-      'SELECT * FROM Member WHERE documentID = ?'
-    ).bind(parse.data.documentID).first();
+    const member = await env.DB.prepare('SELECT * FROM Member WHERE documentID = ?')
+      .bind(parse.data.documentID)
+      .first();
 
     return NextResponse.json(member);
   } catch (error) {
     console.error('Error updating member:', error);
-    return NextResponse.json(
-      { error: 'Error updating member' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Error updating member' }, { status: 500 });
   }
 }

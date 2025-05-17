@@ -79,7 +79,7 @@ const steps = [
   'Skills & Abilities',
   'Health & Special Needs',
   'Other Information',
-  'Gracias'
+  'Gracias',
 ];
 
 interface MemberResponse {
@@ -135,7 +135,7 @@ function formatDateVerbose(dateString: string) {
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true
+    hour12: true,
   });
 }
 
@@ -143,13 +143,17 @@ export default function MemberFormPage() {
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState<MemberFormData>(initialFormData);
   const [isExisting, setIsExisting] = useState(false);
-  const [registerInfo, setRegisterInfo] = useState<{ createdAt: string; updatedAt: string } | null>(null);
+  const [registerInfo, setRegisterInfo] = useState<{ createdAt: string; updatedAt: string } | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>(
+    'idle'
+  );
 
   // Input change handler
   const handleChange = (
@@ -158,10 +162,7 @@ export default function MemberFormPage() {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        type === 'checkbox'
-          ? (e.target as HTMLInputElement).checked
-          : value,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
     }));
   };
 
@@ -200,14 +201,14 @@ export default function MemberFormPage() {
         });
 
         if (createRes.ok) {
-          const newMember = await createRes.json() as MemberResponse;
+          const newMember = (await createRes.json()) as MemberResponse;
           setRegisterInfo({
             createdAt: newMember.createdAt,
             updatedAt: newMember.updatedAt,
           });
           setIsExisting(true);
         } else {
-          const errorData = await createRes.json() as ErrorResponse;
+          const errorData = (await createRes.json()) as ErrorResponse;
           setError(errorData.error || 'Error al crear el registro. Intenta de nuevo.');
           return;
         }
@@ -249,7 +250,7 @@ export default function MemberFormPage() {
       });
 
       if (!res.ok) {
-        const errorData = await res.json() as ErrorResponse;
+        const errorData = (await res.json()) as ErrorResponse;
         console.error('Error auto-guardando:', errorData.error);
         setAutoSaveStatus('error');
         setTimeout(() => setAutoSaveStatus('idle'), 3000);
@@ -280,7 +281,7 @@ export default function MemberFormPage() {
     try {
       const res = await fetch(`/api/member?documentID=${formData.documentID}`);
       if (res.ok) {
-        const data = await res.json() as MemberResponse | { documentID: null };
+        const data = (await res.json()) as MemberResponse | { documentID: null };
         if (data && data.documentID) {
           // Si existe, cargar los datos
           setIsExisting(true);
@@ -307,14 +308,14 @@ export default function MemberFormPage() {
         } else {
           // Si no existe, solo avanzar al siguiente paso
           setIsExisting(false);
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
-            termsAccepted: true
+            termsAccepted: true,
           }));
         }
         setStep(1);
       } else {
-        const errorData = await res.json() as ErrorResponse;
+        const errorData = (await res.json()) as ErrorResponse;
         setError(errorData.error || 'Error en el servidor. Intenta de nuevo.');
       }
     } catch {
@@ -338,7 +339,7 @@ export default function MemberFormPage() {
       });
 
       if (res.ok) {
-        const data = await res.json() as MemberResponse;
+        const data = (await res.json()) as MemberResponse;
         setSuccess(isExisting ? '¡Información actualizada!' : '¡Registro completo!');
         // Actualizar la información de registro
         if (data.createdAt && data.updatedAt) {
@@ -348,7 +349,7 @@ export default function MemberFormPage() {
           });
         }
       } else {
-        const errorData = await res.json() as ErrorResponse;
+        const errorData = (await res.json()) as ErrorResponse;
         setError(errorData.error || 'Error guardando los datos. Intenta de nuevo.');
       }
     } catch {
@@ -443,10 +444,14 @@ export default function MemberFormPage() {
       case 7:
         return (
           <div className="flex flex-col items-center justify-center gap-4 py-12">
-            <h2 className="text-2xl font-bold text-[#4b207f]">¡Gracias por actualizar tu información!</h2>
-            <p className="text-lg text-[#5e3929] text-center max-w-xl">
-              Tu registro ha sido guardado exitosamente.<br />
-              Si tienes dudas o deseas actualizar algún dato, puedes volver a este formulario en cualquier momento.
+            <h2 className="text-2xl font-bold text-[#4b207f]">
+              ¡Gracias por actualizar tu información!
+            </h2>
+            <p className="max-w-xl text-center text-lg text-[#5e3929]">
+              Tu registro ha sido guardado exitosamente.
+              <br />
+              Si tienes dudas o deseas actualizar algún dato, puedes volver a este formulario en
+              cualquier momento.
             </p>
           </div>
         );
@@ -464,14 +469,15 @@ export default function MemberFormPage() {
             {isExisting ? 'Actualiza tus datos' : 'Regístrate como miembro'}
           </h1>
           <p className="text-lg text-[#5e3929]">
-            &ldquo;Cada uno ponga al servicio de los demás el don que haya recibido, administrando fielmente la gracia de Dios en sus diversas formas.&rdquo; - 1 Pedro 4:10
+            &ldquo;Cada uno ponga al servicio de los demás el don que haya recibido, administrando
+            fielmente la gracia de Dios en sus diversas formas.&rdquo; - 1 Pedro 4:10
           </p>
           <p className="mt-4 text-lg text-[#5e3929]">
             ¡Ayúdanos a conocerte mejor para servir juntos en la obra de Dios!
           </p>
           {registerInfo && (
             <div className="mt-2 flex flex-col items-center">
-              <div className="rounded-lg bg-[#f3f0fa] px-4 py-2 shadow-sm text-sm text-[#4b207f] flex flex-col gap-1 w-fit">
+              <div className="flex w-fit flex-col gap-1 rounded-lg bg-[#f3f0fa] px-4 py-2 text-sm text-[#4b207f] shadow-sm">
                 <div>Fecha de creación: {formatDateVerbose(registerInfo.createdAt)}</div>
                 <div>Última actualización: {formatDateVerbose(registerInfo.updatedAt)}</div>
               </div>
@@ -483,7 +489,7 @@ export default function MemberFormPage() {
         </form>
         {step < steps.length - 1 && (
           <div className="flex flex-col items-center justify-between">
-            <div className="flex justify-center gap-2 mt-4">
+            <div className="mt-4 flex justify-center gap-2">
               {steps.map((label, idx) => (
                 <div
                   key={label}

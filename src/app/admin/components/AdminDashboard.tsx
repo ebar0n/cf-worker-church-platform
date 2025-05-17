@@ -72,9 +72,7 @@ export default function AdminDashboard({ adminEmail }: AdminDashboardProps) {
             <AreaChartCustom data={yearChartData} />
           </div>
           <div className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-[#4b207f]">
-              Solicitudes por tipo
-            </h2>
+            <h2 className="mb-4 text-lg font-semibold text-[#4b207f]">Solicitudes por tipo</h2>
             <BarChartCustom data={chartData} />
           </div>
         </div>

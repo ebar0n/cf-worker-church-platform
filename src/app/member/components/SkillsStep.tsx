@@ -6,7 +6,9 @@ interface SkillsStepProps {
     softSkills: string;
     languages: string;
   };
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+  onChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => void;
   onNext: () => void;
   onPrev: () => void;
   onBlur: () => void;
@@ -45,12 +47,8 @@ export default function SkillsStep({
         onBlur={onBlur}
         className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#4b207f]"
       />
-      <div className="flex justify-between mt-4">
-        <button
-          type="button"
-          onClick={onPrev}
-          className="text-[#4b207f] underline"
-        >
+      <div className="mt-4 flex justify-between">
+        <button type="button" onClick={onPrev} className="text-[#4b207f] underline">
           Atrás
         </button>
         <button
