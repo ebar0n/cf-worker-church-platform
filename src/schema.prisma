@@ -62,6 +62,7 @@ model FriendRequest {
   name      String
   phone     String
   address   String?
+  note      String?
   reason    String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())

@@ -7,6 +7,7 @@ const friendRequestSchema = z.object({
   phone: z.string().min(5),
   address: z.string().optional(),
   reason: z.enum(['oracion', 'visita', 'informacion']),
+  note: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -22,13 +23,13 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    const { name, phone, address, reason } = parse.data;
+    const { name, phone, address, reason, note } = parse.data;
     const now = new Date().toISOString();
 
     const result = await env.DB.prepare(
-      'INSERT INTO FriendRequest (name, phone, address, reason, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)'
+      'INSERT INTO FriendRequest (name, phone, address, reason, note, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)'
     )
-      .bind(name, phone, address || '', reason, now, now)
+      .bind(name, phone, address || '', reason, note || '', now, now)
       .run();
 
     const friend = await env.DB.prepare('SELECT * FROM FriendRequest WHERE id = ?')

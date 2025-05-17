@@ -7,6 +7,7 @@ const initialState = {
   phone: '',
   address: '',
   reason: '',
+  note: '',
   privacyPolicy: false,
 };
 
@@ -16,7 +17,7 @@ export default function FriendForm() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const value =
       e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
     setForm({ ...form, [e.target.name]: value });
@@ -102,6 +103,17 @@ export default function FriendForm() {
           <option value="visita">Quiero que me visiten</option>
           <option value="informacion">Quiero más información</option>
         </select>
+      </div>
+      <div>
+        <label className="mb-1 block font-semibold text-[#4b207f]">Nota adicional (opcional)</label>
+        <textarea
+          name="note"
+          value={form.note}
+          onChange={handleChange}
+          className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#4b207f]"
+          placeholder="Escribe cualquier información adicional que quieras compartir"
+          rows={3}
+        />
       </div>
       <div className="flex items-start gap-2">
         <input

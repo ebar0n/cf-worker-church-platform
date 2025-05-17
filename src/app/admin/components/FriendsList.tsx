@@ -82,6 +82,7 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
       'Teléfono',
       'Dirección',
       'Tipo de solicitud',
+      'Nota',
       'Estado',
       'Fecha de creación',
       'Última actualización',
@@ -95,6 +96,7 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
           f.phone,
           f.address || '',
           f.reason,
+          f.note || '',
           f.isRead ? 'Leído' : 'No leído',
           new Date(f.createdAt).toLocaleString('es-ES', {
             weekday: 'long',
@@ -459,79 +461,92 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
         </div>
       )}
 
-      {/* Modal de Detalles */}
+      {/* Modal de detalles */}
       {selectedFriend && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-lg">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-lg rounded-lg bg-white p-6">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-xl font-bold text-[#4b207f]">Detalles de la solicitud</h3>
-              <button onClick={handleCloseDetails} className="text-gray-500 hover:text-gray-700">
+              <h3 className="text-xl font-semibold text-[#4b207f]">Detalles de la solicitud</h3>
+              <button
+                onClick={handleCloseDetails}
+                className="text-gray-500 hover:text-gray-700"
+              >
                 <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
                   className="h-6 w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <span className="font-semibold">ID:</span> {selectedFriend.id}
+                <label className="block text-sm font-medium text-gray-700">Nombre</label>
+                <p className="mt-1 text-gray-900">{selectedFriend.name}</p>
               </div>
               <div>
-                <span className="font-semibold">Nombre:</span> {selectedFriend.name}
+                <label className="block text-sm font-medium text-gray-700">Teléfono</label>
+                <p className="mt-1 text-gray-900">{selectedFriend.phone}</p>
               </div>
               <div>
-                <span className="font-semibold">Teléfono:</span> {selectedFriend.phone}
+                <label className="block text-sm font-medium text-gray-700">Dirección</label>
+                <p className="mt-1 text-gray-900">{selectedFriend.address || 'No especificada'}</p>
               </div>
               <div>
-                <span className="font-semibold">Dirección:</span>{' '}
-                {selectedFriend.address || 'No especificada'}
+                <label className="block text-sm font-medium text-gray-700">Tipo de solicitud</label>
+                <p className="mt-1 text-gray-900">
+                  {selectedFriend.reason === 'oracion'
+                    ? 'Oración'
+                    : selectedFriend.reason === 'visita'
+                    ? 'Visita'
+                    : 'Información'}
+                </p>
               </div>
               <div>
-                <span className="font-semibold">Tipo de solicitud:</span>{' '}
-                <span className="capitalize">{selectedFriend.reason}</span>
+                <label className="block text-sm font-medium text-gray-700">Nota adicional</label>
+                <p className="mt-1 text-gray-900">{selectedFriend.note || 'No hay nota adicional'}</p>
               </div>
               <div>
-                <span className="font-semibold">Estado:</span>{' '}
-                {selectedFriend.isRead ? 'Leído' : 'No leído'}
+                <label className="block text-sm font-medium text-gray-700">Estado</label>
+                <p className="mt-1 text-gray-900">
+                  {selectedFriend.isRead ? 'Leído' : 'No leído'}
+                </p>
               </div>
               <div>
-                <span className="font-semibold">Fecha de creación:</span>{' '}
-                {new Date(selectedFriend.createdAt).toLocaleString('es-ES', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: true,
-                })}
+                <label className="block text-sm font-medium text-gray-700">Fecha de creación</label>
+                <p className="mt-1 text-gray-900">
+                  {new Date(selectedFriend.createdAt).toLocaleString('es-ES', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true,
+                  })}
+                </p>
               </div>
               <div>
-                <span className="font-semibold">Última actualización:</span>{' '}
-                {new Date(selectedFriend.updatedAt).toLocaleString('es-ES', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: true,
-                })}
+                <label className="block text-sm font-medium text-gray-700">Última actualización</label>
+                <p className="mt-1 text-gray-900">
+                  {new Date(selectedFriend.updatedAt).toLocaleString('es-ES', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true,
+                  })}
+                </p>
               </div>
-            </div>
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={handleCloseDetails}
-                className="rounded-lg bg-[#4b207f] px-4 py-2 text-white hover:bg-[#4b207f]/90"
-              >
-                Cerrar
-              </button>
             </div>
           </div>
         </div>
