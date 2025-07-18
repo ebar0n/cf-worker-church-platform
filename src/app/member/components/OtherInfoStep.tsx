@@ -31,10 +31,8 @@ export default function OtherInfoStep({
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-[#5e3929] mb-2">Información Adicional</h2>
-        <p className="text-[#5e3929] opacity-80">
-          Últimos detalles para completar tu registro
-        </p>
+        <h2 className="mb-2 text-2xl font-bold text-[#5e3929]">Información Adicional</h2>
+        <p className="text-[#5e3929] opacity-80">Últimos detalles para completar tu registro</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -77,12 +75,12 @@ export default function OtherInfoStep({
       </div>
 
       {success && (
-        <div className="rounded-lg bg-green-50 p-4 text-sm text-green-600 border border-green-200">
+        <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-600">
           {success}
         </div>
       )}
       {error && (
-        <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600 border border-red-200">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
           {error}
         </div>
       )}

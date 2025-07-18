@@ -6,6 +6,6 @@ export async function GET(request: NextRequest) {
 
   // Solo devolver la site key pública, nunca la secret key
   return NextResponse.json({
-    siteKey: env.TURNSTILE_SITE_KEY
+    siteKey: env.TURNSTILE_SITE_KEY,
   });
 }

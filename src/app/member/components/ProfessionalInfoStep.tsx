@@ -27,7 +27,7 @@ export default function ProfessionalInfoStep({
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-[#5e3929] mb-2">Información Profesional</h2>
+        <h2 className="mb-2 text-2xl font-bold text-[#5e3929]">Información Profesional</h2>
         <p className="text-[#5e3929] opacity-80">
           Datos sobre tu formación académica y experiencia laboral
         </p>

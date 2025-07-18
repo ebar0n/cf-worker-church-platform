@@ -14,9 +14,9 @@ declare global {
           callback: (token: string) => void;
           'expired-callback': () => void;
           'error-callback': () => void;
-          'appearance'?: string;
-          'theme'?: string;
-          'language'?: string;
+          appearance?: string;
+          theme?: string;
+          language?: string;
         }
       ) => void;
     };
@@ -57,7 +57,7 @@ export default function IdentificationStep({
     const fetchSiteKey = async () => {
       try {
         const response = await fetch('/api/turnstile-config');
-        const data = await response.json() as TurnstileConfig;
+        const data = (await response.json()) as TurnstileConfig;
         if (data.siteKey) {
           setSiteKey(data.siteKey);
         } else {
@@ -101,9 +101,9 @@ export default function IdentificationStep({
               onTurnstileChange('');
             },
             // Configuración para desarrollo local
-            'appearance': 'always',
-            'theme': 'light',
-            'language': 'es',
+            appearance: 'always',
+            theme: 'light',
+            language: 'es',
           });
 
           console.log('Turnstile widget rendered with ID:', widgetId);
@@ -151,9 +151,9 @@ export default function IdentificationStep({
           onTurnstileChange('');
         },
         // Configuración para desarrollo local
-        'appearance': 'always',
-        'theme': 'light',
-        'language': 'es',
+        appearance: 'always',
+        theme: 'light',
+        language: 'es',
       });
 
       console.log('Turnstile widget rendered with ID:', widgetId);
@@ -195,10 +195,8 @@ export default function IdentificationStep({
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-[#5e3929] mb-2">Identificación</h2>
-        <p className="text-[#5e3929] opacity-80">
-          Ingresa tu documento de identidad para comenzar
-        </p>
+        <h2 className="mb-2 text-2xl font-bold text-[#5e3929]">Identificación</h2>
+        <p className="text-[#5e3929] opacity-80">Ingresa tu documento de identidad para comenzar</p>
       </div>
 
       <div className="flex w-full flex-col items-center justify-center">
@@ -250,12 +248,12 @@ export default function IdentificationStep({
           ref={turnstileRef}
           id="turnstile-widget-container"
           className="turnstile-widget"
-                      style={{
-              minHeight: '65px',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}
+          style={{
+            minHeight: '65px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
         ></div>
       </div>
 

@@ -64,12 +64,15 @@ export async function GET(request: NextRequest) {
     formData.append('secret', env.TURNSTILE_SECRET_KEY);
     formData.append('response', turnstileToken);
 
-    const turnstileResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-      method: 'POST',
-      body: formData,
-    });
+    const turnstileResponse = await fetch(
+      'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
 
-    const turnstileResult = await turnstileResponse.json() as { success: boolean };
+    const turnstileResult = (await turnstileResponse.json()) as { success: boolean };
 
     if (!turnstileResult.success) {
       return NextResponse.json({ error: 'Turnstile verification failed' }, { status: 400 });

@@ -47,7 +47,7 @@ export default function AdminDashboard({ adminEmail }: AdminDashboardProps) {
   return (
     <AdminLayout adminEmail={adminEmail}>
       <div className="space-y-8 px-4 py-4 md:px-8">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           <div className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-[#4b207f]">Total de miembros</h2>
             <div className="mt-2 text-4xl font-bold text-[#4b207f]">
@@ -61,6 +61,32 @@ export default function AdminDashboard({ adminEmail }: AdminDashboardProps) {
               {loading ? '...' : totalFriends}
             </div>
             <div className="mt-2 text-[#7c7c7c]">Solicitudes de amigos y visitas</div>
+          </div>
+          <div className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-[#4b207f]">Gestión de Anuncios</h2>
+            <div className="mt-2 text-sm text-[#7c7c7c]">Administra los anuncios de la iglesia</div>
+            <div className="mt-4">
+              <a
+                href="/admin/announcements"
+                className="inline-flex items-center gap-2 rounded-lg bg-[#4b207f] px-4 py-2 text-sm text-white hover:bg-[#4b207f]/90"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="h-4 w-4"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                Gestionar Anuncios
+              </a>
+            </div>
           </div>
         </div>
 

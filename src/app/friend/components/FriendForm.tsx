@@ -17,7 +17,9 @@ export default function FriendForm() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const value =
       e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
     setForm({ ...form, [e.target.name]: value });

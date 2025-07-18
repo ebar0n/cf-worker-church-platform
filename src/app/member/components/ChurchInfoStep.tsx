@@ -26,10 +26,8 @@ export default function ChurchInfoStep({
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-[#5e3929] mb-2">Información de la Iglesia</h2>
-        <p className="text-[#5e3929] opacity-80">
-          Ministerios y áreas donde puedes servir
-        </p>
+        <h2 className="mb-2 text-2xl font-bold text-[#5e3929]">Información de la Iglesia</h2>
+        <p className="text-[#5e3929] opacity-80">Ministerios y áreas donde puedes servir</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -66,7 +64,7 @@ export default function ChurchInfoStep({
         </div>
       </div>
 
-      <div className="flex items-center gap-3 p-4 bg-[#f8f6f4] rounded-lg border border-[#d4c5b9]">
+      <div className="flex items-center gap-3 rounded-lg border border-[#d4c5b9] bg-[#f8f6f4] p-4">
         <input
           type="checkbox"
           id="willingToLead"

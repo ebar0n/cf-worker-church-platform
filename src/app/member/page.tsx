@@ -310,7 +310,9 @@ export default function MemberFormPage() {
     setError(null);
 
     try {
-      const res = await fetch(`/api/member?documentID=${formData.documentID}&cf-turnstile-response=${turnstileToken}`);
+      const res = await fetch(
+        `/api/member?documentID=${formData.documentID}&cf-turnstile-response=${turnstileToken}`
+      );
       if (res.ok) {
         const data = (await res.json()) as MemberResponse | { documentID: null };
         if (data && data.documentID) {
@@ -527,8 +529,12 @@ export default function MemberFormPage() {
           {registerInfo && (
             <div className="mt-2 flex flex-col items-center">
               <div className="flex w-fit flex-col gap-1 rounded-lg bg-[#f3f0fa] px-4 py-2 text-sm text-[#4b207f] shadow-sm">
-                <div className="whitespace-nowrap">Fecha de creación: {formatDateVerbose(registerInfo.createdAt)}</div>
-                <div className="whitespace-nowrap">Última actualización: {formatDateVerbose(registerInfo.updatedAt)}</div>
+                <div className="whitespace-nowrap">
+                  Fecha de creación: {formatDateVerbose(registerInfo.createdAt)}
+                </div>
+                <div className="whitespace-nowrap">
+                  Última actualización: {formatDateVerbose(registerInfo.updatedAt)}
+                </div>
               </div>
             </div>
           )}

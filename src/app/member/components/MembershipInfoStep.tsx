@@ -30,7 +30,10 @@ export default function MembershipInfoStep({
   // Estado local para manejar el valor del select
   const [selectValue, setSelectValue] = React.useState(() => {
     // Si currentMembershipChurch tiene un valor y no es "Jordan", mostrar "other"
-    if (formData.currentMembershipChurch && formData.currentMembershipChurch !== JORDAN_CHURCH_VALUE) {
+    if (
+      formData.currentMembershipChurch &&
+      formData.currentMembershipChurch !== JORDAN_CHURCH_VALUE
+    ) {
       return 'other';
     }
     return formData.currentMembershipChurch === JORDAN_CHURCH_VALUE ? 'Jordan' : '';
@@ -38,7 +41,10 @@ export default function MembershipInfoStep({
 
   // Sincronizar el estado local cuando cambien los datos del formulario
   React.useEffect(() => {
-    if (formData.currentMembershipChurch && formData.currentMembershipChurch !== JORDAN_CHURCH_VALUE) {
+    if (
+      formData.currentMembershipChurch &&
+      formData.currentMembershipChurch !== JORDAN_CHURCH_VALUE
+    ) {
       setSelectValue('other');
     } else if (formData.currentMembershipChurch === JORDAN_CHURCH_VALUE) {
       setSelectValue('Jordan');
@@ -62,8 +68,8 @@ export default function MembershipInfoStep({
         target: {
           ...e.target,
           name: 'currentMembershipChurch',
-          value: value
-        }
+          value: value,
+        },
       } as React.ChangeEvent<HTMLInputElement>;
       onChange(modifiedEvent);
     } else if (name === 'currentMembershipChurch') {
@@ -76,8 +82,8 @@ export default function MembershipInfoStep({
           target: {
             ...e.target,
             name: 'currentMembershipChurch',
-            value: 'other'
-          }
+            value: 'other',
+          },
         } as React.ChangeEvent<HTMLSelectElement>;
         onChange(modifiedEvent);
       } else if (value === 'Jordan') {
@@ -87,8 +93,8 @@ export default function MembershipInfoStep({
           target: {
             ...e.target,
             name: 'currentMembershipChurch',
-            value: JORDAN_CHURCH_VALUE
-          }
+            value: JORDAN_CHURCH_VALUE,
+          },
         } as React.ChangeEvent<HTMLSelectElement>;
         onChange(modifiedEvent);
       } else {
@@ -106,7 +112,7 @@ export default function MembershipInfoStep({
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-[#5e3929] mb-2">Datos de Feligresía</h2>
+        <h2 className="mb-2 text-2xl font-bold text-[#5e3929]">Datos de Feligresía</h2>
         <p className="text-[#5e3929] opacity-80">
           Información sobre tu membresía y aceptación en la iglesia
         </p>
@@ -192,7 +198,9 @@ export default function MembershipInfoStep({
             type="text"
             id="otherChurch"
             name="otherChurch"
-            value={formData.currentMembershipChurch === 'other' ? '' : formData.currentMembershipChurch}
+            value={
+              formData.currentMembershipChurch === 'other' ? '' : formData.currentMembershipChurch
+            }
             onChange={handleChange}
             onBlur={onBlur}
             className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
@@ -202,7 +210,7 @@ export default function MembershipInfoStep({
       )}
 
       {selectValue === 'other' && (
-        <div className="flex items-center gap-3 p-4 bg-[#f8f6f4] rounded-lg border border-[#d4c5b9]">
+        <div className="flex items-center gap-3 rounded-lg border border-[#d4c5b9] bg-[#f8f6f4] p-4">
           <input
             type="checkbox"
             id="transferAuthorization"

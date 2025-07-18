@@ -24,7 +24,7 @@ export default function SkillsStep({
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-[#5e3929] mb-2">Habilidades y Destrezas</h2>
+        <h2 className="mb-2 text-2xl font-bold text-[#5e3929]">Habilidades y Destrezas</h2>
         <p className="text-[#5e3929] opacity-80">
           Comparte tus habilidades para servir mejor en la iglesia
         </p>
