@@ -1,9 +1,12 @@
 import React from 'react';
 
+// Constantes para los valores de iglesia
+const JORDAN_CHURCH_VALUE = 'Jordan - Distrito Jordan - Asociación Sur Colombiana';
+
 interface MembershipInfoStepProps {
   formData: {
-    baptismYear: string;
-    currentAcceptanceYear: string;
+    baptismYear: number | null;
+    currentAcceptanceYear: number | null;
     currentAcceptanceMethod: string;
     currentMembershipChurch: string;
     transferAuthorization: boolean;
@@ -24,6 +27,26 @@ export default function MembershipInfoStep({
   onPrev,
   onBlur,
 }: MembershipInfoStepProps) {
+  // Estado local para manejar el valor del select
+  const [selectValue, setSelectValue] = React.useState(() => {
+    // Si currentMembershipChurch tiene un valor y no es "Jordan", mostrar "other"
+    if (formData.currentMembershipChurch && formData.currentMembershipChurch !== JORDAN_CHURCH_VALUE) {
+      return 'other';
+    }
+    return formData.currentMembershipChurch === JORDAN_CHURCH_VALUE ? 'Jordan' : '';
+  });
+
+  // Sincronizar el estado local cuando cambien los datos del formulario
+  React.useEffect(() => {
+    if (formData.currentMembershipChurch && formData.currentMembershipChurch !== JORDAN_CHURCH_VALUE) {
+      setSelectValue('other');
+    } else if (formData.currentMembershipChurch === JORDAN_CHURCH_VALUE) {
+      setSelectValue('Jordan');
+    } else {
+      setSelectValue('');
+    }
+  }, [formData.currentMembershipChurch]);
+
   // Manejar cambios específicos para este componente
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -32,29 +55,51 @@ export default function MembershipInfoStep({
 
     if (name === 'otherChurch') {
       // Cuando se escribe en el campo de texto, actualizar currentMembershipChurch
-      onChange({
+      // pero mantener el select en "Otra iglesia"
+      setSelectValue('other');
+      const modifiedEvent = {
         ...e,
         target: {
           ...e.target,
           name: 'currentMembershipChurch',
           value: value
         }
-      } as any);
-    } else if (name === 'currentMembershipChurch' && value === 'other') {
-      // Cuando se selecciona "other", limpiar el campo de texto
-      onChange({
-        ...e,
-        target: {
-          ...e.target,
-          name: 'otherChurch',
-          value: ''
-        }
-      } as any);
-      onChange(e);
+      } as React.ChangeEvent<HTMLInputElement>;
+      onChange(modifiedEvent);
+    } else if (name === 'currentMembershipChurch') {
+      // Para el select, actualizar el estado local y el valor real
+      setSelectValue(value);
+      if (value === 'other') {
+        // Si selecciona "Otra iglesia", establecer el valor como "other"
+        const modifiedEvent = {
+          ...e,
+          target: {
+            ...e.target,
+            name: 'currentMembershipChurch',
+            value: 'other'
+          }
+        } as React.ChangeEvent<HTMLSelectElement>;
+        onChange(modifiedEvent);
+      } else if (value === 'Jordan') {
+        // Si selecciona "Jordan", guardar el texto completo
+        const modifiedEvent = {
+          ...e,
+          target: {
+            ...e.target,
+            name: 'currentMembershipChurch',
+            value: JORDAN_CHURCH_VALUE
+          }
+        } as React.ChangeEvent<HTMLSelectElement>;
+        onChange(modifiedEvent);
+      } else {
+        // Si selecciona una opción específica, actualizar con ese valor
+        onChange(e);
+      }
     } else if (name === 'transferAuthorization') {
       // Para checkboxes, usar el onChange original para manejar correctamente el boolean
       onChange(e);
     } else {
+      // Para todos los demás campos, incluyendo los numéricos, usar el onChange original
       onChange(e);
     }
   };
@@ -76,7 +121,7 @@ export default function MembershipInfoStep({
             type="number"
             id="baptismYear"
             name="baptismYear"
-            value={parseInt(formData.baptismYear) || ''}
+            value={formData.baptismYear || ''}
             onChange={handleChange}
             onBlur={onBlur}
             className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
@@ -92,7 +137,7 @@ export default function MembershipInfoStep({
             type="number"
             id="currentAcceptanceYear"
             name="currentAcceptanceYear"
-            value={parseInt(formData.currentAcceptanceYear) || ''}
+            value={formData.currentAcceptanceYear || ''}
             onChange={handleChange}
             onBlur={onBlur}
             className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
@@ -126,7 +171,7 @@ export default function MembershipInfoStep({
           <select
             id="currentMembershipChurch"
             name="currentMembershipChurch"
-            value={formData.currentMembershipChurch}
+            value={selectValue}
             onChange={handleChange}
             onBlur={onBlur}
             className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
@@ -138,7 +183,7 @@ export default function MembershipInfoStep({
         </div>
       </div>
 
-      {formData.currentMembershipChurch === 'other' && (
+      {selectValue === 'other' && (
         <div className="flex flex-col gap-2">
           <label htmlFor="otherChurch" className="text-sm font-medium text-[#5e3929]">
             Especifica tu iglesia de feligresía
@@ -147,7 +192,7 @@ export default function MembershipInfoStep({
             type="text"
             id="otherChurch"
             name="otherChurch"
-            value={formData.otherChurch || ''}
+            value={formData.currentMembershipChurch === 'other' ? '' : formData.currentMembershipChurch}
             onChange={handleChange}
             onBlur={onBlur}
             className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
@@ -156,7 +201,7 @@ export default function MembershipInfoStep({
         </div>
       )}
 
-      {formData.currentMembershipChurch && formData.currentMembershipChurch !== 'Jordan' && (
+      {selectValue === 'other' && (
         <div className="flex items-center gap-3 p-4 bg-[#f8f6f4] rounded-lg border border-[#d4c5b9]">
           <input
             type="checkbox"

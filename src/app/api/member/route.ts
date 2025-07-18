@@ -12,16 +12,16 @@ const memberSchema = z.object({
   address: z.string().optional(),
   email: z.string().optional(),
   preferredContactMethod: z.string().optional(),
-  baptismYear: z.string().optional(),
+  baptismYear: z.number().nullable().optional(),
   ministry: z.string().optional(),
   areasToServe: z.string().optional(),
   willingToLead: z.boolean().optional(),
   suggestions: z.string().optional(),
   pastoralNotes: z.string().optional(),
-  currentAcceptanceYear: z.string().optional(),
+  currentAcceptanceYear: z.number().nullable().optional(),
   currentAcceptanceMethod: z.string().optional(),
   currentMembershipChurch: z.string().optional(),
-  transferAuthorization: z.string().optional(),
+  transferAuthorization: z.boolean().optional(),
   currentOccupation: z.string().optional(),
   workOrStudyPlace: z.string().optional(),
   professionalArea: z.string().optional(),
@@ -48,9 +48,35 @@ export async function GET(request: NextRequest) {
   const { env } = getCloudflareContext();
   const { searchParams } = new URL(request.url);
   const documentID = searchParams.get('documentID');
+  const turnstileToken = searchParams.get('cf-turnstile-response');
 
   if (!documentID) {
     return NextResponse.json({ error: 'Document ID is required' }, { status: 400 });
+  }
+
+  if (!turnstileToken) {
+    return NextResponse.json({ error: 'Turnstile verification required' }, { status: 400 });
+  }
+
+  // Validar el token de Turnstile
+  try {
+    const formData = new FormData();
+    formData.append('secret', env.TURNSTILE_SECRET_KEY);
+    formData.append('response', turnstileToken);
+
+    const turnstileResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const turnstileResult = await turnstileResponse.json() as { success: boolean };
+
+    if (!turnstileResult.success) {
+      return NextResponse.json({ error: 'Turnstile verification failed' }, { status: 400 });
+    }
+  } catch (error) {
+    console.error('Error validating Turnstile:', error);
+    return NextResponse.json({ error: 'Error validating Turnstile' }, { status: 500 });
   }
 
   try {
@@ -146,13 +172,13 @@ export async function PUT(request: NextRequest) {
     addField('address', parse.data.address);
     addField('email', parse.data.email || null);
     addField('preferredContactMethod', parse.data.preferredContactMethod || null);
-    addField('baptismYear', parseInt(parse.data.baptismYear || '') || null);
+    addField('baptismYear', parse.data.baptismYear || null);
     addField('ministry', parse.data.ministry || null);
     addField('areasToServe', parse.data.areasToServe || null);
     addField('willingToLead', parse.data.willingToLead ? 1 : 0);
     addField('suggestions', parse.data.suggestions || null);
     addField('pastoralNotes', parse.data.pastoralNotes || null);
-    addField('currentAcceptanceYear', parseInt(parse.data.currentAcceptanceYear || '') || null);
+    addField('currentAcceptanceYear', parse.data.currentAcceptanceYear || null);
     addField('currentAcceptanceMethod', parse.data.currentAcceptanceMethod || null);
     addField('currentMembershipChurch', parse.data.currentMembershipChurch || null);
     addField('transferAuthorization', parse.data.transferAuthorization ? 1 : 0);

@@ -20,8 +20,8 @@ type MemberFormData = {
   phone: string;
   email: string;
   preferredContactMethod: string;
-  baptismYear: string;
-  currentAcceptanceYear: string;
+  baptismYear: number | null;
+  currentAcceptanceYear: number | null;
   currentAcceptanceMethod: string;
   currentMembershipChurch: string;
   transferAuthorization: boolean;
@@ -57,8 +57,8 @@ const initialFormData: MemberFormData = {
   phone: '',
   email: '',
   preferredContactMethod: '',
-  baptismYear: '',
-  currentAcceptanceYear: '',
+  baptismYear: null,
+  currentAcceptanceYear: null,
   currentAcceptanceMethod: '',
   currentMembershipChurch: '',
   transferAuthorization: false,
@@ -99,6 +99,7 @@ const steps = [
 interface MemberResponse {
   documentID: string;
   name: string;
+  gender?: string;
   birthDate: string;
   maritalStatus?: string;
   address: string;
@@ -106,6 +107,10 @@ interface MemberResponse {
   email?: string;
   preferredContactMethod?: string;
   baptismYear?: number;
+  currentAcceptanceYear?: number;
+  currentAcceptanceMethod?: string;
+  currentMembershipChurch?: string;
+  transferAuthorization?: boolean;
   ministry?: string;
   areasToServe?: string;
   willingToLead?: boolean;
@@ -168,16 +173,27 @@ export default function MemberFormPage() {
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>(
     'idle'
   );
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
 
   // Input change handler
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
-    }));
+
+    // Manejar campos especiales que pueden ser null o number
+    if (name === 'baptismYear' || name === 'currentAcceptanceYear') {
+      const numValue = value === '' ? null : parseInt(value);
+      setFormData((prev) => ({
+        ...prev,
+        [name]: numValue,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+      }));
+    }
   };
 
   // Guardar al salir de un campo (onBlur)
@@ -294,7 +310,7 @@ export default function MemberFormPage() {
     setError(null);
 
     try {
-      const res = await fetch(`/api/member?documentID=${formData.documentID}`);
+      const res = await fetch(`/api/member?documentID=${formData.documentID}&cf-turnstile-response=${turnstileToken}`);
       if (res.ok) {
         const data = (await res.json()) as MemberResponse | { documentID: null };
         if (data && data.documentID) {
@@ -312,6 +328,12 @@ export default function MemberFormPage() {
                   return [k, new Date(v).toISOString().split('T')[0]];
                 }
                 if (k === 'willingToLead') {
+                  return [k, Boolean(v)];
+                }
+                if (k === 'baptismYear' || k === 'currentAcceptanceYear') {
+                  return [k, v === null ? null : Number(v)];
+                }
+                if (k === 'transferAuthorization') {
                   return [k, Boolean(v)];
                 }
                 return [k, v === null ? '' : v];
@@ -387,6 +409,8 @@ export default function MemberFormPage() {
             registerInfo={registerInfo}
             error={error}
             termsAccepted={formData.termsAccepted}
+            turnstileToken={turnstileToken}
+            onTurnstileChange={setTurnstileToken}
           />
         );
       case 1:

@@ -1,2 +1,4 @@
 # Load .env.development* files when running `wrangler dev`
 NEXTJS_ENV=development
+TURNSTILE_SITE_KEY=
+TURNSTILE_SECRET_KEY=
