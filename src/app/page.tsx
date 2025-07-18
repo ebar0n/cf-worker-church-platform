@@ -5,6 +5,7 @@ import Welcome from '@/app/components/Welcome';
 import Services from '@/app/components/Services';
 import Contact from '@/app/components/Contact';
 import Footer from '@/app/components/Footer';
+import Announcements from '@/app/components/Announcements';
 import Link from 'next/link';
 
 export default async function Home() {
@@ -46,6 +47,7 @@ export default async function Home() {
           </div>
         </div>
       </div>
+      <Announcements />
       <Services />
       <InstagramFeed />
       <Contact />

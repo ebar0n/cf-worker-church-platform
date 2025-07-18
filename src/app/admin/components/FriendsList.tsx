@@ -467,16 +467,8 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
           <div className="w-full max-w-lg rounded-lg bg-white p-6">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-xl font-semibold text-[#4b207f]">Detalles de la solicitud</h3>
-              <button
-                onClick={handleCloseDetails}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+              <button onClick={handleCloseDetails} className="text-gray-500 hover:text-gray-700">
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -505,19 +497,19 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
                   {selectedFriend.reason === 'oracion'
                     ? 'Oración'
                     : selectedFriend.reason === 'visita'
-                    ? 'Visita'
-                    : 'Información'}
+                      ? 'Visita'
+                      : 'Información'}
                 </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Nota adicional</label>
-                <p className="mt-1 text-gray-900">{selectedFriend.note || 'No hay nota adicional'}</p>
+                <p className="mt-1 text-gray-900">
+                  {selectedFriend.note || 'No hay nota adicional'}
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Estado</label>
-                <p className="mt-1 text-gray-900">
-                  {selectedFriend.isRead ? 'Leído' : 'No leído'}
-                </p>
+                <p className="mt-1 text-gray-900">{selectedFriend.isRead ? 'Leído' : 'No leído'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Fecha de creación</label>
@@ -534,7 +526,9 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Última actualización</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Última actualización
+                </label>
                 <p className="mt-1 text-gray-900">
                   {new Date(selectedFriend.updatedAt).toLocaleString('es-ES', {
                     weekday: 'long',

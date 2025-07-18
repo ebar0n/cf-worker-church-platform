@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 interface PersonalInfoStepProps {
   formData: {
     name: string;
+    gender: string;
     birthDate: string;
     maritalStatus: string;
     address: string;
@@ -49,6 +50,11 @@ export default function PersonalInfoStep({
 
   return (
     <div className="flex flex-col gap-6">
+      <div className="text-center">
+        <h2 className="mb-2 text-2xl font-bold text-[#5e3929]">Información Personal</h2>
+        <p className="text-[#5e3929] opacity-80">Datos básicos de identificación y contacto</p>
+      </div>
+
       <div className="grid gap-6 md:grid-cols-2">
         <div className="flex flex-col gap-2">
           <label htmlFor="name" className="text-sm font-medium text-[#5e3929]">
@@ -66,6 +72,24 @@ export default function PersonalInfoStep({
             required
           />
           {errors.name && <span className="text-sm text-red-500">{errors.name}</span>}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="gender" className="text-sm font-medium text-[#5e3929]">
+            Género
+          </label>
+          <select
+            id="gender"
+            name="gender"
+            value={formData.gender}
+            onChange={onChange}
+            onBlur={onBlur}
+            className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
+          >
+            <option value="">Selecciona tu género</option>
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+          </select>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -132,6 +156,7 @@ export default function PersonalInfoStep({
             <option value="">Selecciona tu estado civil</option>
             <option value="soltero">Soltero(a)</option>
             <option value="casado">Casado(a)</option>
+            <option value="separado">Separado(a)</option>
             <option value="divorciado">Divorciado(a)</option>
             <option value="viudo">Viudo(a)</option>
           </select>
@@ -153,7 +178,7 @@ export default function PersonalInfoStep({
           />
         </div>
 
-        <div className="flex flex-col gap-2 md:col-span-2">
+        <div className="flex flex-col gap-2">
           <label htmlFor="preferredContactMethod" className="text-sm font-medium text-[#5e3929]">
             Método de contacto preferido
           </label>

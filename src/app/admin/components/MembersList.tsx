@@ -70,21 +70,36 @@ export default function MembersList({ adminEmail }: MembersListProps) {
       'ID',
       'Nombre',
       'Documento',
+      'Género',
       'Fecha de nacimiento',
+      'Estado civil',
       'Dirección',
       'Teléfono',
       'Email',
+      'Método de contacto preferido',
       'Año de bautismo',
       'Ministerio',
       'Áreas para servir',
+      'Dispuesto a liderar',
+      'Sugerencias',
+      'Notas pastorales',
+      'Año de aceptación actual',
+      'Método de aceptación actual',
+      'Iglesia de membresía actual',
+      'Autorización de transferencia',
+      'Ocupación actual',
+      'Lugar de trabajo/estudio',
+      'Área profesional',
       'Nivel de educación',
       'Profesión',
+      'Experiencia laboral',
       'Habilidades técnicas',
       'Habilidades blandas',
       'Idiomas',
-      'Disponibilidad',
-      'Dispuesto a liderar',
-      'Sugerencias',
+      'Disponibilidad de voluntariado',
+      'Condiciones médicas',
+      'Necesidades especiales',
+      'Intereses y pasatiempos',
       'Fecha de registro',
       'Última actualización',
     ];
@@ -95,21 +110,36 @@ export default function MembersList({ adminEmail }: MembersListProps) {
           m.id,
           m.name,
           m.documentID,
+          m.gender || '',
           new Date(m.birthDate).toLocaleDateString(),
+          m.maritalStatus || '',
           m.address,
           m.phone,
           m.email || '',
+          m.preferredContactMethod || '',
           m.baptismYear || '',
           m.ministry || '',
           m.areasToServe || '',
+          m.willingToLead ? 'Sí' : 'No',
+          m.suggestions || '',
+          m.pastoralNotes || '',
+          m.currentAcceptanceYear || '',
+          m.currentAcceptanceMethod || '',
+          m.currentMembershipChurch || '',
+          m.transferAuthorization ? 'Sí' : 'No',
+          m.currentOccupation || '',
+          m.workOrStudyPlace || '',
+          m.professionalArea || '',
           m.educationLevel || '',
           m.profession || '',
+          m.workExperience || '',
           m.technicalSkills || '',
           m.softSkills || '',
           m.languages || '',
-          m.availability || '',
-          m.willingToLead ? 'Sí' : 'No',
-          m.suggestions || '',
+          m.volunteeringAvailability || '',
+          m.medicalConditions || '',
+          m.specialNeeds || '',
+          m.interestsHobbies || '',
           new Date(m.createdAt).toLocaleString(),
           new Date(m.updatedAt).toLocaleString(),
         ].join(',')
@@ -433,12 +463,16 @@ export default function MembersList({ adminEmail }: MembersListProps) {
                     <span className="font-semibold">Documento:</span> {selectedMember.documentID}
                   </div>
                   <div>
+                    <span className="font-semibold">Género:</span>{' '}
+                    {selectedMember.gender || 'No especificado'}
+                  </div>
+                  <div>
                     <span className="font-semibold">Fecha de nacimiento:</span>{' '}
                     {new Date(selectedMember.birthDate).toLocaleDateString()}
                   </div>
                   <div>
                     <span className="font-semibold">Estado civil:</span>{' '}
-                    {selectedMember.maritalStatus}
+                    {selectedMember.maritalStatus || 'No especificado'}
                   </div>
                   <div>
                     <span className="font-semibold">Dirección:</span> {selectedMember.address}
@@ -484,6 +518,22 @@ export default function MembersList({ adminEmail }: MembersListProps) {
                   <div>
                     <span className="font-semibold">Notas pastorales:</span>{' '}
                     {selectedMember.pastoralNotes || 'No especificado'}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Año de aceptación actual:</span>{' '}
+                    {selectedMember.currentAcceptanceYear || 'No especificado'}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Método de aceptación actual:</span>{' '}
+                    {selectedMember.currentAcceptanceMethod || 'No especificado'}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Iglesia de membresía actual:</span>{' '}
+                    {selectedMember.currentMembershipChurch || 'No especificado'}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Autorización de transferencia:</span>{' '}
+                    {selectedMember.transferAuthorization ? 'Sí' : 'No'}
                   </div>
                 </div>
 
@@ -534,7 +584,7 @@ export default function MembersList({ adminEmail }: MembersListProps) {
                     {selectedMember.languages || 'No especificado'}
                   </div>
                   <div>
-                    <span className="font-semibold">Disponibilidad:</span>{' '}
+                    <span className="font-semibold">Disponibilidad de voluntariado:</span>{' '}
                     {selectedMember.volunteeringAvailability || 'No especificado'}
                   </div>
                   <div>

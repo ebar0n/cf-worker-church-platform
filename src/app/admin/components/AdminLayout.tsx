@@ -19,6 +19,7 @@ export default function AdminLayout({
     { path: '/admin', label: 'Dashboard' },
     { path: '/admin/friends', label: 'Solicitudes' },
     { path: '/admin/members', label: 'Miembros' },
+    { path: '/admin/announcements', label: 'Anuncios' },
   ];
 
   return (

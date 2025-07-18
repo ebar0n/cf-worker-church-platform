@@ -1,6 +1,7 @@
 export type MemberFormData = {
   documentID: string;
   name: string;
+  gender: string;
   birthDate: string;
   maritalStatus: string;
   address: string;
@@ -13,6 +14,10 @@ export type MemberFormData = {
   willingToLead: boolean;
   suggestions: string;
   pastoralNotes: string;
+  currentAcceptanceYear: string;
+  currentAcceptanceMethod: string;
+  currentMembershipChurch: string;
+  transferAuthorization: boolean;
   currentOccupation: string;
   workOrStudyPlace: string;
   professionalArea: string;

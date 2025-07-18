@@ -20,6 +20,7 @@ model Member {
 
   // Personal information
   name                      String
+  gender                    String?
   phone                     String
   birthDate                 DateTime?
   maritalStatus             String?
@@ -34,6 +35,10 @@ model Member {
   willingToLead             Boolean?
   suggestions               String?
   pastoralNotes             String?
+  currentAcceptanceYear     Int?
+  currentAcceptanceMethod   String?
+  currentMembershipChurch   String?
+  transferAuthorization     Boolean?
 
   // Professional and educational information
   currentOccupation         String?
@@ -67,4 +72,18 @@ model FriendRequest {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Announcement {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String
+  announcementDate DateTime
+  department  String?  // Department code (e.g., "ministerio-infantil-adolescente")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([announcementDate])
+  @@index([isActive])
 }

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Header from '@/app/components/Header';
 import IdentificationStep from './components/IdentificationStep';
 import PersonalInfoStep from './components/PersonalInfoStep';
+import MembershipInfoStep from './components/MembershipInfoStep';
 import ChurchInfoStep from './components/ChurchInfoStep';
 import ProfessionalInfoStep from './components/ProfessionalInfoStep';
 import SkillsStep from './components/SkillsStep';
@@ -12,13 +13,19 @@ import OtherInfoStep from './components/OtherInfoStep';
 type MemberFormData = {
   documentID: string;
   name: string;
+  gender: string;
   birthDate: string;
   maritalStatus: string;
   address: string;
   phone: string;
   email: string;
   preferredContactMethod: string;
-  baptismYear: string;
+  baptismYear: number | null;
+  currentAcceptanceYear: number | null;
+  currentAcceptanceMethod: string;
+  currentMembershipChurch: string;
+  transferAuthorization: boolean;
+  otherChurch: string;
   ministry: string;
   areasToServe: string;
   willingToLead: boolean;
@@ -43,13 +50,19 @@ type MemberFormData = {
 const initialFormData: MemberFormData = {
   documentID: '',
   name: '',
+  gender: '',
   birthDate: '',
   maritalStatus: '',
   address: '',
   phone: '',
   email: '',
   preferredContactMethod: '',
-  baptismYear: '',
+  baptismYear: null,
+  currentAcceptanceYear: null,
+  currentAcceptanceMethod: '',
+  currentMembershipChurch: '',
+  transferAuthorization: false,
+  otherChurch: '',
   ministry: '',
   areasToServe: '',
   willingToLead: false,
@@ -74,6 +87,7 @@ const initialFormData: MemberFormData = {
 const steps = [
   'Identification',
   'Personal Information',
+  'Membership Information',
   'Church Information',
   'Professional & Education',
   'Skills & Abilities',
@@ -85,6 +99,7 @@ const steps = [
 interface MemberResponse {
   documentID: string;
   name: string;
+  gender?: string;
   birthDate: string;
   maritalStatus?: string;
   address: string;
@@ -92,6 +107,10 @@ interface MemberResponse {
   email?: string;
   preferredContactMethod?: string;
   baptismYear?: number;
+  currentAcceptanceYear?: number;
+  currentAcceptanceMethod?: string;
+  currentMembershipChurch?: string;
+  transferAuthorization?: boolean;
   ministry?: string;
   areasToServe?: string;
   willingToLead?: boolean;
@@ -154,16 +173,27 @@ export default function MemberFormPage() {
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>(
     'idle'
   );
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
 
   // Input change handler
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
-    }));
+
+    // Manejar campos especiales que pueden ser null o number
+    if (name === 'baptismYear' || name === 'currentAcceptanceYear') {
+      const numValue = value === '' ? null : parseInt(value);
+      setFormData((prev) => ({
+        ...prev,
+        [name]: numValue,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+      }));
+    }
   };
 
   // Guardar al salir de un campo (onBlur)
@@ -243,6 +273,7 @@ export default function MemberFormPage() {
         setAutoSaveStatus('idle');
         return;
       }
+
       const res = await fetch('/api/member', {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -279,7 +310,9 @@ export default function MemberFormPage() {
     setError(null);
 
     try {
-      const res = await fetch(`/api/member?documentID=${formData.documentID}`);
+      const res = await fetch(
+        `/api/member?documentID=${formData.documentID}&cf-turnstile-response=${turnstileToken}`
+      );
       if (res.ok) {
         const data = (await res.json()) as MemberResponse | { documentID: null };
         if (data && data.documentID) {
@@ -297,6 +330,12 @@ export default function MemberFormPage() {
                   return [k, new Date(v).toISOString().split('T')[0]];
                 }
                 if (k === 'willingToLead') {
+                  return [k, Boolean(v)];
+                }
+                if (k === 'baptismYear' || k === 'currentAcceptanceYear') {
+                  return [k, v === null ? null : Number(v)];
+                }
+                if (k === 'transferAuthorization') {
                   return [k, Boolean(v)];
                 }
                 return [k, v === null ? '' : v];
@@ -372,6 +411,8 @@ export default function MemberFormPage() {
             registerInfo={registerInfo}
             error={error}
             termsAccepted={formData.termsAccepted}
+            turnstileToken={turnstileToken}
+            onTurnstileChange={setTurnstileToken}
           />
         );
       case 1:
@@ -386,7 +427,7 @@ export default function MemberFormPage() {
         );
       case 2:
         return (
-          <ChurchInfoStep
+          <MembershipInfoStep
             formData={formData}
             onChange={handleChange}
             onNext={nextStep}
@@ -396,7 +437,7 @@ export default function MemberFormPage() {
         );
       case 3:
         return (
-          <ProfessionalInfoStep
+          <ChurchInfoStep
             formData={formData}
             onChange={handleChange}
             onNext={nextStep}
@@ -406,7 +447,7 @@ export default function MemberFormPage() {
         );
       case 4:
         return (
-          <SkillsStep
+          <ProfessionalInfoStep
             formData={formData}
             onChange={handleChange}
             onNext={nextStep}
@@ -416,7 +457,7 @@ export default function MemberFormPage() {
         );
       case 5:
         return (
-          <HealthStep
+          <SkillsStep
             formData={formData}
             onChange={handleChange}
             onNext={nextStep}
@@ -426,12 +467,22 @@ export default function MemberFormPage() {
         );
       case 6:
         return (
+          <HealthStep
+            formData={formData}
+            onChange={handleChange}
+            onNext={nextStep}
+            onPrev={prevStep}
+            onBlur={handleBlur}
+          />
+        );
+      case 7:
+        return (
           <OtherInfoStep
             formData={formData}
             onChange={handleChange}
             onSubmit={async (e) => {
               await handleSubmit(e);
-              setStep(7);
+              setStep(8);
             }}
             onPrev={prevStep}
             submitting={submitting}
@@ -441,7 +492,7 @@ export default function MemberFormPage() {
             onBlur={handleBlur}
           />
         );
-      case 7:
+      case 8:
         return (
           <div className="flex flex-col items-center justify-center gap-4 py-12">
             <h2 className="text-2xl font-bold text-[#4b207f]">
@@ -478,8 +529,12 @@ export default function MemberFormPage() {
           {registerInfo && (
             <div className="mt-2 flex flex-col items-center">
               <div className="flex w-fit flex-col gap-1 rounded-lg bg-[#f3f0fa] px-4 py-2 text-sm text-[#4b207f] shadow-sm">
-                <div className="whitespace-nowrap">Fecha de creación: {formatDateVerbose(registerInfo.createdAt)}</div>
-                <div className="whitespace-nowrap">Última actualización: {formatDateVerbose(registerInfo.updatedAt)}</div>
+                <div className="whitespace-nowrap">
+                  Fecha de creación: {formatDateVerbose(registerInfo.createdAt)}
+                </div>
+                <div className="whitespace-nowrap">
+                  Última actualización: {formatDateVerbose(registerInfo.updatedAt)}
+                </div>
               </div>
             </div>
           )}

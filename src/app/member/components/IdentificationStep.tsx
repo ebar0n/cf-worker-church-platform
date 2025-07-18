@@ -1,4 +1,27 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+
+interface TurnstileConfig {
+  siteKey: string;
+}
+
+declare global {
+  interface Window {
+    turnstile: {
+      render: (
+        container: HTMLElement,
+        options: {
+          sitekey: string;
+          callback: (token: string) => void;
+          'expired-callback': () => void;
+          'error-callback': () => void;
+          appearance?: string;
+          theme?: string;
+          language?: string;
+        }
+      ) => void;
+    };
+  }
+}
 
 interface IdentificationStepProps {
   documentID: string;
@@ -9,6 +32,8 @@ interface IdentificationStepProps {
   registerInfo: { createdAt: string; updatedAt: string } | null;
   error: string | null;
   termsAccepted: boolean;
+  turnstileToken: string;
+  onTurnstileChange: (token: string) => void;
 }
 
 export default function IdentificationStep({
@@ -20,9 +45,160 @@ export default function IdentificationStep({
   registerInfo,
   error,
   termsAccepted,
+  turnstileToken,
+  onTurnstileChange,
 }: IdentificationStepProps) {
+  const turnstileRef = useRef<HTMLDivElement>(null);
+  const [siteKey, setSiteKey] = useState<string>('');
+  const [widgetRendered, setWidgetRendered] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Obtener la site key desde el backend
+    const fetchSiteKey = async () => {
+      try {
+        const response = await fetch('/api/turnstile-config');
+        const data = (await response.json()) as TurnstileConfig;
+        if (data.siteKey) {
+          setSiteKey(data.siteKey);
+        } else {
+          console.error('No site key received from API');
+        }
+      } catch (error) {
+        console.error('Error fetching Turnstile site key:', error);
+      }
+    };
+
+    fetchSiteKey();
+  }, []);
+
+  useEffect(() => {
+    if (!siteKey || widgetRendered) {
+      return;
+    }
+
+    // Cargar el script de Turnstile si no está ya cargado
+    if (!window.turnstile) {
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+
+      script.onload = () => {
+        if (turnstileRef.current && window.turnstile) {
+          const widgetId = window.turnstile.render(turnstileRef.current, {
+            sitekey: siteKey,
+            callback: (token: string) => {
+              console.log('Turnstile token received:', token);
+              onTurnstileChange(token);
+            },
+            'expired-callback': () => {
+              console.log('Turnstile token expired');
+              onTurnstileChange('');
+            },
+            'error-callback': () => {
+              console.log('Turnstile error occurred');
+              onTurnstileChange('');
+            },
+            // Configuración para desarrollo local
+            appearance: 'always',
+            theme: 'light',
+            language: 'es',
+          });
+
+          console.log('Turnstile widget rendered with ID:', widgetId);
+
+          // Actualizar el estado después de renderizar
+          setWidgetRendered(true);
+
+          // Verificar que el widget se creó correctamente
+          setTimeout(() => {
+            const iframe = turnstileRef.current?.querySelector('iframe');
+            if (iframe) {
+              console.log('Turnstile iframe found:', iframe);
+              console.log('Iframe src:', iframe.src);
+              console.log('Iframe dimensions:', iframe.offsetWidth, 'x', iframe.offsetHeight);
+            } else {
+              console.log('No Turnstile iframe found in container');
+            }
+
+            // Verificar elementos dentro del contenedor
+            const containerChildren = turnstileRef.current?.children;
+            console.log('Container children count:', containerChildren?.length);
+            if (containerChildren) {
+              Array.from(containerChildren).forEach((child, index) => {
+                console.log(`Child ${index}:`, child.tagName, child.className);
+              });
+            }
+          }, 1000);
+        }
+      };
+    } else if (turnstileRef.current) {
+      console.log('Turnstile script already loaded, rendering widget...');
+      // Si el script ya está cargado, renderizar directamente
+      const widgetId = window.turnstile.render(turnstileRef.current, {
+        sitekey: siteKey,
+        callback: (token: string) => {
+          console.log('Turnstile token received:', token);
+          onTurnstileChange(token);
+        },
+        'expired-callback': () => {
+          console.log('Turnstile token expired');
+          onTurnstileChange('');
+        },
+        'error-callback': () => {
+          console.log('Turnstile error occurred');
+          onTurnstileChange('');
+        },
+        // Configuración para desarrollo local
+        appearance: 'always',
+        theme: 'light',
+        language: 'es',
+      });
+
+      console.log('Turnstile widget rendered with ID:', widgetId);
+
+      // Actualizar el estado después de renderizar
+      setWidgetRendered(true);
+
+      // Verificar que el widget se creó correctamente
+      setTimeout(() => {
+        const iframe = turnstileRef.current?.querySelector('iframe');
+        if (iframe) {
+          console.log('Turnstile iframe found:', iframe);
+          console.log('Iframe src:', iframe.src);
+          console.log('Iframe dimensions:', iframe.offsetWidth, 'x', iframe.offsetHeight);
+        } else {
+          console.log('No Turnstile iframe found in container');
+        }
+
+        // Verificar elementos dentro del contenedor
+        const containerChildren = turnstileRef.current?.children;
+        console.log('Container children count:', containerChildren?.length);
+        if (containerChildren) {
+          Array.from(containerChildren).forEach((child, index) => {
+            console.log(`Child ${index}:`, child.tagName, child.className);
+          });
+        }
+      }, 1000);
+    }
+  }, [siteKey, onTurnstileChange, widgetRendered]);
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      // No limpiar el widget cuando el componente se desmonte
+      // para evitar problemas de re-renderizado
+    };
+  }, []);
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
+      <div className="text-center">
+        <h2 className="mb-2 text-2xl font-bold text-[#5e3929]">Identificación</h2>
+        <p className="text-[#5e3929] opacity-80">Ingresa tu documento de identidad para comenzar</p>
+      </div>
+
       <div className="flex w-full flex-col items-center justify-center">
         <label
           htmlFor="documentID"
@@ -66,11 +242,26 @@ export default function IdentificationStep({
         </label>
       </div>
 
+      {/* Turnstile Widget */}
+      <div className="flex justify-center">
+        <div
+          ref={turnstileRef}
+          id="turnstile-widget-container"
+          className="turnstile-widget"
+          style={{
+            minHeight: '65px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        ></div>
+      </div>
+
       <div className="flex justify-center">
         <button
           type="button"
           onClick={onCheck}
-          disabled={loading || !documentID || !termsAccepted}
+          disabled={loading || !documentID || !termsAccepted || !turnstileToken}
           className="rounded-lg bg-[#4b207f] px-6 py-2 text-white hover:bg-[#3a1a5f] disabled:bg-[#d4c5b9]"
         >
           {loading ? 'Buscando...' : 'Continuar'}
