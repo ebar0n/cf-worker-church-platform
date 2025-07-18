@@ -67,6 +67,7 @@ yarn db:generate
 ### Database Management
 
 - **Apply migrations locally:**
+
   ```bash
   yarn db:migrate
   ```
@@ -98,6 +99,7 @@ yarn deploy
   ```
 
 - **Generate Cloudflare types:**
+
   ```bash
   yarn cf:typegen
   ```
