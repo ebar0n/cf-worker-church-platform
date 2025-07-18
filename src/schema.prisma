@@ -20,6 +20,7 @@ model Member {
 
   // Personal information
   name                      String
+  gender                    String?
   phone                     String
   birthDate                 DateTime?
   maritalStatus             String?
@@ -34,6 +35,10 @@ model Member {
   willingToLead             Boolean?
   suggestions               String?
   pastoralNotes             String?
+  currentAcceptanceYear     Int?
+  currentAcceptanceMethod   String?
+  currentMembershipChurch   String?
+  transferAuthorization     Boolean?
 
   // Professional and educational information
   currentOccupation         String?
