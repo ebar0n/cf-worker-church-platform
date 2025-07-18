@@ -5,6 +5,7 @@ import { z } from 'zod';
 const memberSchema = z.object({
   documentID: z.string().min(1),
   name: z.string(),
+  gender: z.string().optional(),
   phone: z.string().min(5),
   birthDate: z.string().optional(),
   maritalStatus: z.string().optional(),
@@ -17,6 +18,10 @@ const memberSchema = z.object({
   willingToLead: z.boolean().optional(),
   suggestions: z.string().optional(),
   pastoralNotes: z.string().optional(),
+  currentAcceptanceYear: z.string().optional(),
+  currentAcceptanceMethod: z.string().optional(),
+  currentMembershipChurch: z.string().optional(),
+  transferAuthorization: z.string().optional(),
   currentOccupation: z.string().optional(),
   workOrStudyPlace: z.string().optional(),
   professionalArea: z.string().optional(),
@@ -126,7 +131,7 @@ export async function PUT(request: NextRequest) {
 
     // Función helper para agregar campos a la actualización
     const addField = (field: string, value: any) => {
-      if (field in parse.data && value) {
+      if (field in parse.data) {
         updateFields.push(`${field} = ?`);
         bindValues.push(value);
       }
@@ -134,10 +139,11 @@ export async function PUT(request: NextRequest) {
 
     // Agregar campos dinámicamente
     addField('name', parse.data.name);
+    addField('gender', parse.data.gender || null);
+    addField('phone', parse.data.phone);
     addField('birthDate', parse.data.birthDate);
     addField('maritalStatus', parse.data.maritalStatus || null);
     addField('address', parse.data.address);
-    addField('phone', parse.data.phone);
     addField('email', parse.data.email || null);
     addField('preferredContactMethod', parse.data.preferredContactMethod || null);
     addField('baptismYear', parseInt(parse.data.baptismYear || '') || null);
@@ -146,6 +152,10 @@ export async function PUT(request: NextRequest) {
     addField('willingToLead', parse.data.willingToLead ? 1 : 0);
     addField('suggestions', parse.data.suggestions || null);
     addField('pastoralNotes', parse.data.pastoralNotes || null);
+    addField('currentAcceptanceYear', parseInt(parse.data.currentAcceptanceYear || '') || null);
+    addField('currentAcceptanceMethod', parse.data.currentAcceptanceMethod || null);
+    addField('currentMembershipChurch', parse.data.currentMembershipChurch || null);
+    addField('transferAuthorization', parse.data.transferAuthorization ? 1 : 0);
     addField('currentOccupation', parse.data.currentOccupation || null);
     addField('workOrStudyPlace', parse.data.workOrStudyPlace || null);
     addField('professionalArea', parse.data.professionalArea || null);

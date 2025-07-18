@@ -22,7 +22,14 @@ export default function IdentificationStep({
   termsAccepted,
 }: IdentificationStepProps) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-[#5e3929] mb-2">Identificación</h2>
+        <p className="text-[#5e3929] opacity-80">
+          Ingresa tu documento de identidad para comenzar
+        </p>
+      </div>
+
       <div className="flex w-full flex-col items-center justify-center">
         <label
           htmlFor="documentID"

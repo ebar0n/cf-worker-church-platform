@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Header from '@/app/components/Header';
 import IdentificationStep from './components/IdentificationStep';
 import PersonalInfoStep from './components/PersonalInfoStep';
+import MembershipInfoStep from './components/MembershipInfoStep';
 import ChurchInfoStep from './components/ChurchInfoStep';
 import ProfessionalInfoStep from './components/ProfessionalInfoStep';
 import SkillsStep from './components/SkillsStep';
@@ -12,6 +13,7 @@ import OtherInfoStep from './components/OtherInfoStep';
 type MemberFormData = {
   documentID: string;
   name: string;
+  gender: string;
   birthDate: string;
   maritalStatus: string;
   address: string;
@@ -19,6 +21,11 @@ type MemberFormData = {
   email: string;
   preferredContactMethod: string;
   baptismYear: string;
+  currentAcceptanceYear: string;
+  currentAcceptanceMethod: string;
+  currentMembershipChurch: string;
+  transferAuthorization: boolean;
+  otherChurch: string;
   ministry: string;
   areasToServe: string;
   willingToLead: boolean;
@@ -43,6 +50,7 @@ type MemberFormData = {
 const initialFormData: MemberFormData = {
   documentID: '',
   name: '',
+  gender: '',
   birthDate: '',
   maritalStatus: '',
   address: '',
@@ -50,6 +58,11 @@ const initialFormData: MemberFormData = {
   email: '',
   preferredContactMethod: '',
   baptismYear: '',
+  currentAcceptanceYear: '',
+  currentAcceptanceMethod: '',
+  currentMembershipChurch: '',
+  transferAuthorization: false,
+  otherChurch: '',
   ministry: '',
   areasToServe: '',
   willingToLead: false,
@@ -74,6 +87,7 @@ const initialFormData: MemberFormData = {
 const steps = [
   'Identification',
   'Personal Information',
+  'Membership Information',
   'Church Information',
   'Professional & Education',
   'Skills & Abilities',
@@ -243,6 +257,7 @@ export default function MemberFormPage() {
         setAutoSaveStatus('idle');
         return;
       }
+
       const res = await fetch('/api/member', {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -386,7 +401,7 @@ export default function MemberFormPage() {
         );
       case 2:
         return (
-          <ChurchInfoStep
+          <MembershipInfoStep
             formData={formData}
             onChange={handleChange}
             onNext={nextStep}
@@ -396,7 +411,7 @@ export default function MemberFormPage() {
         );
       case 3:
         return (
-          <ProfessionalInfoStep
+          <ChurchInfoStep
             formData={formData}
             onChange={handleChange}
             onNext={nextStep}
@@ -406,7 +421,7 @@ export default function MemberFormPage() {
         );
       case 4:
         return (
-          <SkillsStep
+          <ProfessionalInfoStep
             formData={formData}
             onChange={handleChange}
             onNext={nextStep}
@@ -416,7 +431,7 @@ export default function MemberFormPage() {
         );
       case 5:
         return (
-          <HealthStep
+          <SkillsStep
             formData={formData}
             onChange={handleChange}
             onNext={nextStep}
@@ -426,12 +441,22 @@ export default function MemberFormPage() {
         );
       case 6:
         return (
+          <HealthStep
+            formData={formData}
+            onChange={handleChange}
+            onNext={nextStep}
+            onPrev={prevStep}
+            onBlur={handleBlur}
+          />
+        );
+      case 7:
+        return (
           <OtherInfoStep
             formData={formData}
             onChange={handleChange}
             onSubmit={async (e) => {
               await handleSubmit(e);
-              setStep(7);
+              setStep(8);
             }}
             onPrev={prevStep}
             submitting={submitting}
@@ -441,7 +466,7 @@ export default function MemberFormPage() {
             onBlur={handleBlur}
           />
         );
-      case 7:
+      case 8:
         return (
           <div className="flex flex-col items-center justify-center gap-4 py-12">
             <h2 className="text-2xl font-bold text-[#4b207f]">
