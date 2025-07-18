@@ -8,6 +8,9 @@ declare global {
           callback?: (token: string) => void;
           'expired-callback'?: () => void;
           'error-callback'?: () => void;
+          appearance?: string;
+          theme?: string;
+          language?: string;
         }
       ) => void;
     };

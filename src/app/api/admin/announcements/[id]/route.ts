@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 // PUT - Update announcement
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { env } = getCloudflareContext();
+  const { id } = await params;
+
+  if (isNaN(parseInt(id))) {
+    return NextResponse.json({ error: 'Invalid ID format' }, { status: 400 });
+  }
 
   try {
-    const id = parseInt(params.id);
     const body = (await request.json()) as {
       title: string;
       content: string;
@@ -73,12 +77,18 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE - Delete announcement
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const { env } = getCloudflareContext();
+  const { id } = await params;
+
+  if (isNaN(parseInt(id))) {
+    return NextResponse.json({ error: 'Invalid ID format' }, { status: 400 });
+  }
 
   try {
-    const id = parseInt(params.id);
-
     await env.DB.prepare('DELETE FROM Announcement WHERE id = ?').bind(id).run();
 
     return NextResponse.json({ message: 'Announcement deleted successfully' });
