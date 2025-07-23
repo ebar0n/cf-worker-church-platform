@@ -19,7 +19,9 @@ export default function AdminLayout({
     { path: '/admin', label: 'Dashboard' },
     { path: '/admin/friends', label: 'Solicitudes' },
     { path: '/admin/members', label: 'Miembros' },
+    { path: '/admin/children', label: 'Niños' },
     { path: '/admin/announcements', label: 'Anuncios' },
+    { path: '/admin/programs', label: 'Programas' },
   ];
 
   return (

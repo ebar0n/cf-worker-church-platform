@@ -1,14 +1,13 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import Header from '@/app/components/Header';
 import IdentificationStep from './components/IdentificationStep';
 import PersonalInfoStep from './components/PersonalInfoStep';
 import MembershipInfoStep from './components/MembershipInfoStep';
-import ChurchInfoStep from './components/ChurchInfoStep';
 import ProfessionalInfoStep from './components/ProfessionalInfoStep';
-import SkillsStep from './components/SkillsStep';
-import HealthStep from './components/HealthStep';
-import OtherInfoStep from './components/OtherInfoStep';
+import SkillsAndHealthStep from './components/SkillsAndHealthStep';
+import ChurchAndOtherInfoStep from './components/ChurchAndOtherInfoStep';
 
 type MemberFormData = {
   documentID: string;
@@ -87,12 +86,10 @@ const initialFormData: MemberFormData = {
 const steps = [
   'Identification',
   'Personal Information',
-  'Membership Information',
-  'Church Information',
   'Professional & Education',
-  'Skills & Abilities',
-  'Health & Special Needs',
-  'Other Information',
+  'Skills, Health & Special Needs',
+  'Membership Information',
+  'Church & Other Information',
   'Gracias',
 ];
 
@@ -311,7 +308,7 @@ export default function MemberFormPage() {
 
     try {
       const res = await fetch(
-        `/api/member?documentID=${formData.documentID}&cf-turnstile-response=${turnstileToken}`
+        `/api/member?documentID=${formData.documentID}&token=${turnstileToken}`
       );
       if (res.ok) {
         const data = (await res.json()) as MemberResponse | { documentID: null };
@@ -427,7 +424,7 @@ export default function MemberFormPage() {
         );
       case 2:
         return (
-          <MembershipInfoStep
+          <ProfessionalInfoStep
             formData={formData}
             onChange={handleChange}
             onNext={nextStep}
@@ -437,7 +434,7 @@ export default function MemberFormPage() {
         );
       case 3:
         return (
-          <ChurchInfoStep
+          <SkillsAndHealthStep
             formData={formData}
             onChange={handleChange}
             onNext={nextStep}
@@ -447,7 +444,7 @@ export default function MemberFormPage() {
         );
       case 4:
         return (
-          <ProfessionalInfoStep
+          <MembershipInfoStep
             formData={formData}
             onChange={handleChange}
             onNext={nextStep}
@@ -457,44 +454,24 @@ export default function MemberFormPage() {
         );
       case 5:
         return (
-          <SkillsStep
+          <ChurchAndOtherInfoStep
             formData={formData}
             onChange={handleChange}
-            onNext={nextStep}
-            onPrev={prevStep}
-            onBlur={handleBlur}
-          />
-        );
-      case 6:
-        return (
-          <HealthStep
-            formData={formData}
-            onChange={handleChange}
-            onNext={nextStep}
-            onPrev={prevStep}
-            onBlur={handleBlur}
-          />
-        );
-      case 7:
-        return (
-          <OtherInfoStep
-            formData={formData}
-            onChange={handleChange}
-            onSubmit={async (e) => {
+            onSubmit={async (e: React.FormEvent) => {
               await handleSubmit(e);
-              setStep(8);
+              setStep(6);
             }}
             onPrev={prevStep}
+            onBlur={handleBlur}
             submitting={submitting}
             isExisting={isExisting}
             success={success}
             error={error}
-            onBlur={handleBlur}
           />
         );
-      case 8:
+      case 6:
         return (
-          <div className="flex flex-col items-center justify-center gap-4 py-12">
+          <div className="flex flex-col items-center justify-center gap-6 py-12">
             <h2 className="text-2xl font-bold text-[#4b207f]">
               ¡Gracias por actualizar tu información!
             </h2>
@@ -504,6 +481,12 @@ export default function MemberFormPage() {
               Si tienes dudas o deseas actualizar algún dato, puedes volver a este formulario en
               cualquier momento.
             </p>
+            <Link
+              href="/"
+              className="rounded-full bg-[#4b207f] px-8 py-3 font-medium text-white shadow-md transition-colors hover:bg-[#2f557f]"
+            >
+              Volver al inicio
+            </Link>
           </div>
         );
       default:

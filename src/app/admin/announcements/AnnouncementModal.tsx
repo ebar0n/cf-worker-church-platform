@@ -43,11 +43,14 @@ export default function AnnouncementModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-2 sm:p-4">
-        <div className="relative mx-2 w-full max-w-5xl rounded-2xl bg-white shadow-2xl">
+        <div
+          className="relative mx-2 w-full max-w-5xl rounded-2xl bg-white shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-200 p-4 sm:p-6 lg:p-8">
             <h3 className="text-2xl font-bold text-[#4b207f]">
@@ -99,27 +102,14 @@ export default function AnnouncementModal({
                     rows={6}
                     value={formData.content}
                     onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                    className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
-                    placeholder="Contenido del anuncio"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
+                    placeholder="Contenido del anuncio..."
                   />
                 </div>
               </div>
 
               {/* Right Column */}
               <div className="space-y-6">
-                <div className="flex items-center rounded-lg bg-gray-50 p-4">
-                  <input
-                    type="checkbox"
-                    id="isActive"
-                    checked={formData.isActive}
-                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                    className="h-5 w-5 rounded text-[#4b207f] focus:ring-[#4b207f]"
-                  />
-                  <label htmlFor="isActive" className="ml-3 text-sm text-gray-700">
-                    Anuncio activo
-                  </label>
-                </div>
-
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700">
                     Fecha del Anuncio *
@@ -132,35 +122,76 @@ export default function AnnouncementModal({
                     className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
                   />
                 </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                    Departamento
+                  </label>
+                  <DepartmentSelector
+                    selectedDepartment={formData.department}
+                    onSelectDepartment={(department: string) =>
+                      setFormData({ ...formData, department })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="isActive"
+                    checked={formData.isActive}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                    className="h-4 w-4 rounded border-gray-300 text-[#4b207f] focus:ring-[#4b207f]"
+                  />
+                  <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
+                    Anuncio activo
+                  </label>
+                </div>
               </div>
             </div>
 
-            {/* Department Selector - Full Width Row */}
-            <div className="border-t border-gray-200 pt-6">
-              <DepartmentSelector
-                selectedDepartment={formData.department}
-                onSelectDepartment={(code) => setFormData({ ...formData, department: code })}
-              />
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-col justify-end gap-3 border-t border-gray-200 pt-6 sm:flex-row">
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-3 border-t border-gray-200 pt-6">
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full rounded-lg border border-gray-300 px-6 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50 sm:w-auto"
+                className="rounded-lg border border-gray-300 bg-white px-6 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#4b207f] px-6 py-3 font-medium text-white transition-colors hover:bg-[#4b207f]/90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                className="rounded-lg bg-[#4b207f] px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-[#4b207f]/90 disabled:opacity-50"
               >
-                {isLoading && (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <svg
+                      className="mr-2 h-4 w-4 animate-spin"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    Guardando...
+                  </div>
+                ) : editingAnnouncement ? (
+                  'Actualizar'
+                ) : (
+                  'Crear'
                 )}
-                {editingAnnouncement ? 'Actualizar' : 'Crear'}
               </button>
             </div>
           </form>

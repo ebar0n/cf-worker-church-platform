@@ -66,112 +66,34 @@ export default function IdentificationStep({
       document.head.appendChild(script);
 
       script.onload = () => {
-        if (turnstileRef.current && window.turnstile) {
-          const widgetId = window.turnstile.render(turnstileRef.current, {
-            sitekey: siteKey,
-            callback: (token: string) => {
-              console.log('Turnstile token received:', token);
-              onTurnstileChange(token);
-            },
-            'expired-callback': () => {
-              console.log('Turnstile token expired');
-              onTurnstileChange('');
-            },
-            'error-callback': () => {
-              console.log('Turnstile error occurred');
-              onTurnstileChange('');
-            },
-            // Configuración para desarrollo local
-            appearance: 'always',
-            theme: 'light',
-            language: 'es',
-          });
-
-          console.log('Turnstile widget rendered with ID:', widgetId);
-
-          // Actualizar el estado después de renderizar
-          setWidgetRendered(true);
-
-          // Verificar que el widget se creó correctamente
-          setTimeout(() => {
-            const iframe = turnstileRef.current?.querySelector('iframe');
-            if (iframe) {
-              console.log('Turnstile iframe found:', iframe);
-              console.log('Iframe src:', iframe.src);
-              console.log('Iframe dimensions:', iframe.offsetWidth, 'x', iframe.offsetHeight);
-            } else {
-              console.log('No Turnstile iframe found in container');
-            }
-
-            // Verificar elementos dentro del contenedor
-            const containerChildren = turnstileRef.current?.children;
-            console.log('Container children count:', containerChildren?.length);
-            if (containerChildren) {
-              Array.from(containerChildren).forEach((child, index) => {
-                console.log(`Child ${index}:`, child.tagName, child.className);
-              });
-            }
-          }, 1000);
-        }
+        renderTurnstileWidget();
       };
-    } else if (turnstileRef.current) {
-      console.log('Turnstile script already loaded, rendering widget...');
-      // Si el script ya está cargado, renderizar directamente
-      const widgetId = window.turnstile.render(turnstileRef.current, {
+    } else {
+      renderTurnstileWidget();
+    }
+  }, [siteKey, onTurnstileChange, widgetRendered]);
+
+  const renderTurnstileWidget = () => {
+    if (turnstileRef.current && window.turnstile) {
+      window.turnstile.render(turnstileRef.current, {
         sitekey: siteKey,
         callback: (token: string) => {
-          console.log('Turnstile token received:', token);
           onTurnstileChange(token);
         },
         'expired-callback': () => {
-          console.log('Turnstile token expired');
           onTurnstileChange('');
         },
         'error-callback': () => {
-          console.log('Turnstile error occurred');
           onTurnstileChange('');
         },
-        // Configuración para desarrollo local
         appearance: 'always',
         theme: 'light',
         language: 'es',
       });
 
-      console.log('Turnstile widget rendered with ID:', widgetId);
-
-      // Actualizar el estado después de renderizar
       setWidgetRendered(true);
-
-      // Verificar que el widget se creó correctamente
-      setTimeout(() => {
-        const iframe = turnstileRef.current?.querySelector('iframe');
-        if (iframe) {
-          console.log('Turnstile iframe found:', iframe);
-          console.log('Iframe src:', iframe.src);
-          console.log('Iframe dimensions:', iframe.offsetWidth, 'x', iframe.offsetHeight);
-        } else {
-          console.log('No Turnstile iframe found in container');
-        }
-
-        // Verificar elementos dentro del contenedor
-        const containerChildren = turnstileRef.current?.children;
-        console.log('Container children count:', containerChildren?.length);
-        if (containerChildren) {
-          Array.from(containerChildren).forEach((child, index) => {
-            console.log(`Child ${index}:`, child.tagName, child.className);
-          });
-        }
-      }, 1000);
     }
-  }, [siteKey, onTurnstileChange, widgetRendered]);
-
-  // Cleanup effect
-  useEffect(() => {
-    return () => {
-      // No limpiar el widget cuando el componente se desmonte
-      // para evitar problemas de re-renderizado
-    };
-  }, []);
+  };
 
   return (
     <div className="flex flex-col gap-6">

@@ -10,6 +10,13 @@ type MinistryFilter = 'todos' | 'predicacion' | 'musica' | 'jovenes' | 'ninos' |
 type MaritalStatusFilter = 'todos' | 'soltero' | 'casado' | 'divorciado' | 'viudo';
 
 export default function MembersList({ adminEmail }: MembersListProps) {
+  // Helper function to format dates without timezone issues
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const [year, month, day] = dateString.split('T')[0].split('-').map(Number);
+    return `${day}/${month}/${year}`;
+  };
+
   const [members, setMembers] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -19,6 +26,8 @@ export default function MembersList({ adminEmail }: MembersListProps) {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const pageSize = 10;
   const [selectedMember, setSelectedMember] = useState<any>(null);
+  const [memberChildren, setMemberChildren] = useState<any[]>([]);
+  const [loadingChildren, setLoadingChildren] = useState(false);
 
   useEffect(() => {
     fetch('/api/admin/members')
@@ -111,7 +120,7 @@ export default function MembersList({ adminEmail }: MembersListProps) {
           m.name,
           m.documentID,
           m.gender || '',
-          new Date(m.birthDate).toLocaleDateString(),
+          formatDate(m.birthDate),
           m.maritalStatus || '',
           m.address,
           m.phone,
@@ -153,12 +162,27 @@ export default function MembersList({ adminEmail }: MembersListProps) {
     link.click();
   };
 
-  const handleOpenDetails = (member: any) => {
+  const handleOpenDetails = async (member: any) => {
     setSelectedMember(member);
+    setLoadingChildren(true);
+    setMemberChildren([]);
+
+    try {
+      const response = await fetch(`/api/admin/members/${member.id}/children`);
+      if (response.ok) {
+        const children = (await response.json()) as any[];
+        setMemberChildren(children);
+      }
+    } catch (error) {
+      console.error('Error fetching member children:', error);
+    } finally {
+      setLoadingChildren(false);
+    }
   };
 
   const handleCloseDetails = () => {
     setSelectedMember(null);
+    setMemberChildren([]);
   };
 
   return (
@@ -468,7 +492,9 @@ export default function MembersList({ adminEmail }: MembersListProps) {
                   </div>
                   <div>
                     <span className="font-semibold">Fecha de nacimiento:</span>{' '}
-                    {new Date(selectedMember.birthDate).toLocaleDateString()}
+                    {selectedMember.birthDate
+                      ? formatDate(selectedMember.birthDate)
+                      : 'No especificada'}
                   </div>
                   <div>
                     <span className="font-semibold">Estado civil:</span>{' '}
@@ -599,6 +625,75 @@ export default function MembersList({ adminEmail }: MembersListProps) {
                     <span className="font-semibold">Intereses y pasatiempos:</span>{' '}
                     {selectedMember.interestsHobbies || 'No especificado'}
                   </div>
+                </div>
+
+                {/* Niños a Cargo */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-[#4b207f]">Niños a Cargo</h4>
+                  {loadingChildren ? (
+                    <div className="text-gray-500">Cargando niños...</div>
+                  ) : memberChildren.length > 0 ? (
+                    <div className="space-y-3">
+                      {memberChildren.map((child) => (
+                        <div key={child.id} className="rounded-lg bg-gray-50 p-3">
+                          <div className="mb-2 flex items-center justify-between">
+                            <h5 className="font-medium text-gray-900">{child.name}</h5>
+                            <span
+                              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                                child.relationship === 'father'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : child.relationship === 'mother'
+                                    ? 'bg-pink-100 text-pink-800'
+                                    : 'bg-purple-100 text-purple-800'
+                              }`}
+                            >
+                              {child.relationship === 'father'
+                                ? 'Padre'
+                                : child.relationship === 'mother'
+                                  ? 'Madre'
+                                  : child.relationship === 'guardian'
+                                    ? 'Tutor'
+                                    : 'Responsable'}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="font-medium text-gray-500">Documento:</span>
+                              <div className="text-gray-900">{child.documentID}</div>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-500">Género:</span>
+                              <div className="text-gray-900">
+                                {child.gender === 'male'
+                                  ? 'Masculino'
+                                  : child.gender === 'female'
+                                    ? 'Femenino'
+                                    : 'No especificado'}
+                              </div>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-500">
+                                Fecha de Nacimiento:
+                              </span>
+                              <div className="text-gray-900">
+                                {child.birthDate ? formatDate(child.birthDate) : 'No especificada'}
+                              </div>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-500">Registrado:</span>
+                              <div className="text-gray-900">
+                                {new Date(child.createdAt).toLocaleDateString('es-ES')}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="italic text-gray-500">
+                      No tiene niños registrados a su cargo
+                    </div>
+                  )}
                 </div>
               </div>
 

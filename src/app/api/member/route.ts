@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyTurnstileToken, withTurnstileProtection } from '@/lib/turnstile';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { z } from 'zod';
 
@@ -45,57 +46,31 @@ const initialMemberSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
-  const { env } = getCloudflareContext();
-  const { searchParams } = new URL(request.url);
-  const documentID = searchParams.get('documentID');
-  const turnstileToken = searchParams.get('cf-turnstile-response');
+  return withTurnstileProtection(request, async (req) => {
+    const { searchParams } = new URL(req.url);
+    const documentID = searchParams.get('documentID');
 
-  if (!documentID) {
-    return NextResponse.json({ error: 'Document ID is required' }, { status: 400 });
-  }
+    if (!documentID) {
+      return NextResponse.json({ error: 'Document ID is required' }, { status: 400 });
+    }
 
-  if (!turnstileToken) {
-    return NextResponse.json({ error: 'Turnstile verification required' }, { status: 400 });
-  }
+    const { env } = getCloudflareContext();
 
-  // Validar el token de Turnstile
-  try {
-    const formData = new FormData();
-    formData.append('secret', env.TURNSTILE_SECRET_KEY);
-    formData.append('response', turnstileToken);
+    try {
+      const member = await env.DB.prepare('SELECT * FROM Member WHERE documentID = ?')
+        .bind(documentID)
+        .first();
 
-    const turnstileResponse = await fetch(
-      'https://challenges.cloudflare.com/turnstile/v0/siteverify',
-      {
-        method: 'POST',
-        body: formData,
+      if (!member) {
+        return NextResponse.json({ documentID: null }, { status: 200 });
       }
-    );
 
-    const turnstileResult = (await turnstileResponse.json()) as { success: boolean };
-
-    if (!turnstileResult.success) {
-      return NextResponse.json({ error: 'Turnstile verification failed' }, { status: 400 });
+      return NextResponse.json(member);
+    } catch (error) {
+      console.error('Error fetching member:', error);
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-  } catch (error) {
-    console.error('Error validating Turnstile:', error);
-    return NextResponse.json({ error: 'Error validating Turnstile' }, { status: 500 });
-  }
-
-  try {
-    const member = await env.DB.prepare('SELECT * FROM Member WHERE documentID = ?')
-      .bind(documentID)
-      .first();
-
-    if (!member) {
-      return NextResponse.json({ documentID: null }, { status: 200 });
-    }
-
-    return NextResponse.json(member);
-  } catch (error) {
-    console.error('Error fetching member:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
+  });
 }
 
 export async function POST(request: NextRequest) {

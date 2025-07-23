@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 
 const initialState = {
   name: '',
@@ -17,6 +18,92 @@ export default function FriendForm() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Turnstile widget state
+  const turnstileRef = useRef<HTMLDivElement>(null);
+  const [siteKey, setSiteKey] = useState<string>('');
+  const [widgetRendered, setWidgetRendered] = useState<boolean>(false);
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
+
+  // Fetch Turnstile site key
+  useEffect(() => {
+    const fetchSiteKey = async () => {
+      try {
+        const response = await fetch('/api/turnstile-config');
+        const data = (await response.json()) as { siteKey: string };
+        if (data.siteKey) {
+          setSiteKey(data.siteKey);
+        } else {
+          console.error('No site key received from API');
+        }
+      } catch (error) {
+        console.error('Error fetching Turnstile site key:', error);
+      }
+    };
+
+    fetchSiteKey();
+  }, []);
+
+  // Render Turnstile widget
+  useEffect(() => {
+    if (!siteKey || widgetRendered) {
+      return;
+    }
+
+    // Load Turnstile script if not already loaded
+    if (!window.turnstile) {
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+
+      script.onload = () => {
+        if (turnstileRef.current && window.turnstile) {
+          const widgetId = window.turnstile.render(turnstileRef.current, {
+            sitekey: siteKey,
+            callback: (token: string) => {
+              setTurnstileToken(token);
+            },
+            'expired-callback': () => {
+              console.log('Turnstile token expired');
+              setTurnstileToken('');
+            },
+            'error-callback': () => {
+              console.log('Turnstile error occurred');
+              setTurnstileToken('');
+            },
+            appearance: 'always',
+            theme: 'light',
+            language: 'es',
+          });
+
+          setWidgetRendered(true);
+        }
+      };
+    } else if (turnstileRef.current) {
+      console.log('Turnstile script already loaded, rendering widget...');
+      const widgetId = window.turnstile.render(turnstileRef.current, {
+        sitekey: siteKey,
+        callback: (token: string) => {
+          setTurnstileToken(token);
+        },
+        'expired-callback': () => {
+          console.log('Turnstile token expired');
+          setTurnstileToken('');
+        },
+        'error-callback': () => {
+          console.log('Turnstile error occurred');
+          setTurnstileToken('');
+        },
+        appearance: 'always',
+        theme: 'light',
+        language: 'es',
+      });
+
+      setWidgetRendered(true);
+    }
+  }, [siteKey, widgetRendered]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -31,6 +118,10 @@ export default function FriendForm() {
       setError('Debes aceptar la política de privacidad para continuar');
       return;
     }
+    if (!turnstileToken) {
+      setError('Por favor, completa la verificación de seguridad');
+      return;
+    }
     setLoading(true);
     setError(null);
     setSuccess(false);
@@ -38,7 +129,10 @@ export default function FriendForm() {
       const res = await fetch('/api/friend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          token: turnstileToken,
+        }),
       });
       if (!res.ok) {
         const data: { error?: string } = await res.json();
@@ -46,6 +140,7 @@ export default function FriendForm() {
       } else {
         setSuccess(true);
         setForm(initialState);
+        setTurnstileToken('');
       }
     } catch {
       setError('Error de red o servidor');
@@ -53,6 +148,29 @@ export default function FriendForm() {
       setLoading(false);
     }
   };
+
+  // Si la solicitud fue exitosa, mostrar solo el mensaje de éxito y el botón de inicio
+  if (success) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-6 py-12">
+        <div className="text-center">
+          <div className="mb-4 text-6xl">✅</div>
+          <h2 className="mb-2 text-2xl font-bold text-[#4b207f]">
+            ¡Solicitud enviada correctamente!
+          </h2>
+          <p className="text-gray-600">
+            Hemos recibido tu solicitud. Nos pondremos en contacto contigo pronto.
+          </p>
+        </div>
+        <Link
+          href="/"
+          className="rounded-full bg-[#4b207f] px-8 py-3 font-medium text-white shadow-md transition-colors hover:bg-[#2f557f]"
+        >
+          Volver al inicio
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
@@ -138,18 +256,31 @@ export default function FriendForm() {
           </a>
         </label>
       </div>
+
+      {/* Turnstile Widget */}
+      <div className="space-y-4">
+        <div className="flex justify-center">
+          <div
+            ref={turnstileRef}
+            id="turnstile-widget-container"
+            className="turnstile-widget"
+            style={{
+              minHeight: '65px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          ></div>
+        </div>
+      </div>
+
       <button
         type="submit"
         className="mt-4 rounded-full bg-[#4b207f] px-8 py-3 font-medium text-white shadow-md transition-colors hover:bg-[#2f557f]"
-        disabled={loading}
+        disabled={loading || !turnstileToken}
       >
         {loading ? 'Enviando...' : 'Enviar solicitud'}
       </button>
-      {success && (
-        <div className="text-center font-semibold text-green-600">
-          ¡Solicitud enviada correctamente!
-        </div>
-      )}
       {error && <div className="text-center font-semibold text-red-600">{error}</div>}
     </form>
   );
