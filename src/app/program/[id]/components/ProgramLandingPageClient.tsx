@@ -754,7 +754,7 @@ export default function ProgramLandingPageClient() {
     <div
       className="min-h-screen"
       style={{
-        background: `linear-gradient(135deg, ${getDepartmentColor(program.department)}15 0%, ${getDepartmentColor(program.department)}08 100%)`,
+        background: `linear-gradient(135deg, #f8f6f2 0%, #f0f0f0 100%)`,
       }}
     >
       <div className="container mx-auto px-4 py-8">
@@ -804,11 +804,11 @@ export default function ProgramLandingPageClient() {
 
           {/* Progress Steps */}
           <div className="mb-8 flex justify-center">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-1 sm:space-x-4">
               {[1, 2, 3, 4, 5, 6].map((stepNumber) => (
                 <div key={stepNumber} className="flex items-center">
                   <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
+                    className={`flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-full text-xs sm:text-sm font-medium ${
                       step >= stepNumber ? 'text-white' : 'bg-gray-200 text-gray-600'
                     }`}
                     style={{
@@ -820,7 +820,7 @@ export default function ProgramLandingPageClient() {
                   </div>
                   {stepNumber < 6 && (
                     <div
-                      className="mx-2 h-1 w-12"
+                      className="mx-1 h-1 w-6 sm:mx-2 sm:w-12"
                       style={{
                         backgroundColor:
                           step > stepNumber ? getDepartmentColor(program.department) : '#E5E7EB',
