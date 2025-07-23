@@ -1476,13 +1476,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cloudflare/workers-types@npm:^4.20250425.0":
-  version: 4.20250510.0
-  resolution: "@cloudflare/workers-types@npm:4.20250510.0"
-  checksum: 608e86db8d7b2baf0a84907edcedfd92597adb286cefb4f29fa954867e461101c02d9d3e432ebc6d6676bd16758d4bb9223a22f1a555900439f9cf5c233852f2
-  languageName: node
-  linkType: hard
-
 "@cspotcode/source-map-support@npm:0.8.1":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
@@ -5221,7 +5214,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "cf-worker-birthday-invitation@workspace:."
   dependencies:
-    "@cloudflare/workers-types": ^4.20250425.0
     "@eslint/eslintrc": ^3
     "@hookform/resolvers": ^5.0.1
     "@next/eslint-plugin-next": ^15.3.2

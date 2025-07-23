@@ -15,7 +15,7 @@
   --color-cool: #4d7549;
 
   /* Ejemplo de uso para background y foreground */
-  --background: var(--color-warm); /* O el color que prefieras */
+  --background: #ffffff; /* Fondo blanco por defecto */
   --foreground: var(--color-emperor); /* O el color que prefieras para el texto */
 }
 

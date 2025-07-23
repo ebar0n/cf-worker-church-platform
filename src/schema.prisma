@@ -60,6 +60,9 @@ model Member {
   // Other useful information
   interestsHobbies          String?
   volunteeringAvailability  String?
+
+  // Relations
+  childGuardians ChildGuardian[] @relation("ChildGuardians")
 }
 
 model FriendRequest {
@@ -86,4 +89,79 @@ model Announcement {
 
   @@index([announcementDate])
   @@index([isActive])
+}
+
+// Program/Event information
+model Program {
+  id          Int      @id @default(autoincrement())
+  title       String   // e.g., "Club de Aventureros 2024"
+  department  String   // e.g., "club-aventureros"
+  content     String?  // Optional: details, directors, organizers, etc.
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  enrollments Enrollment[]
+
+  @@index([department])
+  @@index([isActive])
+}
+
+// Child information
+model Child {
+  id            Int      @id @default(autoincrement())
+  name          String
+  documentID    String   @unique // Required for autocomplete functionality
+  gender        String?
+  birthDate     DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  enrollments   Enrollment[] @relation("ChildEnrollments")
+  guardians     ChildGuardian[]
+
+  @@index([createdAt])
+  @@index([documentID])
+}
+
+// Child-Guardian relationship table
+model ChildGuardian {
+  id            Int      @id @default(autoincrement())
+  childId       Int
+  memberId      Int
+  relationship  String   // "father", "mother", "guardian", "representative"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  child         Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  member        Member   @relation("ChildGuardians", fields: [memberId], references: [id])
+
+  @@unique([childId, relationship])
+  @@index([childId])
+  @@index([memberId])
+  @@index([relationship])
+}
+
+// Enrollment system
+model Enrollment {
+  id          Int      @id @default(autoincrement())
+  programId   Int      // Reference to the program/event
+  childId     Int      // Required - programs are for children only
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  program     Program  @relation(fields: [programId], references: [id])
+  child       Child    @relation("ChildEnrollments", fields: [childId], references: [id])
+
+  @@unique([programId, childId])
+  @@index([programId])
+  @@index([childId])
+  @@index([createdAt])
 }

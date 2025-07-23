@@ -14,7 +14,7 @@ export default async function Home() {
       <Header />
       <Hero />
       <Welcome />
-      <div className="bg-[#f5f0ff] py-8">
+      <div className="bg-gray-50 py-16">
         <div className="container mx-auto px-4">
           <div className="text-center">
             <h2 className="mb-4 text-2xl font-bold text-[#4b207f]">
@@ -47,6 +47,7 @@ export default async function Home() {
           </div>
         </div>
       </div>
+
       <Announcements />
       <Services />
       <InstagramFeed />

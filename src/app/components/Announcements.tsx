@@ -61,7 +61,7 @@ export default function Announcements() {
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-br from-[#f5f0ff] to-[#ede9f6] py-16">
+      <div className="bg-white py-16">
         <div className="container mx-auto px-4">
           <div className="text-center">
             <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-[#4b207f] border-t-transparent"></div>
@@ -74,7 +74,7 @@ export default function Announcements() {
 
   if (error) {
     return (
-      <div className="bg-gradient-to-br from-[#f5f0ff] to-[#ede9f6] py-16">
+      <div className="bg-white py-16">
         <div className="container mx-auto px-4">
           <div className="text-center">
             <p className="text-red-600">Error al cargar los anuncios: {error}</p>
@@ -86,7 +86,7 @@ export default function Announcements() {
 
   if (announcements.length === 0) {
     return (
-      <div className="bg-gradient-to-br from-[#f5f0ff] to-[#ede9f6] py-16">
+      <div className="bg-white py-16">
         <div className="container mx-auto px-4">
           <div className="text-center">
             <h2 className="mb-4 text-3xl font-bold text-[#4b207f]">Anuncios de la Semana</h2>
@@ -98,7 +98,7 @@ export default function Announcements() {
   }
 
   return (
-    <div className="bg-gradient-to-br from-[#f5f0ff] to-[#ede9f6] py-16">
+    <div className="bg-white py-16">
       <div className="container mx-auto px-4">
         <div className="mb-12 text-center">
           <h2 className="mb-4 text-3xl font-bold text-[#4b207f]">Anuncios de la Semana</h2>
