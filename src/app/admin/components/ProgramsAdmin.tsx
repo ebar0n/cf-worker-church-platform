@@ -111,7 +111,7 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
         setProgramFormData({ title: '', department: '', content: '', isActive: true });
         fetchData();
       } else {
-        const error = await response.json() as { message?: string };
+        const error = (await response.json()) as { message?: string };
         alert(error.message || 'Error al guardar el programa');
       }
     } catch (error) {
@@ -148,7 +148,7 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
       if (response.ok) {
         fetchData();
       } else {
-        const error = await response.json() as { message?: string };
+        const error = (await response.json()) as { message?: string };
         alert(error.message || 'Error al eliminar el programa');
       }
     } catch (error) {
@@ -168,7 +168,7 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
       if (response.ok) {
         fetchData();
       } else {
-        const error = await response.json() as { message?: string };
+        const error = (await response.json()) as { message?: string };
         alert(error.message || 'Error al cambiar el estado del programa');
       }
     } catch (error) {
@@ -748,116 +748,209 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
 
               {/* Content */}
               <div className="flex-1 overflow-y-auto p-4 md:p-6">
-
-              {/* Enrollment Search */}
-              <div className="mb-4">
-                <div className="flex items-center space-x-4">
-                  <div className="flex-1">
-                    <label className="mb-2 block text-sm font-medium text-gray-700">
-                      Buscar por nombre o documento (niños, padres, responsables)
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="Buscar por nombre o documento..."
-                      value={enrollmentSearchTerm}
-                      onChange={(e) => setEnrollmentSearchTerm(e.target.value)}
-                      className="w-full"
-                    />
+                {/* Enrollment Search */}
+                <div className="mb-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-1">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
+                        Buscar por nombre o documento (niños, padres, responsables)
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="Buscar por nombre o documento..."
+                        value={enrollmentSearchTerm}
+                        onChange={(e) => setEnrollmentSearchTerm(e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <Button
+                        onClick={() => setEnrollmentSearchTerm('')}
+                        className="border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                      >
+                        Limpiar
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-end">
-                    <Button
-                      onClick={() => setEnrollmentSearchTerm('')}
-                      className="border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-                    >
-                      Limpiar
-                    </Button>
-                  </div>
+                  {enrollmentSearchTerm && (
+                    <p className="mt-2 text-sm text-gray-500">
+                      Mostrando {filteredEnrollments.length} de {enrollments.length} inscritos
+                    </p>
+                  )}
                 </div>
-                {enrollmentSearchTerm && (
-                  <p className="mt-2 text-sm text-gray-500">
-                    Mostrando {filteredEnrollments.length} de {enrollments.length} inscritos
-                  </p>
-                )}
-              </div>
 
-              {loadingEnrollments ? (
-                <div className="py-8 text-center text-gray-500">
-                  <div className="inline-flex items-center">
-                    <svg
-                      className="mr-2 h-4 w-4 animate-spin text-gray-500"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Cargando inscritos...
+                {loadingEnrollments ? (
+                  <div className="py-8 text-center text-gray-500">
+                    <div className="inline-flex items-center">
+                      <svg
+                        className="mr-2 h-4 w-4 animate-spin text-gray-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Cargando inscritos...
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <>
-                  {/* Desktop Table View */}
-                  <div className="hidden overflow-x-auto lg:block">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                            Participante
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                            Tipo
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                            Responsables/Contacto
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                            Fecha de Inscripción
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200 bg-white">
-                        {filteredEnrollments.map((enrollment: any) => {
-                          const participant = enrollment.child || enrollment.member;
-                          return (
-                            <tr key={enrollment.id} className="hover:bg-gray-50">
-                              <td className="whitespace-nowrap px-6 py-4">
-                                <div>
-                                  <div className="text-sm font-medium text-gray-900">
-                                    {participant?.name || 'N/A'}
+                ) : (
+                  <>
+                    {/* Desktop Table View */}
+                    <div className="hidden overflow-x-auto lg:block">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                              Participante
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                              Tipo
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                              Responsables/Contacto
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                              Fecha de Inscripción
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200 bg-white">
+                          {filteredEnrollments.map((enrollment: any) => {
+                            const participant = enrollment.child || enrollment.member;
+                            return (
+                              <tr key={enrollment.id} className="hover:bg-gray-50">
+                                <td className="whitespace-nowrap px-6 py-4">
+                                  <div>
+                                    <div className="text-sm font-medium text-gray-900">
+                                      {participant?.name || 'N/A'}
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                      Doc: {participant?.documentID || 'N/A'}
+                                    </div>
                                   </div>
-                                  <div className="text-sm text-gray-500">
-                                    Doc: {participant?.documentID || 'N/A'}
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="whitespace-nowrap px-6 py-4">
-                                <span
-                                  className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                                    enrollment.child
-                                      ? 'bg-blue-100 text-blue-800'
-                                      : 'bg-green-100 text-green-800'
-                                  }`}
-                                >
-                                  {enrollment.child ? 'Niño' : 'Adulto'}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4">
-                                {enrollment.child &&
-                                enrollment.child.guardians &&
-                                enrollment.child.guardians.length > 0 ? (
-                                  <div className="space-y-1">
-                                    {enrollment.child.guardians.map((guardian: any, index: number) => (
+                                </td>
+                                <td className="whitespace-nowrap px-6 py-4">
+                                  <span
+                                    className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                                      enrollment.child
+                                        ? 'bg-blue-100 text-blue-800'
+                                        : 'bg-green-100 text-green-800'
+                                    }`}
+                                  >
+                                    {enrollment.child ? 'Niño' : 'Adulto'}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4">
+                                  {enrollment.child &&
+                                  enrollment.child.guardians &&
+                                  enrollment.child.guardians.length > 0 ? (
+                                    <div className="space-y-1">
+                                      {enrollment.child.guardians.map(
+                                        (guardian: any, index: number) => (
+                                          <div key={index} className="flex items-center space-x-2">
+                                            <span
+                                              className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                                                guardian.relationship === 'father'
+                                                  ? 'bg-blue-100 text-blue-800'
+                                                  : guardian.relationship === 'mother'
+                                                    ? 'bg-pink-100 text-pink-800'
+                                                    : 'bg-purple-100 text-purple-800'
+                                              }`}
+                                            >
+                                              {guardian.relationship === 'father'
+                                                ? 'Padre'
+                                                : guardian.relationship === 'mother'
+                                                  ? 'Madre'
+                                                  : guardian.relationship === 'guardian'
+                                                    ? 'Tutor'
+                                                    : guardian.relationship}
+                                            </span>
+                                            <div className="min-w-0 flex-1">
+                                              <p className="truncate text-sm text-gray-900">
+                                                {guardian.name}
+                                              </p>
+                                              <p className="font-mono text-xs text-gray-500">
+                                                {guardian.phone || 'Sin teléfono'}
+                                              </p>
+                                            </div>
+                                          </div>
+                                        )
+                                      )}
+                                    </div>
+                                  ) : enrollment.member ? (
+                                    <div>
+                                      <p className="text-sm text-gray-900">
+                                        {enrollment.member.name}
+                                      </p>
+                                      <p className="font-mono text-xs text-gray-500">
+                                        {enrollment.member.phone || 'Sin teléfono'}
+                                      </p>
+                                    </div>
+                                  ) : (
+                                    <span className="text-sm text-gray-500">Sin información</span>
+                                  )}
+                                </td>
+                                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                  {new Date(enrollment.createdAt).toLocaleDateString('es-ES')}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Mobile Card View */}
+                    <div className="space-y-4 lg:hidden">
+                      {filteredEnrollments.map((enrollment: any) => {
+                        const participant = enrollment.child || enrollment.member;
+                        return (
+                          <div
+                            key={enrollment.id}
+                            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+                          >
+                            <div className="mb-3 flex items-start justify-between">
+                              <div className="flex-1">
+                                <h3 className="text-sm font-medium text-gray-900">
+                                  {participant?.name || 'N/A'}
+                                </h3>
+                                <p className="mt-1 text-xs text-gray-500">
+                                  Doc: {participant?.documentID || 'N/A'}
+                                </p>
+                              </div>
+                              <span
+                                className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                                  enrollment.child
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-green-100 text-green-800'
+                                }`}
+                              >
+                                {enrollment.child ? 'Niño' : 'Adulto'}
+                              </span>
+                            </div>
+
+                            {/* Responsables Section */}
+                            {enrollment.child &&
+                            enrollment.child.guardians &&
+                            enrollment.child.guardians.length > 0 ? (
+                              <div className="mb-3">
+                                <h4 className="mb-2 text-xs font-medium text-gray-700">
+                                  Responsables:
+                                </h4>
+                                <div className="space-y-2">
+                                  {enrollment.child.guardians.map(
+                                    (guardian: any, index: number) => (
                                       <div key={index} className="flex items-center space-x-2">
                                         <span
                                           className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
@@ -885,129 +978,43 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                                           </p>
                                         </div>
                                       </div>
-                                    ))}
-                                  </div>
-                                ) : enrollment.member ? (
-                                  <div>
-                                    <p className="text-sm text-gray-900">{enrollment.member.name}</p>
-                                    <p className="font-mono text-xs text-gray-500">
-                                      {enrollment.member.phone || 'Sin teléfono'}
-                                    </p>
-                                  </div>
-                                ) : (
-                                  <span className="text-sm text-gray-500">Sin información</span>
-                                )}
-                              </td>
-                              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                {new Date(enrollment.createdAt).toLocaleDateString('es-ES')}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Mobile Card View */}
-                  <div className="space-y-4 lg:hidden">
-                    {filteredEnrollments.map((enrollment: any) => {
-                      const participant = enrollment.child || enrollment.member;
-                      return (
-                        <div
-                          key={enrollment.id}
-                          className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-                        >
-                          <div className="mb-3 flex items-start justify-between">
-                            <div className="flex-1">
-                              <h3 className="text-sm font-medium text-gray-900">
-                                {participant?.name || 'N/A'}
-                              </h3>
-                              <p className="mt-1 text-xs text-gray-500">
-                                Doc: {participant?.documentID || 'N/A'}
-                              </p>
-                            </div>
-                            <span
-                              className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                                enrollment.child
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-green-100 text-green-800'
-                              }`}
-                            >
-                              {enrollment.child ? 'Niño' : 'Adulto'}
-                            </span>
-                          </div>
-
-                          {/* Responsables Section */}
-                          {enrollment.child &&
-                          enrollment.child.guardians &&
-                          enrollment.child.guardians.length > 0 ? (
-                            <div className="mb-3">
-                              <h4 className="mb-2 text-xs font-medium text-gray-700">
-                                Responsables:
-                              </h4>
-                              <div className="space-y-2">
-                                {enrollment.child.guardians.map((guardian: any, index: number) => (
-                                  <div key={index} className="flex items-center space-x-2">
-                                    <span
-                                      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                                        guardian.relationship === 'father'
-                                          ? 'bg-blue-100 text-blue-800'
-                                          : guardian.relationship === 'mother'
-                                            ? 'bg-pink-100 text-pink-800'
-                                            : 'bg-purple-100 text-purple-800'
-                                      }`}
-                                    >
-                                      {guardian.relationship === 'father'
-                                        ? 'Padre'
-                                        : guardian.relationship === 'mother'
-                                          ? 'Madre'
-                                          : guardian.relationship === 'guardian'
-                                            ? 'Tutor'
-                                            : guardian.relationship}
-                                    </span>
-                                    <div className="min-w-0 flex-1">
-                                      <p className="truncate text-sm text-gray-900">
-                                        {guardian.name}
-                                      </p>
-                                      <p className="font-mono text-xs text-gray-500">
-                                        {guardian.phone || 'Sin teléfono'}
-                                      </p>
-                                    </div>
-                                  </div>
-                                ))}
+                                    )
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          ) : enrollment.member ? (
-                            <div className="mb-3">
-                              <h4 className="mb-1 text-xs font-medium text-gray-700">Contacto:</h4>
-                              <p className="text-sm text-gray-900">{enrollment.member.name}</p>
-                              <p className="font-mono text-xs text-gray-500">
-                                {enrollment.member.phone || 'Sin teléfono'}
-                              </p>
-                            </div>
-                          ) : (
-                            <div className="mb-3">
-                              <p className="text-xs text-gray-500">Sin información de contacto</p>
-                            </div>
-                          )}
+                            ) : enrollment.member ? (
+                              <div className="mb-3">
+                                <h4 className="mb-1 text-xs font-medium text-gray-700">
+                                  Contacto:
+                                </h4>
+                                <p className="text-sm text-gray-900">{enrollment.member.name}</p>
+                                <p className="font-mono text-xs text-gray-500">
+                                  {enrollment.member.phone || 'Sin teléfono'}
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="mb-3">
+                                <p className="text-xs text-gray-500">Sin información de contacto</p>
+                              </div>
+                            )}
 
-                          <div className="text-xs text-gray-500">
-                            Inscrito: {new Date(enrollment.createdAt).toLocaleDateString('es-ES')}
+                            <div className="text-xs text-gray-500">
+                              Inscrito: {new Date(enrollment.createdAt).toLocaleDateString('es-ES')}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {filteredEnrollments.length === 0 && (
-                    <div className="py-8 text-center text-gray-500">
-                      {enrollmentSearchTerm
-                        ? `No se encontraron inscritos con el nombre "${enrollmentSearchTerm}"`
-                        : 'No hay inscritos en este programa aún.'}
+                        );
+                      })}
                     </div>
-                  )}
-                </>
-              )}
+
+                    {filteredEnrollments.length === 0 && (
+                      <div className="py-8 text-center text-gray-500">
+                        {enrollmentSearchTerm
+                          ? `No se encontraron inscritos con el nombre "${enrollmentSearchTerm}"`
+                          : 'No hay inscritos en este programa aún.'}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
 
               {/* Footer with Close Button */}
