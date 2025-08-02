@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { env } = getCloudflareContext();
 
-  const id = parseInt(params.id);
+  const { id } = await params;
+  const idNumber = parseInt(id);
 
-  if (isNaN(id)) {
+  if (isNaN(idNumber)) {
     return NextResponse.json({ error: 'ID de anuncio inválido' }, { status: 400 });
   }
 
   const announcement = await env.DB.prepare('SELECT * FROM Announcement WHERE id = ?')
-    .bind(id)
+    .bind(idNumber)
     .first();
 
   if (!announcement) {
