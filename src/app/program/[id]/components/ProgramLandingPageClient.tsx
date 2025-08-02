@@ -808,7 +808,7 @@ export default function ProgramLandingPageClient() {
               {[1, 2, 3, 4, 5, 6].map((stepNumber) => (
                 <div key={stepNumber} className="flex items-center">
                   <div
-                    className={`flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-full text-xs sm:text-sm font-medium ${
+                    className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium sm:h-8 sm:w-8 sm:text-sm ${
                       step >= stepNumber ? 'text-white' : 'bg-gray-200 text-gray-600'
                     }`}
                     style={{
