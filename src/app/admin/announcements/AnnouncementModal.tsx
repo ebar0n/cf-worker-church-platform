@@ -43,7 +43,7 @@ export default function AnnouncementModal({
   isLoading = false,
 }: AnnouncementModalProps) {
   const [showHelp, setShowHelp] = React.useState(false);
-      // Custom toolbar with original icons but only essential editing commands
+  // Custom toolbar with original icons but only essential editing commands
   const customCommands = [
     commands.bold,
     commands.italic,
@@ -64,7 +64,6 @@ export default function AnnouncementModal({
     commands.divider,
     commands.help,
   ];
-
 
   if (!isOpen) return null;
 
@@ -166,13 +165,15 @@ export default function AnnouncementModal({
                 Contenido (Markdown) *
               </label>
               <div data-color-mode="light" className="markdown-editor-container">
-                                <div className="rounded-lg border border-gray-300 focus-within:border-[#4b207f] focus-within:ring-2 focus-within:ring-[#4b207f]/20">
+                <div className="rounded-lg border border-gray-300 focus-within:border-[#4b207f] focus-within:ring-2 focus-within:ring-[#4b207f]/20">
                   {/* Custom Toolbar with original icons */}
                   <div className="flex items-center gap-1 border-b border-gray-200 bg-gray-50 p-2">
                     <button
                       type="button"
                       onClick={() => {
-                        const textarea = document.querySelector('.w-md-editor-text textarea') as HTMLTextAreaElement;
+                        const textarea = document.querySelector(
+                          '.w-md-editor-text textarea'
+                        ) as HTMLTextAreaElement;
                         if (textarea) {
                           const start = textarea.selectionStart;
                           const end = textarea.selectionEnd;
@@ -192,7 +193,9 @@ export default function AnnouncementModal({
                     <button
                       type="button"
                       onClick={() => {
-                        const textarea = document.querySelector('.w-md-editor-text textarea') as HTMLTextAreaElement;
+                        const textarea = document.querySelector(
+                          '.w-md-editor-text textarea'
+                        ) as HTMLTextAreaElement;
                         if (textarea) {
                           const start = textarea.selectionStart;
                           const end = textarea.selectionEnd;
@@ -212,7 +215,9 @@ export default function AnnouncementModal({
                     <button
                       type="button"
                       onClick={() => {
-                        const textarea = document.querySelector('.w-md-editor-text textarea') as HTMLTextAreaElement;
+                        const textarea = document.querySelector(
+                          '.w-md-editor-text textarea'
+                        ) as HTMLTextAreaElement;
                         if (textarea) {
                           const start = textarea.selectionStart;
                           const end = textarea.selectionEnd;
@@ -233,7 +238,9 @@ export default function AnnouncementModal({
                     <button
                       type="button"
                       onClick={() => {
-                        const textarea = document.querySelector('.w-md-editor-text textarea') as HTMLTextAreaElement;
+                        const textarea = document.querySelector(
+                          '.w-md-editor-text textarea'
+                        ) as HTMLTextAreaElement;
                         if (textarea) {
                           const start = textarea.selectionStart;
                           const text = textarea.value;
@@ -251,7 +258,9 @@ export default function AnnouncementModal({
                     <button
                       type="button"
                       onClick={() => {
-                        const textarea = document.querySelector('.w-md-editor-text textarea') as HTMLTextAreaElement;
+                        const textarea = document.querySelector(
+                          '.w-md-editor-text textarea'
+                        ) as HTMLTextAreaElement;
                         if (textarea) {
                           const start = textarea.selectionStart;
                           const end = textarea.selectionEnd;
@@ -271,7 +280,9 @@ export default function AnnouncementModal({
                     <button
                       type="button"
                       onClick={() => {
-                        const textarea = document.querySelector('.w-md-editor-text textarea') as HTMLTextAreaElement;
+                        const textarea = document.querySelector(
+                          '.w-md-editor-text textarea'
+                        ) as HTMLTextAreaElement;
                         if (textarea) {
                           const start = textarea.selectionStart;
                           const end = textarea.selectionEnd;
@@ -292,7 +303,9 @@ export default function AnnouncementModal({
                     <button
                       type="button"
                       onClick={() => {
-                        const textarea = document.querySelector('.w-md-editor-text textarea') as HTMLTextAreaElement;
+                        const textarea = document.querySelector(
+                          '.w-md-editor-text textarea'
+                        ) as HTMLTextAreaElement;
                         if (textarea) {
                           const start = textarea.selectionStart;
                           const end = textarea.selectionEnd;
@@ -312,7 +325,9 @@ export default function AnnouncementModal({
                     <button
                       type="button"
                       onClick={() => {
-                        const textarea = document.querySelector('.w-md-editor-text textarea') as HTMLTextAreaElement;
+                        const textarea = document.querySelector(
+                          '.w-md-editor-text textarea'
+                        ) as HTMLTextAreaElement;
                         if (textarea) {
                           const start = textarea.selectionStart;
                           const text = textarea.value;
@@ -331,7 +346,9 @@ export default function AnnouncementModal({
                     <button
                       type="button"
                       onClick={() => {
-                        const textarea = document.querySelector('.w-md-editor-text textarea') as HTMLTextAreaElement;
+                        const textarea = document.querySelector(
+                          '.w-md-editor-text textarea'
+                        ) as HTMLTextAreaElement;
                         if (textarea) {
                           const start = textarea.selectionStart;
                           const text = textarea.value;
@@ -349,7 +366,9 @@ export default function AnnouncementModal({
                     <button
                       type="button"
                       onClick={() => {
-                        const textarea = document.querySelector('.w-md-editor-text textarea') as HTMLTextAreaElement;
+                        const textarea = document.querySelector(
+                          '.w-md-editor-text textarea'
+                        ) as HTMLTextAreaElement;
                         if (textarea) {
                           const start = textarea.selectionStart;
                           const text = textarea.value;
@@ -367,7 +386,9 @@ export default function AnnouncementModal({
                     <button
                       type="button"
                       onClick={() => {
-                        const textarea = document.querySelector('.w-md-editor-text textarea') as HTMLTextAreaElement;
+                        const textarea = document.querySelector(
+                          '.w-md-editor-text textarea'
+                        ) as HTMLTextAreaElement;
                         if (textarea) {
                           const start = textarea.selectionStart;
                           const text = textarea.value;
@@ -386,13 +407,18 @@ export default function AnnouncementModal({
                     <button
                       type="button"
                       onClick={() => {
-                        const textarea = document.querySelector('.w-md-editor-text textarea') as HTMLTextAreaElement;
+                        const textarea = document.querySelector(
+                          '.w-md-editor-text textarea'
+                        ) as HTMLTextAreaElement;
                         if (textarea) {
                           const start = textarea.selectionStart;
                           const text = textarea.value;
                           const before = text.substring(0, start);
                           const after = text.substring(start);
-                          const newText = before + '\n| Header | Header |\n| ------ | ------ |\n| Cell | Cell |' + after;
+                          const newText =
+                            before +
+                            '\n| Header | Header |\n| ------ | ------ |\n| Cell | Cell |' +
+                            after;
                           setFormData({ ...formData, content: newText });
                         }
                       }}
@@ -604,8 +630,6 @@ export default function AnnouncementModal({
               </div>
             )}
 
-
-
             {/* Action Buttons */}
             <div className="flex justify-end space-x-3 border-t border-gray-200 pt-6">
               <button
@@ -656,12 +680,14 @@ export default function AnnouncementModal({
           <div className="mx-4 max-w-2xl rounded-lg bg-white p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-[#4b207f]">Guía de Markdown</h3>
-              <button
-                onClick={() => setShowHelp(false)}
-                className="rounded p-1 hover:bg-gray-100"
-              >
+              <button onClick={() => setShowHelp(false)} className="rounded p-1 hover:bg-gray-100">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -671,11 +697,14 @@ export default function AnnouncementModal({
                 <div>
                   <h4 className="mb-2 font-semibold text-gray-800">Títulos</h4>
                   <div className="rounded bg-gray-50 p-3 font-mono text-sm">
-                    # Título principal<br/>
-                    ## Subtítulo<br/>
-                    ### Sub-subtítulo<br/>
-                    #### Título nivel 4<br/>
-                    ##### Título nivel 5<br/>
+                    # Título principal
+                    <br />
+                    ## Subtítulo
+                    <br />
+                    ### Sub-subtítulo
+                    <br />
+                    #### Título nivel 4<br />
+                    ##### Título nivel 5<br />
                     ###### Título nivel 6
                   </div>
                 </div>
@@ -683,11 +712,16 @@ export default function AnnouncementModal({
                 <div>
                   <h4 className="mb-2 font-semibold text-gray-800">Formato de texto</h4>
                   <div className="rounded bg-gray-50 p-3 font-mono text-sm">
-                    **Texto en negrita**<br/>
-                    *Texto en cursiva*<br/>
-                    ***Texto en negrita y cursiva***<br/>
-                    ~~Texto tachado~~<br/>
-                    `código en línea`<br/>
+                    **Texto en negrita**
+                    <br />
+                    *Texto en cursiva*
+                    <br />
+                    ***Texto en negrita y cursiva***
+                    <br />
+                    ~~Texto tachado~~
+                    <br />
+                    `código en línea`
+                    <br />
                     ==Texto resaltado==
                   </div>
                 </div>
@@ -695,10 +729,14 @@ export default function AnnouncementModal({
                 <div>
                   <h4 className="mb-2 font-semibold text-gray-800">Enlaces</h4>
                   <div className="rounded bg-gray-50 p-3 font-mono text-sm">
-                    [Texto del enlace](https://ejemplo.com)<br/>
-                    [Enlace con título](https://ejemplo.com "Título del enlace")<br/>
-                    &lt;https://ejemplo.com&gt;<br/>
-                    [Enlace de referencia][id]<br/>
+                    [Texto del enlace](https://ejemplo.com)
+                    <br />
+                    [Enlace con título](https://ejemplo.com "Título del enlace")
+                    <br />
+                    &lt;https://ejemplo.com&gt;
+                    <br />
+                    [Enlace de referencia][id]
+                    <br />
                     [id]: https://ejemplo.com "Título opcional"
                   </div>
                 </div>
@@ -706,9 +744,12 @@ export default function AnnouncementModal({
                 <div>
                   <h4 className="mb-2 font-semibold text-gray-800">Imágenes</h4>
                   <div className="rounded bg-gray-50 p-3 font-mono text-sm">
-                    ![Texto alternativo](url-imagen)<br/>
-                    ![Texto alternativo](url-imagen "Título de la imagen")<br/>
-                    ![Imagen con enlace](url-imagen)<br/>
+                    ![Texto alternativo](url-imagen)
+                    <br />
+                    ![Texto alternativo](url-imagen "Título de la imagen")
+                    <br />
+                    ![Imagen con enlace](url-imagen)
+                    <br />
                     [![Imagen clickeable](url-imagen)](https://ejemplo.com)
                   </div>
                 </div>
@@ -716,14 +757,22 @@ export default function AnnouncementModal({
                 <div>
                   <h4 className="mb-2 font-semibold text-gray-800">Listas</h4>
                   <div className="rounded bg-gray-50 p-3 font-mono text-sm">
-                    - Lista con viñetas<br/>
-                    * Lista con asteriscos<br/>
-                    + Lista con plus<br/>
-                    1. Lista numerada<br/>
-                    2. Segundo elemento<br/>
-                    - [ ] Tarea pendiente<br/>
-                    - [x] Tarea completada<br/>
-                    - Lista anidada<br/>
+                    - Lista con viñetas
+                    <br />
+                    * Lista con asteriscos
+                    <br />
+                    + Lista con plus
+                    <br />
+                    1. Lista numerada
+                    <br />
+                    2. Segundo elemento
+                    <br />
+                    - [ ] Tarea pendiente
+                    <br />
+                    - [x] Tarea completada
+                    <br />
+                    - Lista anidada
+                    <br />
                     &nbsp;&nbsp;&nbsp;&nbsp;- Subelemento
                   </div>
                 </div>
@@ -731,16 +780,25 @@ export default function AnnouncementModal({
                 <div>
                   <h4 className="mb-2 font-semibold text-gray-800">Citas y bloques</h4>
                   <div className="rounded bg-gray-50 p-3 font-mono text-sm">
-                    &gt; Cita simple<br/>
-                    &gt; Cita con **formato**<br/>
-                    &gt; Cita multilínea<br/>
-                    &gt; que continúa aquí<br/>
-                    <br/>
-                    ```javascript<br/>
-                    // Bloque de código<br/>
-                    function ejemplo() {'{'}<br/>
-                    &nbsp;&nbsp;return "Hola mundo";<br/>
-                    {'}'}<br/>
+                    &gt; Cita simple
+                    <br />
+                    &gt; Cita con **formato**
+                    <br />
+                    &gt; Cita multilínea
+                    <br />
+                    &gt; que continúa aquí
+                    <br />
+                    <br />
+                    ```javascript
+                    <br />
+                    // Bloque de código
+                    <br />
+                    function ejemplo() {'{'}
+                    <br />
+                    &nbsp;&nbsp;return "Hola mundo";
+                    <br />
+                    {'}'}
+                    <br />
                     ```
                   </div>
                 </div>
@@ -748,25 +806,32 @@ export default function AnnouncementModal({
                 <div>
                   <h4 className="mb-2 font-semibold text-gray-800">Tablas</h4>
                   <div className="rounded bg-gray-50 p-3 font-mono text-sm">
-                    | Encabezado 1 | Encabezado 2 | Encabezado 3 |<br/>
-                    |:-------------|:------------:|-------------:|<br/>
-                    | Alineado izq | Centrado | Alineado der |<br/>
-                    | Celda normal | **Negrita** | *Cursiva* |<br/>
-                    | [Enlace](url) | `código` | ![Imagen](url) |
+                    | Encabezado 1 | Encabezado 2 | Encabezado 3 |<br />
+                    |:-------------|:------------:|-------------:|
+                    <br />
+                    | Alineado izq | Centrado | Alineado der |<br />
+                    | Celda normal | **Negrita** | *Cursiva* |<br />| [Enlace](url) | `código` |
+                    ![Imagen](url) |
                   </div>
                 </div>
 
                 <div>
                   <h4 className="mb-2 font-semibold text-gray-800">Elementos especiales</h4>
                   <div className="rounded bg-gray-50 p-3 font-mono text-sm">
-                    --- (Línea horizontal)<br/>
-                    *** (Línea horizontal)<br/>
-                    ___ (Línea horizontal)<br/>
-                    <br/>
-                    ^Texto^ (Superíndice)<br/>
-                    ~Texto~ (Subíndice)<br/>
-                    <br/>
-                    [^1]: Nota al pie<br/>
+                    --- (Línea horizontal)
+                    <br />
+                    *** (Línea horizontal)
+                    <br />
+                    ___ (Línea horizontal)
+                    <br />
+                    <br />
+                    ^Texto^ (Superíndice)
+                    <br />
+                    ~Texto~ (Subíndice)
+                    <br />
+                    <br />
+                    [^1]: Nota al pie
+                    <br />
                     Texto con nota[^1]
                   </div>
                 </div>
@@ -774,10 +839,14 @@ export default function AnnouncementModal({
                 <div>
                   <h4 className="mb-2 font-semibold text-gray-800">Escape de caracteres</h4>
                   <div className="rounded bg-gray-50 p-3 font-mono text-sm">
-                    \*Texto con asteriscos\*<br/>
-                    \[Enlace no clickeable\]<br/>
-                    \`código no formateado\`<br/>
-                    \# Título no formateado<br/>
+                    \*Texto con asteriscos\*
+                    <br />
+                    \[Enlace no clickeable\]
+                    <br />
+                    \`código no formateado\`
+                    <br />
+                    \# Título no formateado
+                    <br />
                     \- Lista no formateada
                   </div>
                 </div>

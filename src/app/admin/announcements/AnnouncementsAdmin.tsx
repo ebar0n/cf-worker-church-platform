@@ -248,7 +248,7 @@ export default function AnnouncementsAdmin({ adminEmail }: { adminEmail: string 
                     </span>
                   )}
                 </div>
-                <div className="mb-2 prose prose-sm max-w-none">
+                <div className="prose prose-sm mb-2 max-w-none">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     components={{
