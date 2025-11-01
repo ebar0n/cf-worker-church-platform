@@ -855,7 +855,7 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                   </label>
                   <input
                     type="number"
-                    min="1"
+                    min="0"
                     max="10"
                     value={formData.transportSlots}
                     onChange={(e) => setFormData({ ...formData, transportSlots: e.target.value })}
