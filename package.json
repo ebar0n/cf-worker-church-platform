@@ -58,7 +58,7 @@
     "prisma": "^6.8.2",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "wrangler": "^4.25.0"
+    "wrangler": "^4.45.3"
   },
   "packageManager": "yarn@3.6.4"
 }

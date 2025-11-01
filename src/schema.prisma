@@ -62,7 +62,8 @@ model Member {
   volunteeringAvailability  String?
 
   // Relations
-  childGuardians ChildGuardian[] @relation("ChildGuardians")
+  childGuardians         ChildGuardian[]         @relation("ChildGuardians")
+  volunteerRegistrations VolunteerRegistration[] @relation("VolunteerRegistrations")
 }
 
 model FriendRequest {
@@ -163,5 +164,48 @@ model Enrollment {
   @@unique([programId, childId])
   @@index([programId])
   @@index([childId])
+  @@index([createdAt])
+}
+
+// Volunteer Event information
+model VolunteerEvent {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  eventDate   DateTime
+  services    String?  // JSON array of available services
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  registrations VolunteerRegistration[]
+
+  @@index([eventDate])
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+// Volunteer Registration information
+model VolunteerRegistration {
+  id               Int      @id @default(autoincrement())
+  volunteerEventId Int
+  memberDocumentID String   // Document ID to search for member
+  memberId         Int?     // Optional reference to Member (can be null)
+  selectedService  String
+  hasTransport     Boolean  @default(false)
+  transportSlots   Int?     // Number of available seats if hasTransport = true
+  dietType         String   @default("normal") // "normal" or "vegetariana"
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  event   VolunteerEvent @relation(fields: [volunteerEventId], references: [id], onDelete: Cascade)
+  member  Member?        @relation("VolunteerRegistrations", fields: [memberId], references: [id], onDelete: SetNull)
+
+  @@unique([volunteerEventId, memberDocumentID])
+  @@index([volunteerEventId])
+  @@index([memberDocumentID])
+  @@index([memberId])
   @@index([createdAt])
 }
