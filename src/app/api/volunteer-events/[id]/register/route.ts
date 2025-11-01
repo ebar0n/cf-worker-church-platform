@@ -3,9 +3,9 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { verifyTurnstileToken } from '@/lib/turnstile';
 
 // POST - Register as a volunteer for an event
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { env } = getCloudflareContext();
-  const eventId = params.id;
+  const { id: eventId } = await params;
 
   try {
     const body = (await request.json()) as {
@@ -34,10 +34,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     // Verify Turnstile token
     if (!turnstileToken) {
-      return NextResponse.json(
-        { error: 'Verification token is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Verification token is required' }, { status: 400 });
     }
 
     const secretKey = env.TURNSTILE_SECRET_KEY || '';
@@ -99,7 +96,9 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         SET name = ?, phone = ?, birthDate = ?, updatedAt = ?
         WHERE documentID = ?
       `
-      ).bind(memberName, memberPhone, memberBirthDate || null, now, memberDocumentID).run();
+      )
+        .bind(memberName, memberPhone, memberBirthDate || null, now, memberDocumentID)
+        .run();
 
       memberId = (member as any).id;
     } else {
@@ -109,7 +108,9 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         INSERT INTO Member (documentID, name, phone, birthDate, createdAt, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?)
       `
-      ).bind(memberDocumentID, memberName, memberPhone, memberBirthDate || null, now, now).run();
+      )
+        .bind(memberDocumentID, memberName, memberPhone, memberBirthDate || null, now, now)
+        .run();
 
       memberId = result.meta.last_row_id as number;
     }
@@ -122,10 +123,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       .first();
 
     if (existingRegistration) {
-      return NextResponse.json(
-        { error: 'Ya estás registrado para este evento' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Ya estás registrado para este evento' }, { status: 400 });
     }
 
     // Create volunteer registration
@@ -160,9 +158,9 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 }
 
 // PUT - Update existing volunteer registration
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { env } = getCloudflareContext();
-  const eventId = params.id;
+  const { id: eventId } = await params;
 
   try {
     const body = (await request.json()) as {
@@ -191,10 +189,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     // Verify Turnstile token
     if (!turnstileToken) {
-      return NextResponse.json(
-        { error: 'Verification token is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Verification token is required' }, { status: 400 });
     }
 
     const secretKey = env.TURNSTILE_SECRET_KEY || '';
@@ -244,7 +239,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         SET name = ?, phone = ?, birthDate = ?, updatedAt = ?
         WHERE documentID = ?
       `
-      ).bind(memberName, memberPhone, memberBirthDate || null, now, memberDocumentID).run();
+      )
+        .bind(memberName, memberPhone, memberBirthDate || null, now, memberDocumentID)
+        .run();
     }
 
     // Update volunteer registration
@@ -269,9 +266,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({ message: 'Registration updated successfully' }, { status: 200 });
   } catch (error) {
     console.error('Error updating volunteer registration:', error);
-    return NextResponse.json(
-      { error: 'Failed to update volunteer registration' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update volunteer registration' }, { status: 500 });
   }
 }

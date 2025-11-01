@@ -160,11 +160,14 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
     const baseUrl = window.location.origin;
     const link = `${baseUrl}/volunteer/${eventId}`;
 
-    navigator.clipboard.writeText(link).then(() => {
-      alert('Enlace copiado al portapapeles');
-    }).catch(() => {
-      alert('Error al copiar el enlace');
-    });
+    navigator.clipboard
+      .writeText(link)
+      .then(() => {
+        alert('Enlace copiado al portapapeles');
+      })
+      .catch(() => {
+        alert('Error al copiar el enlace');
+      });
   };
 
   const validateForm = () => {
@@ -280,7 +283,9 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                       <button
                         type="button"
                         onClick={() => {
-                          const textarea = document.querySelector('.w-md-editor-text textarea') as HTMLTextAreaElement;
+                          const textarea = document.querySelector(
+                            '.w-md-editor-text textarea'
+                          ) as HTMLTextAreaElement;
                           if (textarea) {
                             const start = textarea.selectionStart;
                             const end = textarea.selectionEnd;
@@ -300,7 +305,9 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                       <button
                         type="button"
                         onClick={() => {
-                          const textarea = document.querySelector('.w-md-editor-text textarea') as HTMLTextAreaElement;
+                          const textarea = document.querySelector(
+                            '.w-md-editor-text textarea'
+                          ) as HTMLTextAreaElement;
                           if (textarea) {
                             const start = textarea.selectionStart;
                             const end = textarea.selectionEnd;
@@ -321,7 +328,9 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                       <button
                         type="button"
                         onClick={() => {
-                          const textarea = document.querySelector('.w-md-editor-text textarea') as HTMLTextAreaElement;
+                          const textarea = document.querySelector(
+                            '.w-md-editor-text textarea'
+                          ) as HTMLTextAreaElement;
                           if (textarea) {
                             const start = textarea.selectionStart;
                             const text = textarea.value;
@@ -339,7 +348,9 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                       <button
                         type="button"
                         onClick={() => {
-                          const textarea = document.querySelector('.w-md-editor-text textarea') as HTMLTextAreaElement;
+                          const textarea = document.querySelector(
+                            '.w-md-editor-text textarea'
+                          ) as HTMLTextAreaElement;
                           if (textarea) {
                             const start = textarea.selectionStart;
                             const text = textarea.value;
@@ -357,7 +368,9 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                       <button
                         type="button"
                         onClick={() => {
-                          const textarea = document.querySelector('.w-md-editor-text textarea') as HTMLTextAreaElement;
+                          const textarea = document.querySelector(
+                            '.w-md-editor-text textarea'
+                          ) as HTMLTextAreaElement;
                           if (textarea) {
                             const start = textarea.selectionStart;
                             const end = textarea.selectionEnd;
@@ -387,7 +400,8 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                       hideToolbar={true}
                       className="border-0"
                       textareaProps={{
-                        placeholder: 'Describe el evento usando Markdown...\n\n**Negrita** *cursiva*\n\n- Listas\n- Con viñetas',
+                        placeholder:
+                          'Describe el evento usando Markdown...\n\n**Negrita** *cursiva*\n\n- Listas\n- Con viñetas',
                       }}
                     />
                   </div>
@@ -556,11 +570,7 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                     className="rounded-lg border border-green-600 bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
                   >
                     Ver Voluntarios
-                    {event._count && (
-                      <span className="ml-1">
-                        ({event._count.registrations})
-                      </span>
-                    )}
+                    {event._count && <span className="ml-1">({event._count.registrations})</span>}
                   </button>
                   <button
                     onClick={() => copyRegistrationLink(event.id)}

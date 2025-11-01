@@ -124,11 +124,7 @@ async function getVolunteerEvent(id: string): Promise<VolunteerEvent | null> {
   }
 }
 
-export default async function VolunteerEventPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function VolunteerEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const event = await getVolunteerEvent(id);
 

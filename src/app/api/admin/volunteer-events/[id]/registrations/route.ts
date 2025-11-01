@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 // GET - Fetch all volunteer registrations for an event
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { env } = getCloudflareContext();
-  const eventId = params.id;
+  const { id: eventId } = await params;
 
   try {
     // First, verify the event exists
@@ -60,9 +60,6 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json(registrationsWithMembers);
   } catch (error) {
     console.error('Error fetching volunteer registrations:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch volunteer registrations' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch volunteer registrations' }, { status: 500 });
   }
 }

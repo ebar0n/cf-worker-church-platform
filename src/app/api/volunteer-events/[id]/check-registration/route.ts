@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 // GET - Check if user is already registered for this event
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { env } = getCloudflareContext();
-  const eventId = params.id;
+  const { id: eventId } = await params;
   const { searchParams } = new URL(request.url);
   const documentID = searchParams.get('documentID');
 
