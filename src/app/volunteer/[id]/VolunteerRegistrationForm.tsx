@@ -532,7 +532,7 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                 />
               </svg>
               <span className="text-xs font-semibold text-white sm:text-sm lg:text-base">
-                {new Date(event.eventDate).toLocaleDateString('es-ES', {
+                {new Date(new Date(event.eventDate).getTime() + new Date().getTimezoneOffset() * 60000).toLocaleDateString('es-ES', {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',

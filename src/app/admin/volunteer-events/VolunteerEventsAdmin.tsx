@@ -559,7 +559,7 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                 )}
                 <div className="text-sm text-gray-500">
                   <span>
-                    Fecha del evento: {new Date(event.eventDate).toLocaleDateString('es-ES')}
+                    Fecha del evento: {new Date(new Date(event.eventDate).getTime() + new Date().getTimezoneOffset() * 60000).toLocaleDateString('es-ES')}
                   </span>
                   <span className="mx-2">•</span>
                   <span>Creado: {new Date(event.createdAt).toLocaleDateString('es-ES')}</span>
