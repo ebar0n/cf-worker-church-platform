@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
           id: member.id,
           name: member.name,
           phone: member.phone,
+          birthDate: member.birthDate,
           updatedAt: member.updatedAt,
         },
       });
