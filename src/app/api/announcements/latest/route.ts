@@ -15,9 +15,6 @@ export async function GET(request: NextRequest) {
     `
     ).all();
 
-    console.log('Debug - Active announcements found:', announcements.results.length);
-    console.log('Debug - Announcements:', announcements.results);
-
     return NextResponse.json(announcements.results);
   } catch (error) {
     console.error('Error fetching announcements:', error);

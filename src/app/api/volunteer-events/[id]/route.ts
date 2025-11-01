@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 // GET - Fetch a single volunteer event (public)
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { env } = getCloudflareContext();
-  const id = params.id;
+  const { id } = await params;
 
   try {
     const event = await env.DB.prepare(

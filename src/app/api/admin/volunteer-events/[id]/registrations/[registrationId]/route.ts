@@ -4,11 +4,10 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 // DELETE - Delete a volunteer registration
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; registrationId: string } }
+  { params }: { params: Promise<{ id: string; registrationId: string }> }
 ) {
   const { env } = getCloudflareContext();
-  const eventId = params.id;
-  const registrationId = params.registrationId;
+  const { id: eventId, registrationId } = await params;
 
   try {
     // Check if registration exists
@@ -29,9 +28,6 @@ export async function DELETE(
     return NextResponse.json({ message: 'Volunteer registration deleted successfully' });
   } catch (error) {
     console.error('Error deleting volunteer registration:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete volunteer registration' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete volunteer registration' }, { status: 500 });
   }
 }

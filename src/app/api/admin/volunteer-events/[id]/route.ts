@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 // GET - Fetch a single volunteer event by ID
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { env } = getCloudflareContext();
-  const id = params.id;
+  const { id } = await params;
 
   try {
     const event = await env.DB.prepare('SELECT * FROM VolunteerEvent WHERE id = ?')
@@ -23,9 +23,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // PUT - Update a volunteer event
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { env } = getCloudflareContext();
-  const id = params.id;
+  const { id } = await params;
 
   try {
     const body = (await request.json()) as {
@@ -101,9 +101,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE - Delete a volunteer event
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const { env } = getCloudflareContext();
-  const id = params.id;
+  const { id } = await params;
 
   try {
     // Check if event exists
