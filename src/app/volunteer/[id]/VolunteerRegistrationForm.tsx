@@ -180,14 +180,25 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
       const response = await fetch(`/api/members/search?documentID=${formData.documentID}`);
 
       if (response.ok) {
-        const member = await response.json();
-        setMemberFound(true);
-        setFormData((prev) => ({
-          ...prev,
-          name: member.name || '',
-          phone: member.phone || '',
-          birthDate: member.birthDate ? member.birthDate.split('T')[0] : '',
-        }));
+        const data = await response.json();
+        if (data.found && data.member) {
+          setMemberFound(true);
+          setFormData((prev) => ({
+            ...prev,
+            name: data.member.name || '',
+            phone: data.member.phone || '',
+            birthDate: data.member.birthDate ? data.member.birthDate.split('T')[0] : '',
+          }));
+        } else {
+          // Member not found - reset personal fields
+          setMemberFound(false);
+          setFormData((prev) => ({
+            ...prev,
+            name: '',
+            phone: '',
+            birthDate: '',
+          }));
+        }
       } else {
         // Member not found - reset personal fields
         setMemberFound(false);
@@ -310,25 +321,15 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-lg">
           <div className="relative overflow-hidden rounded-3xl bg-white p-8 text-center shadow-2xl sm:p-12">
-            {/* Animated success icon */}
+            {/* Logo Vida y Esperanza */}
             <div className="mb-8 flex justify-center">
               <div className="relative">
-                <div className="absolute inset-0 animate-ping rounded-full bg-green-400 opacity-30"></div>
-                <div className="relative rounded-full bg-gradient-to-br from-green-500 to-emerald-600 p-6 shadow-lg">
-                  <svg
-                    className="h-12 w-12 text-white sm:h-16 sm:w-16"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2.5}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                </div>
+                <div className="absolute inset-0 animate-pulse rounded-full bg-green-400/20 blur-xl"></div>
+                <img
+                  src="/logo-vida-y-esperanza.jpg"
+                  alt="Vida y Esperanza"
+                  className="relative h-32 w-auto drop-shadow-2xl sm:h-40 lg:h-48"
+                />
               </div>
             </div>
             <h2 className="mb-4 text-2xl font-bold text-gray-900 sm:text-3xl">

@@ -1,30 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
-// GET - Search for a member by documentID
+// GET /api/members/search - Search members by documentID
 export async function GET(request: NextRequest) {
   const { env } = getCloudflareContext();
-  const { searchParams } = new URL(request.url);
-  const documentID = searchParams.get('documentID');
-
-  if (!documentID) {
-    return NextResponse.json({ error: 'Document ID is required' }, { status: 400 });
-  }
 
   try {
-    const member = await env.DB.prepare(
-      'SELECT id, name, phone, birthDate FROM Member WHERE documentID = ?'
-    )
-      .bind(documentID)
-      .first();
+    const { searchParams } = new URL(request.url);
+    const documentID = searchParams.get('documentID');
 
-    if (!member) {
-      return NextResponse.json({ error: 'Member not found' }, { status: 404 });
+    if (!documentID) {
+      return NextResponse.json({ error: 'documentID parameter is required' }, { status: 400 });
     }
 
-    return NextResponse.json(member);
+    // Search for member by documentID
+    const member = (await env.DB.prepare('SELECT * FROM Member WHERE documentID = ?')
+      .bind(documentID)
+      .first()) as any;
+
+    if (member) {
+      return NextResponse.json({
+        message: 'Member found',
+        documentID,
+        found: true,
+        member: {
+          id: member.id,
+          name: member.name,
+          phone: member.phone,
+          birthDate: member.birthDate,
+          updatedAt: member.updatedAt,
+        },
+      });
+    } else {
+      return NextResponse.json({
+        message: 'Member not found',
+        documentID,
+        found: false,
+        member: null,
+      });
+    }
   } catch (error) {
-    console.error('Error searching member:', error);
-    return NextResponse.json({ error: 'Failed to search member' }, { status: 500 });
+    console.error('Error searching members:', error);
+    return NextResponse.json({ error: 'Failed to search members' }, { status: 500 });
   }
 }
