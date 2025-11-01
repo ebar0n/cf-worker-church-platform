@@ -106,18 +106,20 @@ export async function generateMetadata({
 }
 
 async function getVolunteerEvent(id: string): Promise<VolunteerEvent | null> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-
   try {
-    const res = await fetch(`${baseUrl}/api/volunteer-events/${id}`, {
-      cache: 'no-store',
-    });
+    // Access database directly using Cloudflare context
+    const { env } = getCloudflareContext();
+    const event = (await env.DB.prepare(
+      'SELECT id, title, description, eventDate, services, isActive FROM VolunteerEvent WHERE id = ?'
+    )
+      .bind(id)
+      .first()) as any;
 
-    if (!res.ok) {
+    if (!event) {
       return null;
     }
 
-    return res.json() as Promise<VolunteerEvent>;
+    return event as VolunteerEvent;
   } catch (error) {
     console.error('Error fetching volunteer event:', error);
     return null;
