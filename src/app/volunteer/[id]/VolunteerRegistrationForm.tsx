@@ -31,7 +31,7 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
     birthDate: '',
     selectedService: '',
     hasTransport: false,
-    transportSlots: '',
+    transportSlots: '0',
     dietType: 'normal',
   });
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
@@ -177,7 +177,7 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
           birthDate: registration.birthDate ? registration.birthDate.split('T')[0] : prev.birthDate,
           selectedService: registration.selectedService || '',
           hasTransport: registration.hasTransport || false,
-          transportSlots: registration.transportSlots?.toString() || '',
+          transportSlots: registration.transportSlots?.toString() || '0',
           dietType: registration.dietType || 'normal',
         }));
         setCheckingDocument(false);
@@ -313,7 +313,7 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
           selectedService: formData.selectedService,
           hasTransport: formData.hasTransport,
           transportSlots: formData.hasTransport ? parseInt(formData.transportSlots) : null,
-          dietType: formData.dietType,
+          dietType: 'vegetariana', // formData.dietType,
           turnstileToken,
         }),
       });
@@ -866,7 +866,7 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
               )}
 
               {/* Diet Type */}
-              <div>
+              {/* <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">
                   Tipo de Alimentación <span className="text-red-500">*</span>
                 </label>
@@ -894,7 +894,7 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                     <span className="ml-2 text-sm text-gray-700">Vegetariana</span>
                   </label>
                 </div>
-              </div>
+              </div> */}
 
               {/* Turnstile Captcha */}
               <div className="flex justify-center">

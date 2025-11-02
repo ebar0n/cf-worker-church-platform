@@ -81,9 +81,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid program ID' }, { status: 400 });
     }
 
-    // This will be implemented once Prisma client is generated
-    console.log('Deleting program:', programId);
-
     return NextResponse.json({ message: 'Program deleted successfully' });
   } catch (error) {
     console.error('Error deleting program:', error);

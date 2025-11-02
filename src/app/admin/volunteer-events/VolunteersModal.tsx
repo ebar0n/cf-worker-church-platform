@@ -71,7 +71,7 @@ export default function VolunteersModal({
       'Servicio',
       'Transporte',
       'Cupos',
-      'Dieta',
+      // 'Dieta',
       'Fecha Registro',
     ];
 
@@ -82,7 +82,7 @@ export default function VolunteersModal({
       volunteer.selectedService,
       volunteer.hasTransport ? 'Sí' : 'No',
       volunteer.transportSlots?.toString() || 'N/A',
-      volunteer.dietType,
+      // volunteer.dietType,
       new Date(volunteer.createdAt).toLocaleDateString('es-ES'),
     ]);
 
@@ -159,7 +159,7 @@ export default function VolunteersModal({
         </div>
 
         {/* Stats */}
-        <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-4">
+        <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="rounded-lg bg-[#4b207f]/10 p-4">
             <div className="text-2xl font-bold text-[#4b207f]">{volunteers.length}</div>
             <div className="text-sm text-gray-700">Total Voluntarios</div>
@@ -176,12 +176,12 @@ export default function VolunteersModal({
             </div>
             <div className="text-sm text-gray-700">Cupos Disponibles</div>
           </div>
-          <div className="rounded-lg bg-orange-100 p-4">
+          {/* <div className="rounded-lg bg-orange-100 p-4">
             <div className="text-2xl font-bold text-orange-700">
               {volunteers.filter((v) => v.dietType === 'vegetariana').length}
             </div>
             <div className="text-sm text-gray-700">Vegetarianos</div>
-          </div>
+          </div> */}
         </div>
 
         {/* Filters */}
@@ -202,7 +202,7 @@ export default function VolunteersModal({
             </button>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Servicio</label>
               <select
@@ -244,7 +244,7 @@ export default function VolunteersModal({
               </select>
             </div>
 
-            <div>
+            {/* <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Dieta</label>
               <select
                 value={filterDiet}
@@ -261,7 +261,7 @@ export default function VolunteersModal({
                 <option value="normal">Normal</option>
                 <option value="vegetariana">Vegetariana</option>
               </select>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -299,12 +299,19 @@ export default function VolunteersModal({
                     <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700">
                       {volunteer.selectedService}
                     </span>
-                    {volunteer.hasTransport && (
+                    {volunteer.hasTransport ? (
                       <span className="rounded-full bg-green-100 px-2 py-1 text-xs text-green-700">
-                        🚗 Transporte ({volunteer.transportSlots} cupos)
+                        🚗 Transporte
+                        {volunteer.transportSlots && volunteer.transportSlots > 0
+                          ? ` (${volunteer.transportSlots} cupos extra)`
+                          : ''}
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-500">
+                        🚗 Sin transporte
                       </span>
                     )}
-                    <span
+                    {/* <span
                       className={`rounded-full px-2 py-1 text-xs ${
                         volunteer.dietType === 'vegetariana'
                           ? 'bg-orange-100 text-orange-700'
@@ -312,7 +319,7 @@ export default function VolunteersModal({
                       }`}
                     >
                       🍽️ {volunteer.dietType === 'vegetariana' ? 'Vegetariana' : 'Normal'}
-                    </span>
+                    </span> */}
                     <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
                       {new Date(volunteer.createdAt).toLocaleDateString('es-ES')}
                     </span>

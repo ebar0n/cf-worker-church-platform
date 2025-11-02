@@ -28,13 +28,10 @@ export default function AnnouncementDetailPageClient() {
   useEffect(() => {
     const fetchAnnouncement = async () => {
       try {
-        console.log('Fetching announcement with ID:', params.id);
         const response = await fetch(`/api/announcements/${params.id}`);
-        console.log('Response status:', response.status);
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
-          console.log('Error response:', errorData);
 
           if (response.status === 404) {
             throw new Error('Anuncio no encontrado');
@@ -43,8 +40,6 @@ export default function AnnouncementDetailPageClient() {
         }
 
         const data = await response.json();
-        console.log('Announcement data received:', data);
-
         if (!data || !(data as any).id) {
           throw new Error('Datos de anuncio inválidos');
         }
