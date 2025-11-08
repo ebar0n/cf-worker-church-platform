@@ -79,6 +79,36 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Event not found or inactive' }, { status: 404 });
     }
 
+    // Check capacity limits for the selected service
+    const eventData = event as any;
+    if (eventData.services && eventData.maxCapacities) {
+      const services = JSON.parse(eventData.services);
+      const maxCapacities = JSON.parse(eventData.maxCapacities);
+      const serviceIndex = services.indexOf(selectedService);
+
+      if (serviceIndex !== -1 && maxCapacities[serviceIndex]) {
+        const maxCapacity = maxCapacities[serviceIndex];
+
+        // Count current registrations for this service
+        const registrationCount = await env.DB.prepare(
+          'SELECT COUNT(*) as count FROM VolunteerRegistration WHERE volunteerEventId = ? AND selectedService = ?'
+        )
+          .bind(eventId, selectedService)
+          .first();
+
+        const currentCount = registrationCount ? (registrationCount as any).count : 0;
+
+        if (currentCount >= maxCapacity) {
+          return NextResponse.json(
+            {
+              error: `El servicio "${selectedService}" ya está completado con ${maxCapacity} voluntarios. ¡Gracias a Dios! Por favor selecciona otro servicio disponible.`,
+            },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     const now = new Date().toISOString();
 
     // Check if member exists
@@ -223,6 +253,55 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         { error: 'Volunteer must be at least 16 years old' },
         { status: 400 }
       );
+    }
+
+    // Check if event exists and is active
+    const event = await env.DB.prepare('SELECT * FROM VolunteerEvent WHERE id = ? AND isActive = 1')
+      .bind(eventId)
+      .first();
+
+    if (!event) {
+      return NextResponse.json({ error: 'Event not found or inactive' }, { status: 404 });
+    }
+
+    // Get current registration to check if service is changing
+    const currentRegistration = await env.DB.prepare(
+      'SELECT selectedService FROM VolunteerRegistration WHERE volunteerEventId = ? AND memberDocumentID = ?'
+    )
+      .bind(eventId, memberDocumentID)
+      .first();
+
+    // Check capacity limits for the selected service (only if changing service)
+    const eventData = event as any;
+    const isChangingService =
+      !currentRegistration || (currentRegistration as any).selectedService !== selectedService;
+
+    if (isChangingService && eventData.services && eventData.maxCapacities) {
+      const services = JSON.parse(eventData.services);
+      const maxCapacities = JSON.parse(eventData.maxCapacities);
+      const serviceIndex = services.indexOf(selectedService);
+
+      if (serviceIndex !== -1 && maxCapacities[serviceIndex]) {
+        const maxCapacity = maxCapacities[serviceIndex];
+
+        // Count current registrations for this service
+        const registrationCount = await env.DB.prepare(
+          'SELECT COUNT(*) as count FROM VolunteerRegistration WHERE volunteerEventId = ? AND selectedService = ?'
+        )
+          .bind(eventId, selectedService)
+          .first();
+
+        const currentCount = registrationCount ? (registrationCount as any).count : 0;
+
+        if (currentCount >= maxCapacity) {
+          return NextResponse.json(
+            {
+              error: `El servicio "${selectedService}" ya está completado con ${maxCapacity} voluntarios. ¡Gracias a Dios! Por favor selecciona otro servicio disponible.`,
+            },
+            { status: 400 }
+          );
+        }
+      }
     }
 
     const now = new Date().toISOString();

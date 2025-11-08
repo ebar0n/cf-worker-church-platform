@@ -60,9 +60,10 @@ export async function POST(request: NextRequest) {
       description: string;
       eventDate: string;
       services?: string[];
+      maxCapacities?: number[];
       isActive?: boolean;
     };
-    const { title, description, eventDate, services, isActive = true } = body;
+    const { title, description, eventDate, services, maxCapacities, isActive = true } = body;
 
     if (!title || !description || !eventDate) {
       return NextResponse.json(
@@ -73,14 +74,24 @@ export async function POST(request: NextRequest) {
 
     const now = new Date().toISOString();
     const servicesJson = services ? JSON.stringify(services) : null;
+    const maxCapacitiesJson = maxCapacities ? JSON.stringify(maxCapacities) : null;
 
     const result = await env.DB.prepare(
       `
-      INSERT INTO VolunteerEvent (title, description, eventDate, services, isActive, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO VolunteerEvent (title, description, eventDate, services, maxCapacities, isActive, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `
     )
-      .bind(title, description, eventDate, servicesJson, isActive ? 1 : 0, now, now)
+      .bind(
+        title,
+        description,
+        eventDate,
+        servicesJson,
+        maxCapacitiesJson,
+        isActive ? 1 : 0,
+        now,
+        now
+      )
       .run();
 
     // Get the newly created volunteer event

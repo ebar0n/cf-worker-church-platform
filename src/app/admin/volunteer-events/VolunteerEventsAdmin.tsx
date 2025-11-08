@@ -12,6 +12,7 @@ interface VolunteerEvent {
   description: string;
   eventDate: string;
   services: string | null; // JSON string array
+  maxCapacities: string | null; // JSON string array of numbers corresponding to services
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -34,6 +35,7 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
     description: '',
     eventDate: '',
     services: [] as string[],
+    maxCapacities: [] as number[],
     isActive: true,
   });
   const [serviceInput, setServiceInput] = useState('');
@@ -101,11 +103,13 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
   const handleEdit = (event: VolunteerEvent) => {
     setEditingEvent(event);
     const services = event.services ? JSON.parse(event.services) : [];
+    const maxCapacities = event.maxCapacities ? JSON.parse(event.maxCapacities) : [];
     setFormData({
       title: event.title,
       description: event.description,
       eventDate: event.eventDate.split('T')[0],
       services: services,
+      maxCapacities: maxCapacities,
       isActive: event.isActive,
     });
     setShowModal(true);
@@ -133,6 +137,7 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
       description: '',
       eventDate: '',
       services: [],
+      maxCapacities: [],
       isActive: true,
     });
     setServiceInput('');
@@ -142,13 +147,30 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
 
   const addService = () => {
     if (serviceInput.trim() && !formData.services.includes(serviceInput.trim())) {
-      setFormData({ ...formData, services: [...formData.services, serviceInput.trim()] });
+      setFormData({
+        ...formData,
+        services: [...formData.services, serviceInput.trim()],
+        maxCapacities: [...formData.maxCapacities, 1], // Default capacity of 1
+      });
       setServiceInput('');
     }
   };
 
   const removeService = (service: string) => {
-    setFormData({ ...formData, services: formData.services.filter((s) => s !== service) });
+    const serviceIndex = formData.services.indexOf(service);
+    const newServices = formData.services.filter((s) => s !== service);
+    const newMaxCapacities = formData.maxCapacities.filter((_, index) => index !== serviceIndex);
+    setFormData({
+      ...formData,
+      services: newServices,
+      maxCapacities: newMaxCapacities,
+    });
+  };
+
+  const updateMaxCapacity = (serviceIndex: number, capacity: number) => {
+    const newMaxCapacities = [...formData.maxCapacities];
+    newMaxCapacities[serviceIndex] = capacity > 0 ? capacity : 1;
+    setFormData({ ...formData, maxCapacities: newMaxCapacities });
   };
 
   const handleViewVolunteers = (eventId: number) => {
@@ -443,7 +465,7 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                     type="text"
                     value={serviceInput}
                     onChange={(e) => setServiceInput(e.target.value)}
-                    onKeyPress={(e) => {
+                    onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         addService();
@@ -461,21 +483,34 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                   </button>
                 </div>
                 {formData.services.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
+                  <div className="mt-2 space-y-2">
                     {formData.services.map((service, index) => (
-                      <span
+                      <div
                         key={index}
-                        className="flex items-center gap-2 rounded-full bg-[#4b207f]/10 px-3 py-1 text-sm text-[#4b207f]"
+                        className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3"
                       >
-                        {service}
+                        <span className="flex-1 text-sm font-medium text-[#4b207f]">{service}</span>
+                        <div className="flex items-center gap-2">
+                          <label className="text-xs text-gray-600">Capacidad máxima:</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={formData.maxCapacities[index] || 1}
+                            onChange={(e) =>
+                              updateMaxCapacity(index, parseInt(e.target.value) || 1)
+                            }
+                            className="w-16 rounded border border-gray-300 px-2 py-1 text-center text-sm focus:border-[#4b207f] focus:outline-none"
+                          />
+                        </div>
                         <button
                           type="button"
                           onClick={() => removeService(service)}
                           className="text-red-500 hover:text-red-700"
+                          title="Eliminar servicio"
                         >
                           ×
                         </button>
-                      </span>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -546,20 +581,30 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                   <div className="mb-2">
                     <span className="text-sm font-medium text-gray-700">Servicios: </span>
                     <div className="mt-1 flex flex-wrap gap-2">
-                      {JSON.parse(event.services).map((service: string, index: number) => (
-                        <span
-                          key={index}
-                          className="rounded-full bg-[#4b207f]/10 px-2 py-1 text-xs text-[#4b207f]"
-                        >
-                          {service}
-                        </span>
-                      ))}
+                      {JSON.parse(event.services).map((service: string, index: number) => {
+                        const maxCapacities = event.maxCapacities
+                          ? JSON.parse(event.maxCapacities)
+                          : [];
+                        const capacity = maxCapacities[index] || 'Sin límite';
+                        return (
+                          <span
+                            key={index}
+                            className="rounded-full bg-[#4b207f]/10 px-2 py-1 text-xs text-[#4b207f]"
+                            title={`Capacidad máxima: ${capacity}`}
+                          >
+                            {service} {capacity !== 'Sin límite' && `(${capacity})`}
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
                 <div className="text-sm text-gray-500">
                   <span>
-                    Fecha del evento: {new Date(new Date(event.eventDate).getTime() + new Date().getTimezoneOffset() * 60000).toLocaleDateString('es-ES')}
+                    Fecha del evento:{' '}
+                    {new Date(
+                      new Date(event.eventDate).getTime() + new Date().getTimezoneOffset() * 60000
+                    ).toLocaleDateString('es-ES')}
                   </span>
                   <span className="mx-2">•</span>
                   <span>Creado: {new Date(event.createdAt).toLocaleDateString('es-ES')}</span>
