@@ -13,6 +13,7 @@ declare global {
           language?: string;
         }
       ) => void;
+      reset: (container: HTMLElement) => void;
     };
   }
 }
