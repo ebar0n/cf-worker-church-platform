@@ -10,6 +10,7 @@ interface VolunteerEvent {
   description: string;
   eventDate: string;
   services: string | null;
+  maxCapacities: string | null;
 }
 
 interface VolunteerRegistrationFormProps {
@@ -36,6 +37,10 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
   });
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
   const [memberFound, setMemberFound] = useState<boolean | null>(null); // null = not searched, true = found, false = not found
+  const [serviceCapacities, setServiceCapacities] = useState<{
+    [key: string]: { current: number; max: number };
+  }>({});
+  const [showServiceDropdown, setShowServiceDropdown] = useState(false);
 
   // Turnstile widget state
   const turnstileRef = useRef<HTMLDivElement>(null);
@@ -44,6 +49,25 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
   const [turnstileToken, setTurnstileToken] = useState<string>('');
 
   const services = event.services ? JSON.parse(event.services) : [];
+  const maxCapacities = event.maxCapacities ? JSON.parse(event.maxCapacities) : [];
+
+  // Fetch service capacities
+  const fetchServiceCapacities = async () => {
+    try {
+      const response = await fetch(`/api/volunteer-events/${event.id}/capacities`);
+      if (response.ok) {
+        const data = await response.json();
+        setServiceCapacities(data);
+      }
+    } catch (error) {
+      console.error('Error fetching service capacities:', error);
+    }
+  };
+
+  // Fetch service capacities on component mount and when services change
+  useEffect(() => {
+    fetchServiceCapacities();
+  }, [event.id]);
 
   // Fetch Turnstile site key
   useEffect(() => {
@@ -324,8 +348,17 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
       }
 
       setSuccess(true);
+      // Refresh capacities after successful registration
+      await fetchServiceCapacities();
     } catch (err: any) {
       setError(err.message || 'Error al registrar. Por favor intenta de nuevo.');
+      // Refresh capacities after error to show current state
+      await fetchServiceCapacities();
+      // Reset Turnstile widget after error
+      if (window.turnstile && turnstileRef.current) {
+        window.turnstile.reset(turnstileRef.current);
+        setTurnstileToken('');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -532,7 +565,9 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                 />
               </svg>
               <span className="text-xs font-semibold text-white sm:text-sm lg:text-base">
-                {new Date(new Date(event.eventDate).getTime() + new Date().getTimezoneOffset() * 60000).toLocaleDateString('es-ES', {
+                {new Date(
+                  new Date(event.eventDate).getTime() + new Date().getTimezoneOffset() * 60000
+                ).toLocaleDateString('es-ES', {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
@@ -799,28 +834,133 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
               )}
 
               {/* Service Selection */}
-              <div>
+              <div className="relative">
                 <label className="mb-2 block text-sm font-medium text-gray-700">
                   ¿En qué servicio deseas participar? <span className="text-red-500">*</span>
                 </label>
-                <select
-                  value={formData.selectedService}
-                  onChange={(e) => setFormData({ ...formData, selectedService: e.target.value })}
-                  className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-3 pr-10 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239CA3AF'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 0.75rem center',
-                    backgroundSize: '1.25rem',
-                  }}
-                >
-                  <option value="">Selecciona un servicio</option>
-                  {services.map((service: string) => (
-                    <option key={service} value={service}>
-                      {service}
-                    </option>
-                  ))}
-                </select>
+
+                {/* Custom Dropdown */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowServiceDropdown(!showServiceDropdown)}
+                    className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-3 pr-10 text-left focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
+                  >
+                    <span className={formData.selectedService ? 'text-gray-900' : 'text-gray-500'}>
+                      {formData.selectedService || 'Selecciona un servicio'}
+                    </span>
+                    <svg
+                      className={`absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400 transition-transform ${
+                        showServiceDropdown ? 'rotate-180' : ''
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+
+                  {/* Dropdown Options */}
+                  {showServiceDropdown && (
+                    <div className="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg">
+                      <div className="max-h-60 overflow-auto rounded-lg">
+                        {services
+                          .slice()
+                          .sort((a, b) => {
+                            const capacityA = serviceCapacities[a];
+                            const capacityB = serviceCapacities[b];
+
+                            // Calculate available spots for each service
+                            const availableA =
+                              capacityA && capacityA.max
+                                ? capacityA.max - capacityA.current
+                                : Number.MAX_SAFE_INTEGER; // Unlimited services go first
+                            const availableB =
+                              capacityB && capacityB.max
+                                ? capacityB.max - capacityB.current
+                                : Number.MAX_SAFE_INTEGER;
+
+                            // Sort by available spots (descending)
+                            return availableB - availableA;
+                          })
+                          .map((service: string, index: number) => {
+                            const capacity = serviceCapacities[service];
+                            const isFull =
+                              capacity && capacity.max && capacity.current >= capacity.max;
+                            const isLimited = capacity && capacity.max;
+                            const available = isLimited ? capacity.max - capacity.current : null;
+
+                            let displayText = service;
+                            let statusText = '';
+                            let colorClasses = '';
+                            let statusDot = '';
+
+                            if (isFull) {
+                              statusText = 'COMPLETADO';
+                              colorClasses =
+                                'bg-gray-50 text-gray-600 cursor-not-allowed opacity-70';
+                              statusDot = 'bg-gray-400';
+                            } else if (isLimited && available !== null && available <= 3) {
+                              statusText = `¡Últimos cupos! (${available})`;
+                              colorClasses = 'hover:bg-gray-50 text-gray-900';
+                              statusDot = 'bg-green-500';
+                            } else {
+                              colorClasses = 'hover:bg-gray-50 text-gray-900';
+                              statusDot = 'bg-green-500';
+                            }
+
+                            return (
+                              <button
+                                key={service}
+                                type="button"
+                                disabled={isFull}
+                                onClick={() => {
+                                  if (!isFull) {
+                                    setFormData({ ...formData, selectedService: service });
+                                    setShowServiceDropdown(false);
+                                  }
+                                }}
+                                className={`w-full px-4 py-3 text-left transition-colors ${colorClasses} ${
+                                  formData.selectedService === service ? 'bg-[#4b207f]/10' : ''
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  {/* Status dot */}
+                                  <div className={`h-3 w-3 rounded-full ${statusDot}`}></div>
+                                  <div className="flex-1">
+                                    <div className="font-medium">{displayText}</div>
+                                    {statusText && (
+                                      <div
+                                        className={`mt-0.5 text-xs ${
+                                          isFull ? 'opacity-75' : 'font-semibold text-green-700'
+                                        }`}
+                                      >
+                                        {statusText}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Click outside to close dropdown */}
+                {showServiceDropdown && (
+                  <div
+                    className="fixed inset-0 z-0"
+                    onClick={() => setShowServiceDropdown(false)}
+                  ></div>
+                )}
               </div>
 
               {/* Transport */}

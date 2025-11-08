@@ -33,6 +33,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       description?: string;
       eventDate?: string;
       services?: string[];
+      maxCapacities?: number[];
       isActive?: boolean;
     };
 
@@ -64,6 +65,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (body.services !== undefined) {
       updates.push('services = ?');
       values.push(JSON.stringify(body.services));
+    }
+    if (body.maxCapacities !== undefined) {
+      updates.push('maxCapacities = ?');
+      values.push(JSON.stringify(body.maxCapacities));
     }
     if (body.isActive !== undefined) {
       updates.push('isActive = ?');
