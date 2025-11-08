@@ -56,7 +56,7 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
     try {
       const response = await fetch(`/api/volunteer-events/${event.id}/capacities`);
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as {[key: string]: {current: number, max: number}};
         setServiceCapacities(data);
       }
     } catch (error) {
@@ -872,7 +872,7 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                       <div className="max-h-60 overflow-auto rounded-lg">
                         {services
                           .slice()
-                          .sort((a, b) => {
+                          .sort((a: string, b: string) => {
                             const capacityA = serviceCapacities[a];
                             const capacityB = serviceCapacities[b];
 
@@ -891,8 +891,9 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                           })
                           .map((service: string, index: number) => {
                             const capacity = serviceCapacities[service];
-                            const isFull =
-                              capacity && capacity.max && capacity.current >= capacity.max;
+                            const isFull = Boolean(
+                              capacity && capacity.max && capacity.current >= capacity.max
+                            );
                             const isLimited = capacity && capacity.max;
                             const available = isLimited ? capacity.max - capacity.current : null;
 
