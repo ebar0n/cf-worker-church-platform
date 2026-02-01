@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import CourseLandingClient from '@/app/curso/[slug]/components/CourseLandingClient';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
-interface Course {
+interface CourseRow {
   id: number;
   title: string;
   slug: string;
@@ -14,7 +14,7 @@ interface Course {
   startDate: string | null;
   endDate: string | null;
   capacity: number | null;
-  isActive: boolean;
+  isActive: number; // D1 returns 0 or 1
   createdAt: string;
   updatedAt: string;
 }
@@ -32,7 +32,7 @@ export async function generateMetadata({
     const { env } = getCloudflareContext();
     const course = (await env.DB.prepare('SELECT * FROM Course WHERE slug = ? AND isActive = 1')
       .bind(slug)
-      .first()) as Course | null;
+      .first()) as CourseRow | null;
 
     if (!course) {
       return {
