@@ -8,6 +8,7 @@ declare namespace Cloudflare {
     TURNSTILE_SECRET_KEY: string;
     DB: D1Database;
     ASSETS: Fetcher;
+    UPLOADS: R2Bucket;
   }
 }
 interface CloudflareEnv extends Cloudflare.Env {}

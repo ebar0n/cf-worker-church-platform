@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS VolunteerEvent (
   title TEXT NOT NULL,
   description TEXT NOT NULL,
   eventDate TEXT NOT NULL, -- ISO 8601 date format
+  services TEXT, -- JSON array of available services (added here for new installs, was 0008/0013 for existing)
+  maxCapacities TEXT, -- JSON array of max capacities corresponding to services
   isActive INTEGER NOT NULL DEFAULT 1, -- 0 = inactive, 1 = active
   createdAt TEXT NOT NULL, -- ISO 8601 timestamp
   updatedAt TEXT NOT NULL  -- ISO 8601 timestamp

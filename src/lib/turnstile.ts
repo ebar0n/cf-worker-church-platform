@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
+// Cloudflare Turnstile testing keys (always passes)
+// https://developers.cloudflare.com/turnstile/troubleshooting/testing/
+const TURNSTILE_TEST_SECRET_KEY = '1x0000000000000000000000000000000AA';
+
 // Turnstile verification function
 export async function verifyTurnstileToken(
   token: string,
@@ -43,7 +47,12 @@ export async function withTurnstileProtection(
   handler: (request: NextRequest) => Promise<NextResponse>
 ): Promise<NextResponse> {
   try {
-    const secretKey = getTurnstileSecretKey();
+    // Check if we're in development (localhost)
+    const host = request.headers.get('host') || '';
+    const isDevelopment = host.includes('localhost') || host.includes('127.0.0.1');
+
+    // Use test key in development, real key in production
+    const secretKey = isDevelopment ? TURNSTILE_TEST_SECRET_KEY : getTurnstileSecretKey();
     let token: string;
 
     // Get token based on HTTP method

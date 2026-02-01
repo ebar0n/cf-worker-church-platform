@@ -13,7 +13,7 @@
 			"custom_domain": true
 		}
 	],
-	"compatibility_date": "2025-05-05",
+	"compatibility_date": "2026-01-20",
 	"compatibility_flags": [
 		"nodejs_compat",
 		"global_fetch_strictly_public"
@@ -23,21 +23,38 @@
 		"directory": ".open-next/assets"
 	},
 	"observability": {
-		"enabled": true
+		"logs": {
+			"enabled": true,
+			"head_sampling_rate": 1
+		},
+		"traces": {
+			"enabled": true,
+			"head_sampling_rate": 1
+		}
 	},
-
 	/**
 	 * Bindings
 	 * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
 	 * databases, object storage, AI inference, real-time communication and more.
 	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
 	 */
-
-	 "d1_databases": [
-        {
-          "binding": "DB",
+	"d1_databases": [
+		{
+			"binding": "DB",
 			"database_name": "church-jordan",
-      		"database_id": "0fa5b870-cbc8-4a76-a556-1687e42bf99d"
-        }
-      ]
+			"database_id": "0fa5b870-cbc8-4a76-a556-1687e42bf99d"
+		}
+	],
+	/**
+	 * R2 Object Storage
+	 * Used for storing course images and payment proofs
+	 * Create the bucket first: npx wrangler r2 bucket create church-jordan
+	 */
+	"r2_buckets": [
+		{
+			"bucket_name": "church-jordan",
+			"binding": "UPLOADS",
+			"remote": true
+		}
+	]
 }

@@ -22,6 +22,7 @@ export default function AdminLayout({
     { path: '/admin/children', label: 'Niños' },
     { path: '/admin/announcements', label: 'Anuncios' },
     { path: '/admin/programs', label: 'Programas' },
+    { path: '/admin/courses', label: 'Cursos' },
     { path: '/admin/volunteer-events', label: 'Voluntariado' },
   ];
 
