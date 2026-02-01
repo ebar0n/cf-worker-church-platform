@@ -19,12 +19,13 @@
   --foreground: var(--color-emperor); /* O el color que prefieras para el texto */
 }
 
-@media (prefers-color-scheme: dark) {
+/* Dark mode disabled - always use light theme */
+/* @media (prefers-color-scheme: dark) {
   :root {
-    --background: var(--color-earth);      /* Fondo marrón oscuro */
-    --foreground: var(--color-emperor);                 /* Gris claro para el texto */
+    --background: var(--color-earth);
+    --foreground: var(--color-emperor);
   }
-}
+} */
 
 @theme inline {
   --color-background: var(--background);

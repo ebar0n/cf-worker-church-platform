@@ -210,3 +210,52 @@ model VolunteerRegistration {
   @@index([memberId])
   @@index([createdAt])
 }
+
+// Course information (open courses for anyone)
+model Course {
+  id          Int       @id @default(autoincrement())
+  title       String    // Course title
+  slug        String    @unique // URL-friendly identifier
+  description String    // Brief description for cards/listing
+  content     String    // Markdown with full details (instructor, dates, location, etc.)
+  imageUrl    String?   // Image URL for social media sharing
+  color       String    @default("#4b207f") // Custom color for the course
+  cost        Float     @default(0) // Course cost (0 = free)
+  startDate   DateTime? // Course start date
+  endDate     DateTime? // Course end date
+  capacity    Int?      // Maximum capacity (optional)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  enrollments CourseEnrollment[]
+
+  @@index([slug])
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+// Course Enrollment (open enrollment for anyone)
+model CourseEnrollment {
+  id              Int      @id @default(autoincrement())
+  courseId        Int
+  documentNumber  String   // ID document number
+  fullName        String   // Full name
+  phone           String   // Phone number (WhatsApp contact)
+  birthDate       DateTime // Birth date
+  isMember        Boolean  @default(false) // Is member of Seventh-day Adventist Church
+  paymentProofUrl String?  // Payment proof URL (if cost > 0)
+  status          String   @default("pending") // pending, confirmed, rejected
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, documentNumber]) // One person can only enroll once per course
+  @@index([courseId])
+  @@index([documentNumber])
+  @@index([status])
+  @@index([createdAt])
+}
