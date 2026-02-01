@@ -60,6 +60,21 @@ export async function POST(
       );
     }
 
+    // Validate age (must be 18+)
+    const birthDateObj = new Date(birthDate);
+    const today = new Date();
+    let age = today.getFullYear() - birthDateObj.getFullYear();
+    const monthDiff = today.getMonth() - birthDateObj.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDateObj.getDate())) {
+      age--;
+    }
+    if (age < 18) {
+      return NextResponse.json(
+        { error: 'Debes ser mayor de 18 años para inscribirte' },
+        { status: 400 }
+      );
+    }
+
     // Verify Turnstile token
     // Check if we're in development (localhost) - use test secret key
     const host = request.headers.get('host') || '';

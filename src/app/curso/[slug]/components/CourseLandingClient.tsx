@@ -264,6 +264,15 @@ export default function CourseLandingClient() {
       return;
     }
 
+    // Validate age (must be 18+)
+    if (formData.birthDate) {
+      const age = calculateAge(formData.birthDate);
+      if (age < 18) {
+        setError('Debes ser mayor de 18 años para inscribirte en este curso');
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -291,6 +300,17 @@ export default function CourseLandingClient() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const calculateAge = (birthDate: string): number => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
   };
 
   const formatCurrency = (value: number) => {
@@ -567,20 +587,75 @@ export default function CourseLandingClient() {
                   </span>
                 )}
 
-                {course.capacity && (
-                  <span className="rounded-full bg-gray-200 px-4 py-2 text-sm text-gray-700">
-                    {course.enrollmentCount} / {course.capacity} cupos
-                  </span>
-                )}
               </div>
 
 
               {/* Course Details - Markdown */}
               {course.content && (
-                <div className="rounded-xl bg-white p-6 shadow-sm">
-                  <h2 className="mb-4 text-xl font-semibold text-gray-900">Detalles del Curso</h2>
-                  <div className="prose prose-gray max-w-none">
-                    <ReactMarkdown>{course.content}</ReactMarkdown>
+                <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm md:p-8">
+                  <h2 className="mb-6 text-xl font-bold text-gray-900 md:text-2xl">Detalles del Curso</h2>
+                  <div className="course-content space-y-4 text-gray-700">
+                    <ReactMarkdown
+                      components={{
+                        h1: ({ children }) => (
+                          <h3 className="mt-6 mb-3 text-xl font-bold text-gray-900">{children}</h3>
+                        ),
+                        h2: ({ children }) => (
+                          <h4 className="mt-5 mb-3 text-lg font-bold text-gray-900">{children}</h4>
+                        ),
+                        h3: ({ children }) => (
+                          <h5 className="mt-4 mb-2 text-base font-bold text-gray-800">{children}</h5>
+                        ),
+                        p: ({ children }) => (
+                          <p className="mb-4 leading-relaxed text-gray-700">{children}</p>
+                        ),
+                        ul: ({ children }) => (
+                          <ul className="mb-4 ml-1 space-y-2">{children}</ul>
+                        ),
+                        ol: ({ children }) => (
+                          <ol className="mb-4 ml-1 list-decimal space-y-2 pl-4">{children}</ol>
+                        ),
+                        li: ({ children }) => (
+                          <li className="flex items-start gap-2 text-gray-700">
+                            <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ backgroundColor: course.color }}></span>
+                            <span>{children}</span>
+                          </li>
+                        ),
+                        strong: ({ children }) => (
+                          <strong className="font-semibold text-gray-900">{children}</strong>
+                        ),
+                        em: ({ children }) => (
+                          <em className="italic text-gray-600">{children}</em>
+                        ),
+                        a: ({ href, children }) => (
+                          <a
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-medium underline decoration-2 underline-offset-2 transition-colors hover:opacity-80"
+                            style={{ color: course.color }}
+                          >
+                            {children}
+                          </a>
+                        ),
+                        blockquote: ({ children }) => (
+                          <blockquote
+                            className="my-4 border-l-4 py-2 pl-4 italic text-gray-600"
+                            style={{ borderColor: course.color }}
+                          >
+                            {children}
+                          </blockquote>
+                        ),
+                        hr: () => <hr className="my-6 border-gray-200" />,
+                        code: ({ children }) => (
+                          <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm text-gray-800">
+                            {children}
+                          </code>
+                        ),
+                      }}
+                    >
+                      {course.content}
+                    </ReactMarkdown>
                   </div>
                 </div>
               )}
