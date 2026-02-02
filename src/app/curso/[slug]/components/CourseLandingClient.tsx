@@ -34,7 +34,7 @@ const BANK_ACCOUNT = {
   accountNumber: '872-321924-35',
   accountHolder: 'Iglesia Adventista El Jordán',
   nit: '900.067.540',
-  contactPhone: '3144158745', // WhatsApp contact number
+  contactPhone: '3153455511', // WhatsApp contact number
   contactName: 'Tesorería',
 };
 
