@@ -62,6 +62,7 @@ export default function CourseLandingClient() {
   const [proofPreview, setProofPreview] = useState<string | null>(null);
   const [proofIsPdf, setProofIsPdf] = useState(false);
   const [proofFileName, setProofFileName] = useState<string | null>(null);
+  const [proofError, setProofError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     documentNumber: '',
@@ -191,6 +192,7 @@ export default function CourseLandingClient() {
 
   const handleProofUpload = async (file: File) => {
     setUploadingProof(true);
+    setProofError(null);
     try {
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
@@ -207,11 +209,19 @@ export default function CourseLandingClient() {
         setProofPreview(data.url);
       } else {
         const errorData = (await response.json()) as { error?: string };
-        setError(errorData.error || 'Error al subir el comprobante');
+        setProofError(errorData.error || 'No se pudo cargar el comprobante. Intenta con otro archivo.');
+        // Clear preview on error
+        setProofPreview(null);
+        setProofIsPdf(false);
+        setProofFileName(null);
       }
     } catch (error) {
       console.error('Error uploading proof:', error);
-      setError('Error al subir el comprobante');
+      setProofError('No se pudo cargar el comprobante. Intenta nuevamente.');
+      // Clear preview on error
+      setProofPreview(null);
+      setProofIsPdf(false);
+      setProofFileName(null);
     } finally {
       setUploadingProof(false);
     }
@@ -221,11 +231,14 @@ export default function CourseLandingClient() {
     const file = e.target.files?.[0];
     if (file) {
       const isPdf = file.type === 'application/pdf';
-      setProofIsPdf(isPdf);
+      const isHeic = file.type === 'image/heic' || file.type === 'image/heif' ||
+                     file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
+      setProofIsPdf(isPdf || isHeic); // Treat HEIC like PDF (no browser preview support)
       setProofFileName(file.name);
+      setProofError(null);
 
-      if (isPdf) {
-        // For PDF, just set a placeholder - can't preview
+      if (isPdf || isHeic) {
+        // For PDF and HEIC, just set a placeholder - browsers can't preview these
         setProofPreview('pdf');
       } else {
         // For images, create preview
@@ -831,16 +844,16 @@ export default function CourseLandingClient() {
                           {proofPreview ? (
                             <div className="relative inline-block">
                               {proofIsPdf ? (
-                                /* PDF Preview */
-                                <div className="flex items-center gap-3 rounded-lg bg-red-50 p-4">
-                                  <svg className="h-10 w-10 text-red-600" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zm-3 9.5c0 .28-.22.5-.5.5H8v2h1.5c.28 0 .5.22.5.5s-.22.5-.5.5H7.5a.5.5 0 0 1-.5-.5v-4a.5.5 0 0 1 .5-.5H10c.28 0 .5.22.5.5s-.22.5-.5.5H8v1h1.5c.28 0 .5.22.5.5zm4-.5a1.5 1.5 0 0 1 0 3h-1v1.5a.5.5 0 0 1-1 0v-4a.5.5 0 0 1 .5-.5H14zm0 2a.5.5 0 0 0 0-1h-1v1h1zm4.5-1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 1 1 0z"/>
+                                /* PDF/HEIC Preview (no browser preview support) */
+                                <div className="flex items-center gap-3 rounded-lg bg-blue-50 p-4">
+                                  <svg className="h-10 w-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                   </svg>
                                   <div className="min-w-0 flex-1">
                                     <p className="truncate text-sm font-medium text-gray-900">
-                                      {proofFileName || 'documento.pdf'}
+                                      {proofFileName || 'documento'}
                                     </p>
-                                    <p className="text-xs text-gray-500">PDF cargado</p>
+                                    <p className="text-xs text-gray-500">Archivo cargado correctamente</p>
                                   </div>
                                 </div>
                               ) : (
@@ -859,6 +872,7 @@ export default function CourseLandingClient() {
                                   setProofPreview(null);
                                   setProofIsPdf(false);
                                   setProofFileName(null);
+                                  setProofError(null);
                                   setFormData((prev) => ({ ...prev, paymentProofUrl: '' }));
                                 }}
                                 className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white shadow-lg"
@@ -868,6 +882,29 @@ export default function CourseLandingClient() {
                                 </svg>
                               </button>
                             </div>
+                          ) : proofError ? (
+                            /* Error state - shows in place of upload button */
+                            <div className="rounded-xl border-2 border-dashed border-red-300 bg-red-50 p-4">
+                              <div className="flex flex-col items-center text-center">
+                                <svg className="mb-2 h-8 w-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <p className="text-sm font-medium text-red-700">{proofError}</p>
+                                <label className="mt-3 cursor-pointer rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700">
+                                  Intentar de nuevo
+                                  <input
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif,application/pdf"
+                                    onChange={(e) => {
+                                      setProofError(null);
+                                      handleProofFileChange(e);
+                                    }}
+                                    disabled={uploadingProof}
+                                    className="hidden"
+                                  />
+                                </label>
+                              </div>
+                            </div>
                           ) : (
                             <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors hover:border-gray-400 hover:bg-gray-100">
                               <svg className="mb-2 h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -876,10 +913,11 @@ export default function CourseLandingClient() {
                               <span className="text-sm font-medium text-gray-600">
                                 {uploadingProof ? 'Subiendo...' : 'Subir comprobante'}
                               </span>
-                              <span className="mt-1 text-xs text-gray-500">PNG, JPG o PDF</span>
+                              <span className="mt-1 text-xs text-gray-500">PNG, JPG, HEIC o PDF</span>
+                              <span className="mt-1 text-xs text-gray-500">Tamaño máximo 10MB</span>
                               <input
                                 type="file"
-                                accept="image/jpeg,image/png,image/webp,application/pdf"
+                                accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif,application/pdf"
                                 onChange={handleProofFileChange}
                                 disabled={uploadingProof}
                                 className="hidden"

@@ -54,7 +54,7 @@
 		{
 			"bucket_name": "church-jordan",
 			"binding": "UPLOADS",
-			"remote": true
+			"remote": false
 		}
 	]
 }
