@@ -35,7 +35,7 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
     description: '',
     eventDate: '',
     services: [] as string[],
-    maxCapacities: [] as number[],
+    maxCapacities: [] as string[],
     isActive: true,
   });
   const [serviceInput, setServiceInput] = useState('');
@@ -86,7 +86,10 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          maxCapacities: formData.maxCapacities.map((v) => Math.max(1, parseInt(v) || 1)),
+        }),
       });
 
       if (!response.ok) throw new Error('Failed to save volunteer event');
@@ -103,7 +106,7 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
   const handleEdit = (event: VolunteerEvent) => {
     setEditingEvent(event);
     const services = event.services ? JSON.parse(event.services) : [];
-    const maxCapacities = event.maxCapacities ? JSON.parse(event.maxCapacities) : [];
+    const maxCapacities = event.maxCapacities ? JSON.parse(event.maxCapacities).map(String) : [];
     setFormData({
       title: event.title,
       description: event.description,
@@ -150,7 +153,7 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
       setFormData({
         ...formData,
         services: [...formData.services, serviceInput.trim()],
-        maxCapacities: [...formData.maxCapacities, 1], // Default capacity of 1
+        maxCapacities: [...formData.maxCapacities, '1'],
       });
       setServiceInput('');
     }
@@ -167,9 +170,9 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
     });
   };
 
-  const updateMaxCapacity = (serviceIndex: number, capacity: number) => {
+  const updateMaxCapacity = (serviceIndex: number, value: string) => {
     const newMaxCapacities = [...formData.maxCapacities];
-    newMaxCapacities[serviceIndex] = capacity > 0 ? capacity : 1;
+    newMaxCapacities[serviceIndex] = value;
     setFormData({ ...formData, maxCapacities: newMaxCapacities });
   };
 
@@ -207,6 +210,14 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
     }
     if (formData.services.length === 0) {
       alert('Debes agregar al menos un servicio');
+      return false;
+    }
+    const invalidCapacity = formData.maxCapacities.some((v) => {
+      const n = parseInt(v);
+      return isNaN(n) || n < 1 || String(n) !== String(v).trim();
+    });
+    if (invalidCapacity) {
+      alert('La capacidad máxima de cada servicio debe ser un número entero mayor a 0');
       return false;
     }
     return true;
@@ -495,10 +506,9 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                           <input
                             type="number"
                             min="1"
-                            value={formData.maxCapacities[index] || 1}
-                            onChange={(e) =>
-                              updateMaxCapacity(index, parseInt(e.target.value) || 1)
-                            }
+                            step="1"
+                            value={formData.maxCapacities[index] ?? '1'}
+                            onChange={(e) => updateMaxCapacity(index, e.target.value)}
                             className="w-16 rounded border border-gray-300 px-2 py-1 text-center text-sm focus:border-[#4b207f] focus:outline-none"
                           />
                         </div>
