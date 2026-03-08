@@ -41,6 +41,7 @@ export interface Course {
   startDate?: Date | string | null;
   endDate?: Date | string | null;
   capacity?: number | null; // Max capacity
+  whatsappGroupUrl?: string | null; // Optional WhatsApp group URL
   isActive: boolean;
   createdAt: Date | string;
   updatedAt: Date | string;

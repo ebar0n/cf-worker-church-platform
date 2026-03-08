@@ -52,6 +52,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       startDate: course.startDate,
       endDate: course.endDate,
       capacity: course.capacity,
+      whatsappGroupUrl: course.whatsappGroupUrl,
       isActive: course.isActive === 1,
       createdAt: course.createdAt,
       updatedAt: course.updatedAt,
@@ -86,6 +87,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       startDate?: string | null;
       endDate?: string | null;
       capacity?: number | null;
+      whatsappGroupUrl?: string | null;
       isActive?: boolean;
     };
 
@@ -108,12 +110,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       startDate = existingCourse.startDate,
       endDate = existingCourse.endDate,
       capacity = existingCourse.capacity,
+      whatsappGroupUrl = existingCourse.whatsappGroupUrl,
       isActive = existingCourse.isActive === 1,
     } = body;
 
     // Validate color format
     if (color && !/^#[0-9A-Fa-f]{6}$/.test(color)) {
-      return NextResponse.json({ error: 'Invalid color format. Use hex format: #RRGGBB' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid color format. Use hex format: #RRGGBB' },
+        { status: 400 }
+      );
     }
 
     // Validate cost
@@ -130,7 +136,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
       // Check for existing slug (excluding current course)
       while (true) {
-        const existingWithSlug = await env.DB.prepare('SELECT id FROM Course WHERE slug = ? AND id != ?')
+        const existingWithSlug = await env.DB.prepare(
+          'SELECT id FROM Course WHERE slug = ? AND id != ?'
+        )
           .bind(uniqueSlug, id)
           .first();
 
@@ -158,6 +166,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         startDate = ?,
         endDate = ?,
         capacity = ?,
+        whatsappGroupUrl = ?,
         isActive = ?,
         updatedAt = ?
       WHERE id = ?`
@@ -173,6 +182,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         startDate || null,
         endDate || null,
         capacity || null,
+        whatsappGroupUrl || null,
         isActive ? 1 : 0,
         now,
         id
@@ -228,7 +238,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 // DELETE /api/admin/courses/[id] - Delete course
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const { env } = getCloudflareContext();
   const { id } = await params;
 

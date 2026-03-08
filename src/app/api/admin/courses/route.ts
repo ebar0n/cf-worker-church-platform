@@ -46,6 +46,7 @@ export async function GET() {
       startDate: course.startDate,
       endDate: course.endDate,
       capacity: course.capacity,
+      whatsappGroupUrl: course.whatsappGroupUrl,
       isActive: course.isActive === 1,
       createdAt: course.createdAt,
       updatedAt: course.updatedAt,
@@ -79,6 +80,7 @@ export async function POST(request: NextRequest) {
       startDate?: string;
       endDate?: string;
       capacity?: number;
+      whatsappGroupUrl?: string;
       isActive?: boolean;
     };
 
@@ -92,6 +94,7 @@ export async function POST(request: NextRequest) {
       startDate,
       endDate,
       capacity,
+      whatsappGroupUrl,
       isActive = true,
     } = body;
 
@@ -105,7 +108,10 @@ export async function POST(request: NextRequest) {
 
     // Validate color format
     if (color && !/^#[0-9A-Fa-f]{6}$/.test(color)) {
-      return NextResponse.json({ error: 'Invalid color format. Use hex format: #RRGGBB' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid color format. Use hex format: #RRGGBB' },
+        { status: 400 }
+      );
     }
 
     // Validate cost
@@ -134,8 +140,8 @@ export async function POST(request: NextRequest) {
 
     // Insert new course
     const result = await env.DB.prepare(
-      `INSERT INTO Course (title, slug, description, content, imageUrl, color, cost, startDate, endDate, capacity, isActive, createdAt, updatedAt)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO Course (title, slug, description, content, imageUrl, color, cost, startDate, endDate, capacity, whatsappGroupUrl, isActive, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
       .bind(
         title,
@@ -148,6 +154,7 @@ export async function POST(request: NextRequest) {
         startDate || null,
         endDate || null,
         capacity || null,
+        whatsappGroupUrl || null,
         isActive ? 1 : 0,
         now,
         now
@@ -175,6 +182,7 @@ export async function POST(request: NextRequest) {
       startDate: newCourse.startDate,
       endDate: newCourse.endDate,
       capacity: newCourse.capacity,
+      whatsappGroupUrl: newCourse.whatsappGroupUrl,
       isActive: newCourse.isActive === 1,
       createdAt: newCourse.createdAt,
       updatedAt: newCourse.updatedAt,

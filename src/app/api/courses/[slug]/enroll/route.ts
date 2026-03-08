@@ -16,11 +16,11 @@ async function verifyTurnstile(token: string, secretKey: string): Promise<boolea
     });
 
     const data = (await response.json()) as { success: boolean; 'error-codes'?: string[] };
-    
+
     if (!data.success && data['error-codes']?.includes('timeout-or-duplicate')) {
       throw new Error('TURNSTILE_TIMEOUT_OR_DUPLICATE');
     }
-    
+
     return data.success;
   } catch (error) {
     if (error instanceof Error && error.message === 'TURNSTILE_TIMEOUT_OR_DUPLICATE') {
@@ -54,10 +54,7 @@ export async function POST(
 
     // Validate required fields
     if (!token || !documentNumber || !fullName || !phone || !birthDate) {
-      return NextResponse.json(
-        { error: 'Todos los campos son requeridos' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Todos los campos son requeridos' }, { status: 400 });
     }
 
     // Validate age (must be 18+)
@@ -80,14 +77,11 @@ export async function POST(
     const host = request.headers.get('host') || '';
     const isDevelopment = host.includes('localhost') || host.includes('127.0.0.1');
     const TURNSTILE_TEST_SECRET_KEY = '1x0000000000000000000000000000000AA';
-    
+
     const turnstileSecretKey = isDevelopment ? TURNSTILE_TEST_SECRET_KEY : env.TURNSTILE_SECRET_KEY;
     if (!turnstileSecretKey) {
       console.error('TURNSTILE_SECRET_KEY not configured');
-      return NextResponse.json(
-        { error: 'Error de configuración del servidor' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Error de configuración del servidor' }, { status: 500 });
     }
 
     try {
@@ -101,9 +95,9 @@ export async function POST(
     } catch (error) {
       if (error instanceof Error && error.message === 'TURNSTILE_TIMEOUT_OR_DUPLICATE') {
         return NextResponse.json(
-          { 
+          {
             error: 'La verificación de seguridad ha expirado. Por favor, recarga la página.',
-            code: 'TURNSTILE_TIMEOUT_OR_DUPLICATE'
+            code: 'TURNSTILE_TIMEOUT_OR_DUPLICATE',
           },
           { status: 400 }
         );
@@ -158,7 +152,9 @@ export async function POST(
           // Allow member to take non-member spot (they can still enroll)
         } else {
           return NextResponse.json(
-            { error: `Los cupos para miembros de la iglesia están agotados (${memberQuota}/${memberQuota}). Por favor, contacta al organizador.` },
+            {
+              error: `Los cupos para miembros de la iglesia están agotados (${memberQuota}/${memberQuota}). Por favor, contacta al organizador.`,
+            },
             { status: 400 }
           );
         }
@@ -170,7 +166,9 @@ export async function POST(
           // Allow non-member to take member spot (they can still enroll)
         } else {
           return NextResponse.json(
-            { error: `Los cupos para visitantes están agotados (${nonMemberQuota}/${nonMemberQuota}). Por favor, contacta al organizador.` },
+            {
+              error: `Los cupos para visitantes están agotados (${nonMemberQuota}/${nonMemberQuota}). Por favor, contacta al organizador.`,
+            },
             { status: 400 }
           );
         }
@@ -193,10 +191,7 @@ export async function POST(
       .first();
 
     if (existingEnrollment) {
-      return NextResponse.json(
-        { error: 'Ya estás inscrito en este curso' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Ya estás inscrito en este curso' }, { status: 400 });
     }
 
     const now = new Date().toISOString();

@@ -11,6 +11,7 @@ interface VolunteerEvent {
   eventDate: string;
   services: string | null;
   maxCapacities: string | null;
+  whatsappGroupUrl: string | null;
   isActive: boolean;
 }
 
@@ -111,7 +112,7 @@ async function getVolunteerEvent(id: string): Promise<VolunteerEvent | null> {
     // Access database directly using Cloudflare context
     const { env } = getCloudflareContext();
     const event = (await env.DB.prepare(
-      'SELECT id, title, description, eventDate, services, maxCapacities, isActive FROM VolunteerEvent WHERE id = ?'
+      'SELECT id, title, description, eventDate, services, maxCapacities, whatsappGroupUrl, isActive FROM VolunteerEvent WHERE id = ?'
     )
       .bind(id)
       .first()) as any;

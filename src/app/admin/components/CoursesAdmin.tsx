@@ -56,6 +56,7 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
     startDate: '',
     endDate: '',
     capacity: '',
+    whatsappGroupUrl: '',
     isActive: true,
   });
 
@@ -69,8 +70,12 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
 
   // Enrollment search and filter state
   const [enrollmentSearchTerm, setEnrollmentSearchTerm] = useState('');
-  const [enrollmentStatusFilter, setEnrollmentStatusFilter] = useState<'all' | CourseEnrollmentStatus>('all');
-  const [enrollmentMemberFilter, setEnrollmentMemberFilter] = useState<'all' | 'member' | 'non-member'>('all');
+  const [enrollmentStatusFilter, setEnrollmentStatusFilter] = useState<
+    'all' | CourseEnrollmentStatus
+  >('all');
+  const [enrollmentMemberFilter, setEnrollmentMemberFilter] = useState<
+    'all' | 'member' | 'non-member'
+  >('all');
 
   useEffect(() => {
     fetchData();
@@ -160,6 +165,7 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
       startDate: '',
       endDate: '',
       capacity: '',
+      whatsappGroupUrl: '',
       isActive: true,
     });
     setImagePreview(null);
@@ -225,6 +231,7 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
       startDate: course.startDate ? new Date(course.startDate).toISOString().split('T')[0] : '',
       endDate: course.endDate ? new Date(course.endDate).toISOString().split('T')[0] : '',
       capacity: course.capacity?.toString() || '',
+      whatsappGroupUrl: course.whatsappGroupUrl || '',
       isActive: course.isActive,
     });
     setImagePreview(course.imageUrl || null);
@@ -313,10 +320,10 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
       confirmed: 'Confirmado',
       rejected: 'Rechazado',
     };
-    
+
     const enrollment = enrollments.find((e) => e.id === enrollmentId);
     const confirmMessage = `¿Estás seguro de cambiar el estado de "${enrollment?.fullName}" a "${statusLabels[newStatus]}"?`;
-    
+
     if (!window.confirm(confirmMessage)) {
       return;
     }
@@ -331,9 +338,7 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
 
       if (response.ok) {
         const updatedEnrollment = (await response.json()) as CourseEnrollment;
-        setEnrollments((prev) =>
-          prev.map((e) => (e.id === enrollmentId ? updatedEnrollment : e))
-        );
+        setEnrollments((prev) => prev.map((e) => (e.id === enrollmentId ? updatedEnrollment : e)));
         // Refresh courses to update counts
         fetchData();
       } else {
@@ -416,7 +421,9 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
     };
 
     return (
-      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${styles[status]}`}>
+      <span
+        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${styles[status]}`}
+      >
         {labels[status]}
       </span>
     );
@@ -431,7 +438,17 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
 
       const courseEnrollments = (await response.json()) as CourseEnrollment[];
 
-      const csvHeaders = ['Nombre', 'Documento', 'Teléfono', 'Fecha Nacimiento', 'Edad', 'Miembro IASD', 'Estado', 'Comprobante', 'Fecha Inscripción'];
+      const csvHeaders = [
+        'Nombre',
+        'Documento',
+        'Teléfono',
+        'Fecha Nacimiento',
+        'Edad',
+        'Miembro IASD',
+        'Estado',
+        'Comprobante',
+        'Fecha Inscripción',
+      ];
 
       const csvData = courseEnrollments.map((enrollment) => [
         enrollment.fullName,
@@ -600,7 +617,9 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
                     <td className="whitespace-nowrap px-6 py-4">
                       <span
                         className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                          course.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          course.isActive
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
                         }`}
                       >
                         {course.isActive ? 'Activo' : 'Inactivo'}
@@ -912,12 +931,30 @@ Templo de la Iglesia El Jordán
                     />
                   </div>
 
+                  {/* WhatsApp Group URL */}
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      URL del Grupo de WhatsApp (opcional)
+                    </label>
+                    <Input
+                      type="url"
+                      value={courseFormData.whatsappGroupUrl}
+                      onChange={(e) =>
+                        setCourseFormData((prev) => ({ ...prev, whatsappGroupUrl: e.target.value }))
+                      }
+                      placeholder="https://chat.whatsapp.com/..."
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      Si no se define, se usará el número por defecto (3153455511)
+                    </p>
+                  </div>
+
                   {/* Image Upload */}
                   <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700">
                       Imagen del Curso
                     </label>
-                    
+
                     {imagePreview || courseFormData.imageUrl ? (
                       <div className="relative inline-block">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -947,7 +984,11 @@ Templo de la Iglesia El Jordán
                             stroke="currentColor"
                             className="h-4 w-4"
                           >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M6 18L18 6M6 6l12 12"
+                            />
                           </svg>
                         </button>
                       </div>
@@ -970,7 +1011,9 @@ Templo de la Iglesia El Jordán
                         <span className="text-sm font-medium text-gray-600">
                           {uploadingImage ? 'Subiendo...' : 'Haz clic para subir imagen'}
                         </span>
-                        <span className="mt-1 text-xs text-gray-500">PNG, JPG, WebP (max. 10MB)</span>
+                        <span className="mt-1 text-xs text-gray-500">
+                          PNG, JPG, WebP (max. 10MB)
+                        </span>
                         <input
                           type="file"
                           accept="image/jpeg,image/png,image/webp,image/gif"
@@ -1121,7 +1164,9 @@ Templo de la Iglesia El Jordán
                   </div>
                 </div>
 
-                {enrollmentSearchTerm || enrollmentStatusFilter !== 'all' || enrollmentMemberFilter !== 'all' ? (
+                {enrollmentSearchTerm ||
+                enrollmentStatusFilter !== 'all' ||
+                enrollmentMemberFilter !== 'all' ? (
                   <p className="mb-4 text-sm text-gray-500">
                     Mostrando {filteredEnrollments.length} de {enrollments.length} inscritos
                   </p>
@@ -1242,9 +1287,7 @@ Templo de la Iglesia El Jordán
                                       disabled={updatingStatus === enrollment.id}
                                       className="bg-green-600 text-xs text-white hover:bg-green-700"
                                     >
-                                      {updatingStatus === enrollment.id
-                                        ? '...'
-                                        : 'Confirmar'}
+                                      {updatingStatus === enrollment.id ? '...' : 'Confirmar'}
                                     </Button>
                                   )}
                                   {enrollment.status !== 'rejected' && (
@@ -1373,7 +1416,9 @@ Templo de la Iglesia El Jordán
 
                     {filteredEnrollments.length === 0 && (
                       <div className="py-8 text-center text-gray-500">
-                        {enrollmentSearchTerm || enrollmentStatusFilter !== 'all' || enrollmentMemberFilter !== 'all'
+                        {enrollmentSearchTerm ||
+                        enrollmentStatusFilter !== 'all' ||
+                        enrollmentMemberFilter !== 'all'
                           ? 'No se encontraron inscritos con los filtros aplicados'
                           : 'No hay inscritos en este curso aún.'}
                       </div>

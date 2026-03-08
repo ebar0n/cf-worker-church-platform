@@ -61,9 +61,18 @@ export async function POST(request: NextRequest) {
       eventDate: string;
       services?: string[];
       maxCapacities?: number[];
+      whatsappGroupUrl?: string;
       isActive?: boolean;
     };
-    const { title, description, eventDate, services, maxCapacities, isActive = true } = body;
+    const {
+      title,
+      description,
+      eventDate,
+      services,
+      maxCapacities,
+      whatsappGroupUrl,
+      isActive = true,
+    } = body;
 
     if (!title || !description || !eventDate) {
       return NextResponse.json(
@@ -78,8 +87,8 @@ export async function POST(request: NextRequest) {
 
     const result = await env.DB.prepare(
       `
-      INSERT INTO VolunteerEvent (title, description, eventDate, services, maxCapacities, isActive, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO VolunteerEvent (title, description, eventDate, services, maxCapacities, whatsappGroupUrl, isActive, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
     )
       .bind(
@@ -88,6 +97,7 @@ export async function POST(request: NextRequest) {
         eventDate,
         servicesJson,
         maxCapacitiesJson,
+        whatsappGroupUrl || null,
         isActive ? 1 : 0,
         now,
         now

@@ -209,7 +209,9 @@ export default function CourseLandingClient() {
         setProofPreview(data.url);
       } else {
         const errorData = (await response.json()) as { error?: string };
-        setProofError(errorData.error || 'No se pudo cargar el comprobante. Intenta con otro archivo.');
+        setProofError(
+          errorData.error || 'No se pudo cargar el comprobante. Intenta con otro archivo.'
+        );
         // Clear preview on error
         setProofPreview(null);
         setProofIsPdf(false);
@@ -231,8 +233,11 @@ export default function CourseLandingClient() {
     const file = e.target.files?.[0];
     if (file) {
       const isPdf = file.type === 'application/pdf';
-      const isHeic = file.type === 'image/heic' || file.type === 'image/heif' ||
-                     file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
+      const isHeic =
+        file.type === 'image/heic' ||
+        file.type === 'image/heif' ||
+        file.name.toLowerCase().endsWith('.heic') ||
+        file.name.toLowerCase().endsWith('.heif');
       setProofIsPdf(isPdf || isHeic); // Treat HEIC like PDF (no browser preview support)
       setProofFileName(file.name);
       setProofError(null);
@@ -350,8 +355,18 @@ export default function CourseLandingClient() {
         label: 'Pendiente',
         bgLight: 'bg-yellow-50',
         icon: (
-          <svg className="h-12 w-12 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="h-12 w-12 text-yellow-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         ),
         message: 'Tu inscripción está siendo revisada. Te contactaremos pronto por WhatsApp.',
@@ -360,8 +375,18 @@ export default function CourseLandingClient() {
         label: 'Confirmado',
         bgLight: 'bg-green-50',
         icon: (
-          <svg className="h-12 w-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="h-12 w-12 text-green-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         ),
         message: '¡Tu inscripción ha sido confirmada! Nos vemos en el curso.',
@@ -370,8 +395,18 @@ export default function CourseLandingClient() {
         label: 'No aprobado',
         bgLight: 'bg-red-50',
         icon: (
-          <svg className="h-12 w-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="h-12 w-12 text-red-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         ),
         message: 'Tu inscripción no fue aprobada. Por favor, contáctanos para más información.',
@@ -417,7 +452,10 @@ export default function CourseLandingClient() {
         <div className="text-center">
           <h1 className="mb-4 text-2xl font-bold text-gray-900">Curso No Encontrado</h1>
           <p className="mb-4 text-gray-600">El curso que buscas no está disponible.</p>
-          <a href="/" className="inline-block rounded-lg bg-gray-800 px-6 py-3 text-white hover:bg-gray-700">
+          <a
+            href="/"
+            className="inline-block rounded-lg bg-gray-800 px-6 py-3 text-white hover:bg-gray-700"
+          >
             Volver al inicio
           </a>
         </div>
@@ -445,13 +483,26 @@ export default function CourseLandingClient() {
             <div className="text-center">
               <div className="mb-6 flex justify-center">
                 <div className="rounded-full p-4" style={{ backgroundColor: `${course.color}20` }}>
-                  <svg className="h-12 w-12" style={{ color: course.color }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="h-12 w-12"
+                    style={{ color: course.color }}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                 </div>
               </div>
 
-              <h1 className="mb-2 text-2xl font-bold text-gray-900 md:text-3xl">¡Inscripción Registrada!</h1>
+              <h1 className="mb-2 text-2xl font-bold text-gray-900 md:text-3xl">
+                ¡Inscripción Registrada!
+              </h1>
 
               <p className="mb-6 text-gray-600">
                 Tu inscripción al curso <strong>{course.title}</strong> ha sido recibida.
@@ -461,10 +512,36 @@ export default function CourseLandingClient() {
                 <div className="mb-6 rounded-xl bg-yellow-50 p-4 text-left">
                   <h3 className="mb-2 font-semibold text-yellow-800">Pendiente de confirmación</h3>
                   <p className="text-sm text-yellow-700">
-                    Tu inscripción será revisada y te contactaremos por WhatsApp para confirmar el pago.
+                    Tu inscripción será revisada y te contactaremos por WhatsApp para confirmar el
+                    pago.
                   </p>
                 </div>
               )}
+
+              {/* WhatsApp Group */}
+              <div className="mb-6 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 p-5">
+                <div className="mb-2 flex items-center justify-center gap-2">
+                  <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                  </svg>
+                  <h3 className="font-semibold text-gray-900">Únete al Grupo de WhatsApp</h3>
+                </div>
+                <p className="mb-3 text-sm text-gray-600">Mantente informado sobre el curso</p>
+                <a
+                  href={
+                    course.whatsappGroupUrl ||
+                    `https://wa.me/573153455511?text=${encodeURIComponent(`Hola, me inscribí al curso: ${course.title}`)}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 px-5 py-2.5 font-medium text-white shadow transition-all hover:from-green-700 hover:to-emerald-700"
+                >
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                  </svg>
+                  Unirme al Grupo
+                </a>
+              </div>
 
               <a
                 href="/"
@@ -507,10 +584,19 @@ export default function CourseLandingClient() {
               <div className={`mb-6 rounded-xl p-4 text-left ${statusInfo.bgLight}`}>
                 <h3 className="mb-3 font-semibold text-gray-800">Tu inscripción</h3>
                 <div className="space-y-2 text-sm text-gray-600">
-                  <p><span className="font-medium">Curso:</span> {course.title}</p>
-                  <p><span className="font-medium">Nombre:</span> {existingEnrollment.fullName}</p>
-                  <p><span className="font-medium">Teléfono:</span> {existingEnrollment.phone}</p>
-                  <p><span className="font-medium">Fecha:</span> {formatDate(existingEnrollment.createdAt)}</p>
+                  <p>
+                    <span className="font-medium">Curso:</span> {course.title}
+                  </p>
+                  <p>
+                    <span className="font-medium">Nombre:</span> {existingEnrollment.fullName}
+                  </p>
+                  <p>
+                    <span className="font-medium">Teléfono:</span> {existingEnrollment.phone}
+                  </p>
+                  <p>
+                    <span className="font-medium">Fecha:</span>{' '}
+                    {formatDate(existingEnrollment.createdAt)}
+                  </p>
                 </div>
               </div>
 
@@ -524,7 +610,7 @@ export default function CourseLandingClient() {
                   className="inline-flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-600"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                   </svg>
                   Contactar por WhatsApp
                 </a>
@@ -551,7 +637,12 @@ export default function CourseLandingClient() {
         <div className="container mx-auto px-4">
           <a href="/" className="inline-flex items-center gap-2 text-white/80 hover:text-white">
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
             Volver
           </a>
@@ -591,7 +682,9 @@ export default function CourseLandingClient() {
                     {formatCurrency(course.cost)}
                   </span>
                 ) : (
-                  <span className="rounded-full bg-green-500 px-4 py-2 text-sm font-bold text-white">Gratis</span>
+                  <span className="rounded-full bg-green-500 px-4 py-2 text-sm font-bold text-white">
+                    Gratis
+                  </span>
                 )}
 
                 {course.startDate && (
@@ -599,47 +692,48 @@ export default function CourseLandingClient() {
                     Inicia: {formatDate(course.startDate)}
                   </span>
                 )}
-
               </div>
-
 
               {/* Course Details - Markdown */}
               {course.content && (
                 <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm md:p-8">
-                  <h2 className="mb-6 text-xl font-bold text-gray-900 md:text-2xl">Detalles del Curso</h2>
+                  <h2 className="mb-6 text-xl font-bold text-gray-900 md:text-2xl">
+                    Detalles del Curso
+                  </h2>
                   <div className="course-content space-y-4 text-gray-700">
                     <ReactMarkdown
                       components={{
                         h1: ({ children }) => (
-                          <h3 className="mt-6 mb-3 text-xl font-bold text-gray-900">{children}</h3>
+                          <h3 className="mb-3 mt-6 text-xl font-bold text-gray-900">{children}</h3>
                         ),
                         h2: ({ children }) => (
-                          <h4 className="mt-5 mb-3 text-lg font-bold text-gray-900">{children}</h4>
+                          <h4 className="mb-3 mt-5 text-lg font-bold text-gray-900">{children}</h4>
                         ),
                         h3: ({ children }) => (
-                          <h5 className="mt-4 mb-2 text-base font-bold text-gray-800">{children}</h5>
+                          <h5 className="mb-2 mt-4 text-base font-bold text-gray-800">
+                            {children}
+                          </h5>
                         ),
                         p: ({ children }) => (
                           <p className="mb-4 leading-relaxed text-gray-700">{children}</p>
                         ),
-                        ul: ({ children }) => (
-                          <ul className="mb-4 ml-1 space-y-2">{children}</ul>
-                        ),
+                        ul: ({ children }) => <ul className="mb-4 ml-1 space-y-2">{children}</ul>,
                         ol: ({ children }) => (
                           <ol className="mb-4 ml-1 list-decimal space-y-2 pl-4">{children}</ol>
                         ),
                         li: ({ children }) => (
                           <li className="flex items-start gap-2 text-gray-700">
-                            <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ backgroundColor: course.color }}></span>
+                            <span
+                              className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full"
+                              style={{ backgroundColor: course.color }}
+                            ></span>
                             <span>{children}</span>
                           </li>
                         ),
                         strong: ({ children }) => (
                           <strong className="font-semibold text-gray-900">{children}</strong>
                         ),
-                        em: ({ children }) => (
-                          <em className="italic text-gray-600">{children}</em>
-                        ),
+                        em: ({ children }) => <em className="italic text-gray-600">{children}</em>,
                         a: ({ href, children }) => (
                           <a
                             href={href}
@@ -704,7 +798,9 @@ export default function CourseLandingClient() {
                     </div>
 
                     <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">Número de Documento</label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
+                        Número de Documento
+                      </label>
                       <Input
                         type="text"
                         value={formData.documentNumber}
@@ -721,7 +817,9 @@ export default function CourseLandingClient() {
                     </div>
 
                     {error && (
-                      <div className="rounded-lg bg-red-50 p-3 text-center text-sm text-red-700">{error}</div>
+                      <div className="rounded-lg bg-red-50 p-3 text-center text-sm text-red-700">
+                        {error}
+                      </div>
                     )}
 
                     <Button
@@ -737,12 +835,16 @@ export default function CourseLandingClient() {
                   /* Form - Full enrollment form */
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="text-center">
-                      <h2 className="mb-1 text-xl font-bold text-gray-900">Completa tu inscripción</h2>
+                      <h2 className="mb-1 text-xl font-bold text-gray-900">
+                        Completa tu inscripción
+                      </h2>
                     </div>
 
                     {/* Document - Read only */}
                     <div>
-                      <label className="mb-1 block text-sm font-medium text-gray-700">Documento</label>
+                      <label className="mb-1 block text-sm font-medium text-gray-700">
+                        Documento
+                      </label>
                       <div className="flex items-center gap-2">
                         <Input
                           type="text"
@@ -756,7 +858,9 @@ export default function CourseLandingClient() {
 
                     {/* Full Name */}
                     <div>
-                      <label className="mb-1 block text-sm font-medium text-gray-700">Nombre completo *</label>
+                      <label className="mb-1 block text-sm font-medium text-gray-700">
+                        Nombre completo *
+                      </label>
                       <Input
                         type="text"
                         value={formData.fullName}
@@ -768,7 +872,9 @@ export default function CourseLandingClient() {
 
                     {/* Phone */}
                     <div>
-                      <label className="mb-1 block text-sm font-medium text-gray-700">WhatsApp *</label>
+                      <label className="mb-1 block text-sm font-medium text-gray-700">
+                        WhatsApp *
+                      </label>
                       <Input
                         type="tel"
                         value={formData.phone}
@@ -781,7 +887,9 @@ export default function CourseLandingClient() {
 
                     {/* Birth Date */}
                     <div>
-                      <label className="mb-1 block text-sm font-medium text-gray-700">Fecha de nacimiento *</label>
+                      <label className="mb-1 block text-sm font-medium text-gray-700">
+                        Fecha de nacimiento *
+                      </label>
                       <Input
                         type="date"
                         value={formData.birthDate}
@@ -795,7 +903,9 @@ export default function CourseLandingClient() {
                       <Checkbox
                         id="isMember"
                         checked={formData.isMember}
-                        onCheckedChange={(checked) => handleInputChange('isMember', checked as boolean)}
+                        onCheckedChange={(checked) =>
+                          handleInputChange('isMember', checked as boolean)
+                        }
                       />
                       <label htmlFor="isMember" className="cursor-pointer text-sm text-gray-700">
                         ¿Perteneces a la Iglesia Adventista del Séptimo Día?
@@ -804,7 +914,10 @@ export default function CourseLandingClient() {
 
                     {/* Payment Section (if cost > 0) */}
                     {course.cost > 0 && (
-                      <div className="space-y-4 rounded-xl border-2 p-4" style={{ borderColor: course.color }}>
+                      <div
+                        className="space-y-4 rounded-xl border-2 p-4"
+                        style={{ borderColor: course.color }}
+                      >
                         <h3 className="font-semibold text-gray-900">Información de Pago</h3>
 
                         {/* Bank Account Info */}
@@ -813,16 +926,30 @@ export default function CourseLandingClient() {
                             Realiza el pago de <strong>{formatCurrency(course.cost)}</strong> a:
                           </p>
                           <div className="space-y-1 text-sm text-gray-600">
-                            <p><span className="font-medium">Banco:</span> {BANK_ACCOUNT.bank}</p>
-                            <p><span className="font-medium">Tipo:</span> {BANK_ACCOUNT.accountType}</p>
-                            <p><span className="font-medium">Número:</span> <span className="font-mono">{BANK_ACCOUNT.accountNumber}</span></p>
-                            <p><span className="font-medium">Titular:</span> {BANK_ACCOUNT.accountHolder}</p>
-                            <p><span className="font-medium">NIT:</span> {BANK_ACCOUNT.nit}</p>
+                            <p>
+                              <span className="font-medium">Banco:</span> {BANK_ACCOUNT.bank}
+                            </p>
+                            <p>
+                              <span className="font-medium">Tipo:</span> {BANK_ACCOUNT.accountType}
+                            </p>
+                            <p>
+                              <span className="font-medium">Número:</span>{' '}
+                              <span className="font-mono">{BANK_ACCOUNT.accountNumber}</span>
+                            </p>
+                            <p>
+                              <span className="font-medium">Titular:</span>{' '}
+                              {BANK_ACCOUNT.accountHolder}
+                            </p>
+                            <p>
+                              <span className="font-medium">NIT:</span> {BANK_ACCOUNT.nit}
+                            </p>
                           </div>
 
                           {/* WhatsApp Contact */}
                           <div className="mt-3 border-t border-gray-200 pt-3">
-                            <p className="mb-2 text-sm text-gray-600">¿Tienes dudas sobre el pago?</p>
+                            <p className="mb-2 text-sm text-gray-600">
+                              ¿Tienes dudas sobre el pago?
+                            </p>
                             <a
                               href={`https://wa.me/57${BANK_ACCOUNT.contactPhone}?text=Hola, tengo una consulta sobre el pago del curso ${course.title}`}
                               target="_blank"
@@ -830,7 +957,7 @@ export default function CourseLandingClient() {
                               className="inline-flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-600"
                             >
                               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                               </svg>
                               Contactar a {BANK_ACCOUNT.contactName}
                             </a>
@@ -839,27 +966,45 @@ export default function CourseLandingClient() {
 
                         {/* Upload Proof */}
                         <div>
-                          <label className="mb-2 block text-sm font-medium text-gray-700">Comprobante de pago *</label>
+                          <label className="mb-2 block text-sm font-medium text-gray-700">
+                            Comprobante de pago *
+                          </label>
 
                           {proofPreview ? (
                             <div className="relative inline-block">
                               {proofIsPdf ? (
                                 /* PDF/HEIC Preview (no browser preview support) */
                                 <div className="flex items-center gap-3 rounded-lg bg-blue-50 p-4">
-                                  <svg className="h-10 w-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  <svg
+                                    className="h-10 w-10 text-blue-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={1.5}
+                                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                    />
                                   </svg>
                                   <div className="min-w-0 flex-1">
                                     <p className="truncate text-sm font-medium text-gray-900">
                                       {proofFileName || 'documento'}
                                     </p>
-                                    <p className="text-xs text-gray-500">Archivo cargado correctamente</p>
+                                    <p className="text-xs text-gray-500">
+                                      Archivo cargado correctamente
+                                    </p>
                                   </div>
                                 </div>
                               ) : (
                                 /* Image Preview */
                                 /* eslint-disable-next-line @next/next/no-img-element */
-                                <img src={proofPreview} alt="Comprobante" className="max-h-40 rounded-lg object-contain" />
+                                <img
+                                  src={proofPreview}
+                                  alt="Comprobante"
+                                  className="max-h-40 rounded-lg object-contain"
+                                />
                               )}
                               {uploadingProof && (
                                 <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50">
@@ -877,8 +1022,18 @@ export default function CourseLandingClient() {
                                 }}
                                 className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white shadow-lg"
                               >
-                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                <svg
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
                                 </svg>
                               </button>
                             </div>
@@ -886,8 +1041,18 @@ export default function CourseLandingClient() {
                             /* Error state - shows in place of upload button */
                             <div className="rounded-xl border-2 border-dashed border-red-300 bg-red-50 p-4">
                               <div className="flex flex-col items-center text-center">
-                                <svg className="mb-2 h-8 w-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                <svg
+                                  className="mb-2 h-8 w-8 text-red-500"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                  />
                                 </svg>
                                 <p className="text-sm font-medium text-red-700">{proofError}</p>
                                 <label className="mt-3 cursor-pointer rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700">
@@ -907,13 +1072,25 @@ export default function CourseLandingClient() {
                             </div>
                           ) : (
                             <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors hover:border-gray-400 hover:bg-gray-100">
-                              <svg className="mb-2 h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                              <svg
+                                className="mb-2 h-8 w-8 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                                />
                               </svg>
                               <span className="text-sm font-medium text-gray-600">
                                 {uploadingProof ? 'Subiendo...' : 'Subir comprobante'}
                               </span>
-                              <span className="mt-1 text-xs text-gray-500">PNG, JPG, HEIC o PDF</span>
+                              <span className="mt-1 text-xs text-gray-500">
+                                PNG, JPG, HEIC o PDF
+                              </span>
                               <span className="mt-1 text-xs text-gray-500">Tamaño máximo 10MB</span>
                               <input
                                 type="file"
@@ -933,12 +1110,19 @@ export default function CourseLandingClient() {
                       <Checkbox
                         id="acceptPrivacy"
                         checked={formData.acceptPrivacy}
-                        onCheckedChange={(checked) => handleInputChange('acceptPrivacy', checked as boolean)}
+                        onCheckedChange={(checked) =>
+                          handleInputChange('acceptPrivacy', checked as boolean)
+                        }
                         className="mt-0.5"
                       />
                       <label htmlFor="acceptPrivacy" className="text-sm text-gray-700">
                         Acepto el{' '}
-                        <a href="/privacy" target="_blank" className="underline" style={{ color: course.color }}>
+                        <a
+                          href="/privacy"
+                          target="_blank"
+                          className="underline"
+                          style={{ color: course.color }}
+                        >
                           tratamiento de mis datos
                         </a>
                       </label>
@@ -949,12 +1133,16 @@ export default function CourseLandingClient() {
                       <div ref={turnstileRef} style={{ minHeight: '65px' }}></div>
                     </div>
                     {turnstileToken && (
-                      <p className="text-center text-sm text-green-600">✓ Verificación completada</p>
+                      <p className="text-center text-sm text-green-600">
+                        ✓ Verificación completada
+                      </p>
                     )}
 
                     {/* Error */}
                     {error && (
-                      <div className="rounded-lg bg-red-50 p-3 text-center text-sm text-red-700">{error}</div>
+                      <div className="rounded-lg bg-red-50 p-3 text-center text-sm text-red-700">
+                        {error}
+                      </div>
                     )}
 
                     {/* Buttons */}

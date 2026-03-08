@@ -29,7 +29,7 @@ export async function GET(
         'Content-Type': object.httpMetadata?.contentType || 'application/octet-stream',
         'Content-Length': object.size.toString(),
         'Cache-Control': 'public, max-age=31536000, immutable',
-        'ETag': object.httpEtag,
+        ETag: object.httpEtag,
       },
     });
   } catch (error) {
