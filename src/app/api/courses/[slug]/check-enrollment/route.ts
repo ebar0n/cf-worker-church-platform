@@ -14,14 +14,13 @@ export async function POST(
     const { documentNumber } = body;
 
     if (!documentNumber) {
-      return NextResponse.json(
-        { error: 'Número de documento requerido' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Número de documento requerido' }, { status: 400 });
     }
 
     // Get course by slug
-    const course = await env.DB.prepare('SELECT id, title FROM Course WHERE slug = ? AND isActive = 1')
+    const course = await env.DB.prepare(
+      'SELECT id, title FROM Course WHERE slug = ? AND isActive = 1'
+    )
       .bind(slug)
       .first();
 

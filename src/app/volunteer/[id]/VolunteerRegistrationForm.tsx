@@ -11,6 +11,7 @@ interface VolunteerEvent {
   eventDate: string;
   services: string | null;
   maxCapacities: string | null;
+  whatsappGroupUrl: string | null;
 }
 
 interface VolunteerRegistrationFormProps {
@@ -56,7 +57,7 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
     try {
       const response = await fetch(`/api/volunteer-events/${event.id}/capacities`);
       if (response.ok) {
-        const data = await response.json() as {[key: string]: {current: number, max: number}};
+        const data = (await response.json()) as { [key: string]: { current: number; max: number } };
         setServiceCapacities(data);
       }
     } catch (error) {
@@ -404,7 +405,10 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                 Mantente informado y conecta con otros voluntarios
               </p>
               <a
-                href={`https://chat.whatsapp.com/Hcd38KRSdaVI1TiWRk64hi?text=${encodeURIComponent(`Ya iré a: ${event.title}`)}`}
+                href={
+                  event.whatsappGroupUrl ||
+                  `https://wa.me/573153455511?text=${encodeURIComponent(`Hola, me registré como voluntario para: ${event.title}`)}`
+                }
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-3 font-semibold text-white shadow-lg transition-all hover:scale-105 hover:from-green-700 hover:to-emerald-700 hover:shadow-xl sm:w-auto"

@@ -34,6 +34,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       eventDate?: string;
       services?: string[];
       maxCapacities?: number[];
+      whatsappGroupUrl?: string | null;
       isActive?: boolean;
     };
 
@@ -69,6 +70,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (body.maxCapacities !== undefined) {
       updates.push('maxCapacities = ?');
       values.push(JSON.stringify(body.maxCapacities));
+    }
+    if (body.whatsappGroupUrl !== undefined) {
+      updates.push('whatsappGroupUrl = ?');
+      values.push(body.whatsappGroupUrl || null);
     }
     if (body.isActive !== undefined) {
       updates.push('isActive = ?');

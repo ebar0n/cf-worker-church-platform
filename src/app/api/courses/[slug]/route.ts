@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 // GET /api/courses/[slug] - Get public course details
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { env } = getCloudflareContext();
   const { slug } = await params;
 
@@ -63,6 +60,7 @@ export async function GET(
       startDate: course.startDate,
       endDate: course.endDate,
       capacity: course.capacity,
+      whatsappGroupUrl: course.whatsappGroupUrl,
       isActive: course.isActive === 1,
       createdAt: course.createdAt,
       updatedAt: course.updatedAt,

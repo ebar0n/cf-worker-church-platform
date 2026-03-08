@@ -13,6 +13,7 @@ interface VolunteerEvent {
   eventDate: string;
   services: string | null; // JSON string array
   maxCapacities: string | null; // JSON string array of numbers corresponding to services
+  whatsappGroupUrl: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -36,6 +37,7 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
     eventDate: '',
     services: [] as string[],
     maxCapacities: [] as string[],
+    whatsappGroupUrl: '',
     isActive: true,
   });
   const [serviceInput, setServiceInput] = useState('');
@@ -113,6 +115,7 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
       eventDate: event.eventDate.split('T')[0],
       services: services,
       maxCapacities: maxCapacities,
+      whatsappGroupUrl: event.whatsappGroupUrl || '',
       isActive: event.isActive,
     });
     setShowModal(true);
@@ -141,6 +144,7 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
       eventDate: '',
       services: [],
       maxCapacities: [],
+      whatsappGroupUrl: '',
       isActive: true,
     });
     setServiceInput('');
@@ -524,6 +528,22 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                     ))}
                   </div>
                 )}
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  URL del Grupo de WhatsApp (opcional)
+                </label>
+                <input
+                  type="url"
+                  value={formData.whatsappGroupUrl}
+                  onChange={(e) => setFormData({ ...formData, whatsappGroupUrl: e.target.value })}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#4b207f] focus:outline-none"
+                  placeholder="https://chat.whatsapp.com/..."
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Si no se define, se usará el número por defecto (3153455511)
+                </p>
               </div>
 
               <div className="flex items-center gap-2">
