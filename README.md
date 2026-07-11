@@ -1,5 +1,7 @@
 # El Jordan Seventh-day Adventist Church
 
+[![CI](https://github.com/ebar0n/cf-worker-church-platform/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ebar0n/cf-worker-church-platform/actions/workflows/ci.yml)
+
 This project is the official website for El Jordan Seventh-day Adventist Church (Ibagué, Colombia). It allows members and visitors to:
 
 - Learn about the church, its services, and activities
