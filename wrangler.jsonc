@@ -7,6 +7,15 @@
 	"name": "cf-worker-church-platform",
 	"main": ".open-next/worker.js",
 	"workers_dev": false,
+	/**
+	 * Preview URLs for Workers Builds: each uploaded version (non-production
+	 * branch builds) gets <version>-<name>.<subdomain>.workers.dev.
+	 * Must be explicit here — the default follows workers_dev (false), so a
+	 * dashboard toggle would be reverted on every deploy. Protect these URLs
+	 * with the one-click Cloudflare Access option in the Worker's settings
+	 * (Settings > Domains & Routes); the Access app persists across deploys.
+	 */
+	"preview_urls": true,
 	"routes": [
 		{
 			"pattern": "iglesiajordanibague.org",
