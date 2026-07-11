@@ -57,8 +57,8 @@ export default function CourseLandingClient() {
   const [turnstileToken, setTurnstileToken] = useState<string>('');
   const [widgetRendered, setWidgetRendered] = useState(false);
 
-  // Upload state
-  const [uploadingProof, setUploadingProof] = useState(false);
+  // Payment proof state (file is uploaded together with the form on submit)
+  const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreview, setProofPreview] = useState<string | null>(null);
   const [proofIsPdf, setProofIsPdf] = useState(false);
   const [proofFileName, setProofFileName] = useState<string | null>(null);
@@ -69,7 +69,6 @@ export default function CourseLandingClient() {
     fullName: '',
     phone: '',
     birthDate: '',
-    paymentProofUrl: '',
     isMember: false,
     acceptPrivacy: false,
   });
@@ -190,48 +189,19 @@ export default function CourseLandingClient() {
     }
   };
 
-  const handleProofUpload = async (file: File) => {
-    setUploadingProof(true);
-    setProofError(null);
-    try {
-      const formDataUpload = new FormData();
-      formDataUpload.append('file', file);
-      formDataUpload.append('type', 'payment-proof');
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formDataUpload,
-      });
-
-      if (response.ok) {
-        const data = (await response.json()) as { url: string };
-        setFormData((prev) => ({ ...prev, paymentProofUrl: data.url }));
-        setProofPreview(data.url);
-      } else {
-        const errorData = (await response.json()) as { error?: string };
-        setProofError(
-          errorData.error || 'No se pudo cargar el comprobante. Intenta con otro archivo.'
-        );
-        // Clear preview on error
-        setProofPreview(null);
-        setProofIsPdf(false);
-        setProofFileName(null);
-      }
-    } catch (error) {
-      console.error('Error uploading proof:', error);
-      setProofError('No se pudo cargar el comprobante. Intenta nuevamente.');
-      // Clear preview on error
-      setProofPreview(null);
-      setProofIsPdf(false);
-      setProofFileName(null);
-    } finally {
-      setUploadingProof(false);
-    }
-  };
+  const MAX_PROOF_SIZE = 10 * 1024 * 1024; // 10MB, matches server-side limit
 
   const handleProofFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > MAX_PROOF_SIZE) {
+        setProofError('El archivo es demasiado grande. El tamaño máximo es 10MB.');
+        setProofFile(null);
+        setProofPreview(null);
+        setProofIsPdf(false);
+        setProofFileName(null);
+        return;
+      }
       const isPdf = file.type === 'application/pdf';
       const isHeic =
         file.type === 'image/heic' ||
@@ -251,7 +221,7 @@ export default function CourseLandingClient() {
         reader.onloadend = () => setProofPreview(reader.result as string);
         reader.readAsDataURL(file);
       }
-      handleProofUpload(file);
+      setProofFile(file);
     }
   };
 
@@ -277,7 +247,7 @@ export default function CourseLandingClient() {
       return;
     }
 
-    if (course && course.cost > 0 && !formData.paymentProofUrl) {
+    if (course && course.cost > 0 && !proofFile) {
       setError('Por favor, sube el comprobante de pago');
       return;
     }
@@ -294,13 +264,22 @@ export default function CourseLandingClient() {
     setIsSubmitting(true);
 
     try {
+      // Multipart: the payment proof travels with the form so a single
+      // Turnstile verification covers both
+      const submitData = new FormData();
+      submitData.append('token', turnstileToken);
+      submitData.append('documentNumber', formData.documentNumber);
+      submitData.append('fullName', formData.fullName);
+      submitData.append('phone', formData.phone);
+      submitData.append('birthDate', formData.birthDate);
+      submitData.append('isMember', String(formData.isMember));
+      if (proofFile) {
+        submitData.append('paymentProof', proofFile);
+      }
+
       const response = await fetch(`/api/courses/${slug}/enroll`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          token: turnstileToken,
-          ...formData,
-        }),
+        body: submitData,
       });
 
       const data = (await response.json()) as { error?: string; code?: string };
@@ -423,10 +402,10 @@ export default function CourseLandingClient() {
       fullName: '',
       phone: '',
       birthDate: '',
-      paymentProofUrl: '',
       isMember: false,
       acceptPrivacy: false,
     });
+    setProofFile(null);
     setProofPreview(null);
     setProofIsPdf(false);
     setProofFileName(null);
@@ -1006,19 +985,14 @@ export default function CourseLandingClient() {
                                   className="max-h-40 rounded-lg object-contain"
                                 />
                               )}
-                              {uploadingProof && (
-                                <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50">
-                                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
-                                </div>
-                              )}
                               <button
                                 type="button"
                                 onClick={() => {
+                                  setProofFile(null);
                                   setProofPreview(null);
                                   setProofIsPdf(false);
                                   setProofFileName(null);
                                   setProofError(null);
-                                  setFormData((prev) => ({ ...prev, paymentProofUrl: '' }));
                                 }}
                                 className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white shadow-lg"
                               >
@@ -1064,7 +1038,6 @@ export default function CourseLandingClient() {
                                       setProofError(null);
                                       handleProofFileChange(e);
                                     }}
-                                    disabled={uploadingProof}
                                     className="hidden"
                                   />
                                 </label>
@@ -1086,7 +1059,7 @@ export default function CourseLandingClient() {
                                 />
                               </svg>
                               <span className="text-sm font-medium text-gray-600">
-                                {uploadingProof ? 'Subiendo...' : 'Subir comprobante'}
+                                Subir comprobante
                               </span>
                               <span className="mt-1 text-xs text-gray-500">
                                 PNG, JPG, HEIC o PDF
@@ -1096,7 +1069,6 @@ export default function CourseLandingClient() {
                                 type="file"
                                 accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif,application/pdf"
                                 onChange={handleProofFileChange}
-                                disabled={uploadingProof}
                                 className="hidden"
                               />
                             </label>
@@ -1162,7 +1134,7 @@ export default function CourseLandingClient() {
                           isSubmitting ||
                           !turnstileToken ||
                           !formData.acceptPrivacy ||
-                          (course.cost > 0 && !formData.paymentProofUrl)
+                          (course.cost > 0 && !proofFile)
                         }
                         className="flex-1 text-white"
                         style={{ backgroundColor: course.color }}

@@ -1,3 +1,13 @@
+// Church contact shown on the home landing and the privacy policy.
+// Update here when the pastor or phone changes — the E2E suite checks the
+// rendered pages against these values (rebuild before re-running e2e).
+export const CHURCH_CONTACT = {
+  pastorName: 'Pastor David Bedoya',
+  pastorPhone: '+57 314 478 8557',
+  email: 'jordan.jordan.asurcol@gmail.com',
+  address: 'Mza 3 Casa 12 Jordan 4 Etapa, Ibagué, Tolima, Colombia',
+};
+
 export interface Department {
   name: string;
   code: string;

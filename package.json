@@ -14,7 +14,10 @@
     "cf:secrets": "wrangler secret bulk .dev.vars",
     "cf:deploy": "opennextjs-cloudflare deploy",
     "db:generate": "prisma generate --schema src/schema.prisma",
-    "db:migrate": "npx wrangler d1 migrations apply church-jordan"
+    "db:migrate": "npx wrangler d1 migrations apply church-jordan",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -29,7 +32,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.503.0",
-    "next": "15.3.2",
+    "next": "15.5.20",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^18.2.0",
@@ -44,21 +47,26 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@next/eslint-plugin-next": "^15.3.2",
-    "@opennextjs/cloudflare": "1.16.1",
+    "@opennextjs/cloudflare": "1.20.1",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@vitejs/plugin-react": "^6.0.3",
     "esbuild": "^0.20.2",
     "eslint": "^8.56.0",
-    "eslint-config-next": "15.3.2",
+    "eslint-config-next": "15.5.20",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "jsdom": "^29.1.1",
     "prettier": "^3.2.5",
     "prettier-plugin-tailwindcss": "^0.5.12",
     "prisma": "^6.8.2",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "wrangler": "^4.61.1"
+    "vitest": "^4.1.10",
+    "wrangler": "^4.110.0"
   },
   "packageManager": "yarn@3.6.4"
 }

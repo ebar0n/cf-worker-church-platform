@@ -1,5 +1,6 @@
 import React from 'react';
 import Header from '@/app/components/Header';
+import { CHURCH_CONTACT } from '@/lib/constants';
 
 export default function PrivacyPolicy() {
   return (
@@ -92,9 +93,11 @@ export default function PrivacyPolicy() {
                 personales, puede contactarnos a través de los siguientes medios:
               </p>
               <ul className="mt-2 list-disc pl-6 text-gray-700">
-                <li>Correo electrónico: jordan.jordan.asurcol@gmail.com</li>
-                <li>Pastor Sergio Sana: +57 320 854 0929</li>
-                <li>Dirección: Mza 3 Casa 12 Jordan 4 Etapa, Ibagué, Tolima, Colombia</li>
+                <li>Correo electrónico: {CHURCH_CONTACT.email}</li>
+                <li>
+                  {CHURCH_CONTACT.pastorName}: {CHURCH_CONTACT.pastorPhone}
+                </li>
+                <li>Dirección: {CHURCH_CONTACT.address}</li>
               </ul>
             </section>
 

@@ -36,12 +36,21 @@ export async function POST(
       .first();
 
     if (enrollment) {
+      // This endpoint is reachable without captcha, so personal data is
+      // masked: enough for the owner to recognize themselves, useless for
+      // someone enumerating document numbers.
+      const fullName = (enrollment.fullName as string) || '';
+      const phone = (enrollment.phone as string) || '';
+      const [firstName, ...rest] = fullName.split(' ');
+      const maskedName = [firstName, ...rest.map((part) => `${part.charAt(0)}.`)].join(' ');
+      const maskedPhone = phone ? `***${phone.slice(-4)}` : '';
+
       return NextResponse.json({
         found: true,
         enrollment: {
           id: enrollment.id,
-          fullName: enrollment.fullName,
-          phone: enrollment.phone,
+          fullName: maskedName,
+          phone: maskedPhone,
           status: enrollment.status,
           createdAt: enrollment.createdAt,
         },

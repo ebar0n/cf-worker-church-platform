@@ -1,0 +1,18 @@
+# Cache headers for Workers Static Assets
+# Hashed build assets never change: cache aggressively in browser and CDN
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Fonts are versioned by filename and safe to cache long-term
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Site images change rarely: one day in browser, revalidate after
+/departments/*
+  Cache-Control: public, max-age=86400
+/*.png
+  Cache-Control: public, max-age=86400
+/*.jpg
+  Cache-Control: public, max-age=86400
+/*.svg
+  Cache-Control: public, max-age=86400
