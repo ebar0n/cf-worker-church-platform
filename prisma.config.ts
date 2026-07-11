@@ -1,6 +1,5 @@
-import type { PrismaConfig } from 'prisma';
+import { defineConfig } from 'prisma/config';
 
-export default {
-  earlyAccess: true,
+export default defineConfig({
   schema: './src/schema.prisma',
-} satisfies PrismaConfig;
+});

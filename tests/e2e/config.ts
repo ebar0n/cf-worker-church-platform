@@ -16,4 +16,8 @@ export const DOC_IDS = {
   volunteer: '9900110026',
   enrollChild: '9900110027',
   adminMember: '9900110028',
+  clubTutor: '9900110029',
+  clubChild: '9900110030',
+  clubConsejero: '9900110031',
+  clubPrefill: '9900110032',
 };

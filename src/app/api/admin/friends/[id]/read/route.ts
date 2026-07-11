@@ -20,7 +20,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     if (!parse.success) {
       return NextResponse.json(
-        { error: 'Invalid input', details: parse.error.errors },
+        { error: 'Invalid input', details: parse.error.issues },
         { status: 400 }
       );
     }
