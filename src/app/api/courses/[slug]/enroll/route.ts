@@ -1,37 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
-
-// Turnstile verification function
-async function verifyTurnstile(token: string, secretKey: string): Promise<boolean> {
-  try {
-    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        secret: secretKey,
-        response: token,
-      }),
-    });
-
-    const data = (await response.json()) as { success: boolean; 'error-codes'?: string[] };
-
-    if (!data.success && data['error-codes']?.includes('timeout-or-duplicate')) {
-      throw new Error('TURNSTILE_TIMEOUT_OR_DUPLICATE');
-    }
-
-    return data.success;
-  } catch (error) {
-    if (error instanceof Error && error.message === 'TURNSTILE_TIMEOUT_OR_DUPLICATE') {
-      throw error;
-    }
-    console.error('Turnstile verification error:', error);
-    return false;
-  }
-}
+import { verifyTurnstileToken, getTurnstileSecretKeyForRequest } from '@/lib/turnstile';
+import { ALLOWED_DOCUMENT_TYPES, validateUploadFile, uploadFileToR2 } from '@/lib/uploads';
 
 // POST /api/courses/[slug]/enroll - Create course enrollment
+// Accepts multipart/form-data so the payment proof is uploaded in the same
+// request as the form (single Turnstile verification protects both).
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
@@ -40,17 +14,14 @@ export async function POST(
   const { slug } = await params;
 
   try {
-    const body = (await request.json()) as {
-      token: string;
-      documentNumber: string;
-      fullName: string;
-      phone: string;
-      birthDate: string;
-      isMember?: boolean;
-      paymentProofUrl?: string;
-    };
-
-    const { token, documentNumber, fullName, phone, birthDate, isMember, paymentProofUrl } = body;
+    const formData = await request.formData();
+    const token = formData.get('token') as string | null;
+    const documentNumber = formData.get('documentNumber') as string | null;
+    const fullName = formData.get('fullName') as string | null;
+    const phone = formData.get('phone') as string | null;
+    const birthDate = formData.get('birthDate') as string | null;
+    const isMember = formData.get('isMember') === 'true';
+    const paymentProof = formData.get('paymentProof') as File | null;
 
     // Validate required fields
     if (!token || !documentNumber || !fullName || !phone || !birthDate) {
@@ -73,27 +44,15 @@ export async function POST(
     }
 
     // Verify Turnstile token
-    // Check if we're in development (localhost) - use test secret key
-    const host = request.headers.get('host') || '';
-    const isDevelopment = host.includes('localhost') || host.includes('127.0.0.1');
-    const TURNSTILE_TEST_SECRET_KEY = '1x0000000000000000000000000000000AA';
-
-    const turnstileSecretKey = isDevelopment ? TURNSTILE_TEST_SECRET_KEY : env.TURNSTILE_SECRET_KEY;
+    const turnstileSecretKey = getTurnstileSecretKeyForRequest(request);
     if (!turnstileSecretKey) {
       console.error('TURNSTILE_SECRET_KEY not configured');
       return NextResponse.json({ error: 'Error de configuración del servidor' }, { status: 500 });
     }
 
-    try {
-      const isValid = await verifyTurnstile(token, turnstileSecretKey);
-      if (!isValid) {
-        return NextResponse.json(
-          { error: 'Verificación de seguridad fallida. Por favor, intenta de nuevo.' },
-          { status: 400 }
-        );
-      }
-    } catch (error) {
-      if (error instanceof Error && error.message === 'TURNSTILE_TIMEOUT_OR_DUPLICATE') {
+    const verification = await verifyTurnstileToken(token, turnstileSecretKey);
+    if (!verification.success) {
+      if (verification.error?.includes('timeout-or-duplicate')) {
         return NextResponse.json(
           {
             error: 'La verificación de seguridad ha expirado. Por favor, recarga la página.',
@@ -102,7 +61,10 @@ export async function POST(
           { status: 400 }
         );
       }
-      throw error;
+      return NextResponse.json(
+        { error: 'Verificación de seguridad fallida. Por favor, intenta de nuevo.' },
+        { status: 400 }
+      );
     }
 
     // Get course by slug with enrollment counts split by member status
@@ -176,7 +138,7 @@ export async function POST(
     }
 
     // Check if cost > 0 requires payment proof
-    if ((course.cost as number) > 0 && !paymentProofUrl) {
+    if ((course.cost as number) > 0 && !paymentProof) {
       return NextResponse.json(
         { error: 'Se requiere comprobante de pago para este curso' },
         { status: 400 }
@@ -194,6 +156,18 @@ export async function POST(
       return NextResponse.json({ error: 'Ya estás inscrito en este curso' }, { status: 400 });
     }
 
+    // Upload payment proof to R2 (only after all validations passed).
+    // Proofs are sensitive: they are served via the Access-protected admin route.
+    let paymentProofUrl: string | null = null;
+    if (paymentProof) {
+      const validation = validateUploadFile(paymentProof, ALLOWED_DOCUMENT_TYPES);
+      if (!validation.valid) {
+        return NextResponse.json({ error: validation.error }, { status: 400 });
+      }
+      const fileName = await uploadFileToR2(env.UPLOADS, paymentProof, 'payments');
+      paymentProofUrl = `/api/admin/files/${fileName}`;
+    }
+
     const now = new Date().toISOString();
 
     // Create enrollment
@@ -208,7 +182,7 @@ export async function POST(
         phone,
         birthDate,
         isMember ? 1 : 0,
-        paymentProofUrl || null,
+        paymentProofUrl,
         now,
         now
       )

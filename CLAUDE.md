@@ -25,6 +25,22 @@ yarn build                 # Production build
 yarn format                # Format code with Prettier
 ```
 
+### Testing
+
+```bash
+yarn test                  # Unit tests (lib logic) + component tests (Testing Library/jsdom)
+yarn test:watch            # Watch mode
+yarn test:e2e              # E2E suite against the built worker in workerd (local D1/R2).
+                           # Requires .open-next/worker.js: re-run `yarn cf:build` after code changes.
+```
+
+- `tests/unit/` — pure logic (turnstile form-pass, uploads, cache middleware)
+- `tests/components/` — React components per the Next.js Vitest guide
+- `tests/e2e/` — one file per domain; covers every API (public + admin) and every landing.
+  Uses the Turnstile test secret via `--var` (never touches `.dev.vars`) and cleans its
+  seeded data (E2E-prefixed titles / fixed document IDs) before and after each run.
+- CI runs everything on push/PR (`.github/workflows/ci.yml`)
+
 ### Database Management
 
 ```bash

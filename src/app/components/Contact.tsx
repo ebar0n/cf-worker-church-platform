@@ -1,3 +1,5 @@
+import { CHURCH_CONTACT } from '@/lib/constants';
+
 export default function Contact() {
   return (
     <section className="bg-[#f8f6f2] px-4 py-20">
@@ -52,8 +54,8 @@ export default function Contact() {
                   />
                 </svg>
                 <div>
-                  <h3 className="font-semibold text-[#2f557f]">Pastor Sergio Sana</h3>
-                  <p className="text-[#5e3929]">+57 320 854 0929</p>
+                  <h3 className="font-semibold text-[#2f557f]">{CHURCH_CONTACT.pastorName}</h3>
+                  <p className="text-[#5e3929]">{CHURCH_CONTACT.pastorPhone}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">

@@ -312,13 +312,19 @@ export default function ProgramLandingPageClient() {
 
     setSearchingGuardian(true);
     try {
-      const response = await fetch(`/api/members/search?documentID=${documentID}`);
+      // Authorized by the form-pass cookie issued when the child search
+      // verified the Turnstile token in step 1
+      const response = await fetch('/api/members/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentID, token: turnstileToken }),
+      });
       const data = (await response.json()) as {
         found: boolean;
         member?: Member;
       };
 
-      if (data.found && data.member) {
+      if (response.ok && data.found && data.member) {
         setGuardianFound(data.member);
         setFormData((prev) => ({
           ...prev,
@@ -357,13 +363,17 @@ export default function ProgramLandingPageClient() {
 
     setSearchingFather(true);
     try {
-      const response = await fetch(`/api/members/search?documentID=${documentID}`);
+      const response = await fetch('/api/members/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentID, token: turnstileToken }),
+      });
       const data = (await response.json()) as {
         found: boolean;
         member?: Member;
       };
 
-      if (data.found && data.member) {
+      if (response.ok && data.found && data.member) {
         setFatherFound(data.member);
         setFormData((prev) => ({
           ...prev,
@@ -399,13 +409,17 @@ export default function ProgramLandingPageClient() {
 
     setSearchingMother(true);
     try {
-      const response = await fetch(`/api/members/search?documentID=${documentID}`);
+      const response = await fetch('/api/members/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentID, token: turnstileToken }),
+      });
       const data = (await response.json()) as {
         found: boolean;
         member?: Member;
       };
 
-      if (data.found && data.member) {
+      if (response.ok && data.found && data.member) {
         setMotherFound(data.member);
         setFormData((prev) => ({
           ...prev,

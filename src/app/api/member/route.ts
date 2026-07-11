@@ -73,7 +73,14 @@ export async function GET(request: NextRequest) {
   });
 }
 
+// Protected: the form flow starts with the Turnstile-verified GET lookup,
+// which issues the form pass; create/update then ride the cookie (it slides
+// on every auto-save). Requests with neither cookie nor token are rejected.
 export async function POST(request: NextRequest) {
+  return withTurnstileProtection(request, handleCreateMember, { allowFormPass: true });
+}
+
+async function handleCreateMember(request: NextRequest) {
   const { env } = getCloudflareContext();
 
   try {
@@ -114,6 +121,10 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  return withTurnstileProtection(request, handleUpdateMember, { allowFormPass: true });
+}
+
+async function handleUpdateMember(request: NextRequest) {
   const { env } = getCloudflareContext();
 
   try {

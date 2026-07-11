@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # .yarnrc.yml is generated locally by `make env` and gitignored, so CI must
+  # set the linker itself — yarn's default (PnP) has no node_modules and
+  # breaks prisma generate and the Next.js build.
+  YARN_NODE_LINKER: node-modules
+
+jobs:
+  checks:
+    name: Format, types & unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Enable corepack (yarn 3.6.4)
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Generate Prisma client
+        run: yarn db:generate
+
+      - name: Check formatting
+        # Same scope as the `yarn format` script
+        run: yarn prettier --check "**/*.{js,jsx,ts,tsx,json,md}"
+
+      - name: Typecheck
+        run: yarn tsc --noEmit
+
+      - name: Unit tests
+        run: yarn test
+
+  e2e:
+    name: E2E smoke tests (workerd)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Enable corepack (yarn 3.6.4)
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build worker bundle
+        run: yarn cf:build
+
+      - name: E2E smoke tests
+        run: yarn test:e2e
+        env:
+          # wrangler dev runs fully local (Miniflare/workerd): no account needed
+          WRANGLER_SEND_METRICS: 'false'

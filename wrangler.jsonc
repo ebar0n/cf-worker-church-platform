@@ -13,7 +13,16 @@
 			"custom_domain": true
 		}
 	],
-	"compatibility_date": "2026-01-20",
+	"compatibility_date": "2026-07-08",
+	/**
+	 * Workers Cache: lets Cloudflare serve cached GET responses from the CDN
+	 * without running the Worker. Response Cache-Control / CDN-Cache-Control
+	 * headers (set in src/middleware.ts and public/_headers) decide what is
+	 * cacheable. https://developers.cloudflare.com/workers/cache/
+	 */
+	"cache": {
+		"enabled": true
+	},
 	"compatibility_flags": [
 		"nodejs_compat",
 		"global_fetch_strictly_public"

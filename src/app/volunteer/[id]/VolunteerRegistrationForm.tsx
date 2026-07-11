@@ -172,15 +172,28 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
       return;
     }
 
+    // Lookups require the Turnstile verification; without a token the user
+    // simply fills the fields manually
+    if (!turnstileToken) {
+      return;
+    }
+
     setCheckingDocument(true);
     setError('');
     setAlreadyRegistered(false);
     setMemberFound(null);
 
     try {
-      // First check if already registered for this event
+      // First check if already registered for this event.
+      // This verifies the Turnstile token and issues a form-pass cookie
+      // that authorizes the follow-up member search.
       const registrationResponse = await fetch(
-        `/api/volunteer-events/${event.id}/check-registration?documentID=${formData.documentID}`
+        `/api/volunteer-events/${event.id}/check-registration`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ documentID: formData.documentID, token: turnstileToken }),
+        }
       );
 
       if (registrationResponse.ok) {
@@ -209,8 +222,12 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
         return;
       }
 
-      // If not registered, check if member exists
-      const response = await fetch(`/api/members/search?documentID=${formData.documentID}`);
+      // If not registered, check if member exists (rides the form-pass cookie)
+      const response = await fetch('/api/members/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentID: formData.documentID, token: turnstileToken }),
+      });
 
       if (response.ok) {
         const data = (await response.json()) as {
@@ -260,6 +277,12 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
       }));
       console.log('Member not found, user can fill manually');
     } finally {
+      // The lookups consumed the Turnstile token; reset the widget so the
+      // final submission gets a fresh one (auto-resolves for legit users)
+      if (window.turnstile && turnstileRef.current) {
+        window.turnstile.reset(turnstileRef.current);
+        setTurnstileToken('');
+      }
       setCheckingDocument(false);
     }
   };
