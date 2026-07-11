@@ -8,8 +8,11 @@ const TURNSTILE_TEST_SECRET_KEY = '1x0000000000000000000000000000000AA';
 // Short-lived signed cookie issued after a successful Turnstile verification.
 // Lets multi-step forms make several protected lookups (member/child search)
 // with a single captcha, since Turnstile tokens are single-use.
+// The TTL slides on every protected request, but it must outlast a user
+// parked on a single form step (auto-save only fires on step changes) —
+// this is an anti-bot pass, not authentication, so a generous window is fine.
 const FORM_PASS_COOKIE = 'form_pass';
-const FORM_PASS_TTL_SECONDS = 15 * 60;
+const FORM_PASS_TTL_SECONDS = 60 * 60;
 
 // Turnstile verification function
 export async function verifyTurnstileToken(

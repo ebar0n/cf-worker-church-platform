@@ -71,11 +71,19 @@ describe('form pass cookie', () => {
     expect(await hasValidFormPass(requestWithCookie(forged))).toBe(false);
   });
 
-  it('expires after 15 minutes', async () => {
+  it('is still valid within the sliding window', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-07-10T10:00:00Z'));
     const value = await issueCookie();
-    vi.setSystemTime(new Date('2026-07-10T10:16:00Z'));
+    vi.setSystemTime(new Date('2026-07-10T10:45:00Z'));
+    expect(await hasValidFormPass(requestWithCookie(value))).toBe(true);
+  });
+
+  it('expires after 60 minutes without renewal', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-07-10T10:00:00Z'));
+    const value = await issueCookie();
+    vi.setSystemTime(new Date('2026-07-10T11:01:00Z'));
     expect(await hasValidFormPass(requestWithCookie(value))).toBe(false);
   });
 

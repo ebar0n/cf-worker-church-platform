@@ -9,6 +9,12 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # .yarnrc.yml is generated locally by `make env` and gitignored, so CI must
+  # set the linker itself — yarn's default (PnP) has no node_modules and
+  # breaks prisma generate and the Next.js build.
+  YARN_NODE_LINKER: node-modules
+
 jobs:
   checks:
     name: Format, types & unit tests
