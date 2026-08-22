@@ -66,6 +66,28 @@ export async function POST(
       return NextResponse.json({ error: errors.join('. ') }, { status: 400 });
     }
 
+    // Two volunteers on different iPads cannot see each other's lists, so the
+    // duplicate check belongs here. The phone is not unique in the schema (a
+    // household may share a line), so this warns once and the client retries
+    // with allowDuplicate.
+    if (body.allowDuplicate !== true) {
+      const twin = await env.DB.prepare(
+        'SELECT name FROM HealthSurvey WHERE volunteerEventId = ? AND phone = ?'
+      )
+        .bind(eventId, values.phone)
+        .first<{ name: string }>();
+
+      if (twin) {
+        return NextResponse.json(
+          {
+            error: `Ya hay una encuesta con ese teléfono en este evento (${twin.name}).`,
+            duplicate: true,
+          },
+          { status: 409 }
+        );
+      }
+    }
+
     const now = new Date().toISOString();
     const capturedBy = request.headers.get('cf-access-authenticated-user-email');
     const columns = [...SURVEY_FIELDS, 'volunteerEventId', 'capturedBy', 'createdAt', 'updatedAt'];

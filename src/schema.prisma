@@ -363,8 +363,11 @@ model HealthSurvey {
   // Contact data
   name         String
   phone        String
+  age          Int?
   neighborhood String?
   address      String?
+
+  acceptsDataTreatment Boolean? // Ley 1581 consent; required to store the row
 
   capturedBy String? // Cloudflare Access email of the device that captured it
 

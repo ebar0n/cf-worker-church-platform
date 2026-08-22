@@ -2,6 +2,9 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { E2E_PREFIX } from './config';
 import { getRes, postJson, putJson, del, expectJson } from './helpers';
 
+// Ley 1581 consent gates every write: the health answers are sensitive data.
+const CONSENT = { acceptsDataTreatment: true };
+
 // Health surveys captured during a volunteer event. The capture screen lives
 // under /admin (volunteers use configured iPads), so everything here goes
 // through the admin API, which is open locally.
@@ -46,26 +49,38 @@ describe('health survey capture', () => {
   });
 
   it('rejects a survey without a name', async () => {
-    const res = await postJson(surveysPath(), { phone: '3001112233' });
+    const res = await postJson(surveysPath(), { phone: '3001112233', ...CONSENT });
     const body = await expectJson<{ error: string }>(res, 400);
     expect(body.error).toContain('Nombre');
   });
 
   it('rejects a survey without a phone', async () => {
-    const res = await postJson(surveysPath(), { name: 'Ana' });
+    const res = await postJson(surveysPath(), { name: 'Ana', ...CONSENT });
     const body = await expectJson<{ error: string }>(res, 400);
     expect(body.error).toContain('Teléfono');
   });
 
+  it('refuses to store a survey without the data-treatment consent', async () => {
+    const res = await postJson(surveysPath(), { name: 'Ana', phone: '3001112255' });
+    const body = await expectJson<{ error: string }>(res, 400);
+    expect(body.error).toContain('autorizar el tratamiento');
+  });
+
   it('404s for an unknown event', async () => {
-    const res = await postJson('/api/admin/surveys/99999', { name: 'Ana', phone: '3001112233' });
+    const res = await postJson('/api/admin/surveys/99999', {
+      name: 'Ana',
+      phone: '3001112233',
+      ...CONSENT,
+    });
     expect(res.status).toBe(404);
   });
 
   it('stores checks, unanswered questions and open answers', async () => {
     const res = await postJson(surveysPath(), {
+      ...CONSENT,
       name: `${E2E_PREFIX}Ana Pérez`,
       phone: '3001112233',
+      age: '41',
       neighborhood: 'Boquerón',
       address: 'Torre 1 Ap 101',
       hasHighBloodPressure: true,
@@ -90,6 +105,8 @@ describe('health survey capture', () => {
     expect(survey.wantsPersonalFinanceCourse).toBe(1);
     expect(survey.neighborhoodIssue).toBe('Falta de agua potable');
     expect(survey.volunteerEventId).toBe(eventId);
+    expect(survey.age).toBe(41);
+    expect(survey.acceptsDataTreatment).toBe(1);
     // locally there is no Cloudflare Access header, so nobody is attributed
     expect(survey.capturedBy).toBeNull();
   });
@@ -113,6 +130,7 @@ describe('health survey capture', () => {
     const surveyId = surveys[0].id;
 
     const res = await putJson(`${surveysPath()}/${surveyId}`, {
+      ...CONSENT,
       name: `${E2E_PREFIX}Ana Pérez Gómez`,
       phone: '3009998877',
       drinksWater: true,
@@ -127,6 +145,24 @@ describe('health survey capture', () => {
     expect(updated.hasHighBloodPressure).toBe(0);
     // fields left out of the payload are cleared, the form always posts them all
     expect(updated.neighborhoodIssue).toBeNull();
+  });
+
+  it('warns about a repeated phone and stores it when insisted', async () => {
+    const twin = {
+      ...CONSENT,
+      name: `${E2E_PREFIX}Hermana Misma Línea`,
+      phone: '3009998877', // same phone the survey above ended up with
+    };
+
+    const conflict = await postJson(surveysPath(), twin);
+    const body = await expectJson<{ error: string; duplicate: boolean }>(conflict, 409);
+    expect(body.duplicate).toBe(true);
+    expect(body.error).toContain('ese teléfono');
+
+    // a household can share a line: insisting goes through
+    const forced = await postJson(surveysPath(), { ...twin, allowDuplicate: true });
+    const created = await expectJson<{ id: number }>(forced, 201);
+    await del(`${surveysPath()}/${created.id}`);
   });
 
   it('cannot reach a survey through another event', async () => {
