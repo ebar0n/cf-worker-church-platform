@@ -193,7 +193,10 @@ export default function HealthSurveysAdmin({ eventId }: Props) {
                 </p>
                 <p className="text-sm text-gray-500">Toque una fila para editarla.</p>
               </div>
-              <Button onClick={startNew} className="h-12 bg-[#4b207f] px-6 text-base">
+              <Button
+                onClick={startNew}
+                className="h-12 bg-[#4b207f] px-6 text-base text-white hover:bg-[#3b1965]"
+              >
                 + Nueva encuesta
               </Button>
             </div>
@@ -243,15 +246,14 @@ export default function HealthSurveysAdmin({ eventId }: Props) {
                             <div className="flex items-center justify-end gap-2">
                               <span className="text-xs text-gray-600">¿Eliminar?</span>
                               <Button
-                                variant="destructive"
-                                className="h-9"
+                                className="h-9 bg-red-600 text-white hover:bg-red-700"
                                 onClick={() => remove(survey.id)}
                               >
                                 Sí, eliminar
                               </Button>
                               <Button
                                 variant="outline"
-                                className="h-9"
+                                className="h-9 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
                                 onClick={() => setConfirmDeleteId(null)}
                               >
                                 Cancelar
@@ -261,14 +263,14 @@ export default function HealthSurveysAdmin({ eventId }: Props) {
                             <div className="flex items-center justify-end gap-2">
                               <Button
                                 variant="outline"
-                                className="h-9"
+                                className="h-9 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
                                 onClick={() => startEdit(survey)}
                               >
                                 Editar
                               </Button>
                               <Button
                                 variant="outline"
-                                className="h-9 border-red-300 text-red-700 hover:bg-red-50"
+                                className="h-9 border border-red-300 bg-white text-red-700 hover:bg-red-50"
                                 onClick={() => setConfirmDeleteId(survey.id)}
                               >
                                 Eliminar
@@ -312,7 +314,12 @@ function SurveyForm({
         <h2 className="text-xl font-semibold text-gray-800">
           {isNew ? 'Nueva encuesta' : 'Editar encuesta'}
         </h2>
-        <Button variant="outline" className="h-11" onClick={onCancel} disabled={saving}>
+        <Button
+          variant="outline"
+          className="h-11 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+          onClick={onCancel}
+          disabled={saving}
+        >
           Volver al listado
         </Button>
       </div>
@@ -347,7 +354,7 @@ function SurveyForm({
         <Button
           onClick={() => onSave(false)}
           disabled={saving}
-          className="h-12 bg-[#4b207f] px-8 text-base"
+          className="h-12 bg-[#4b207f] px-8 text-base text-white hover:bg-[#3b1965]"
         >
           {saving ? 'Guardando…' : duplicateWarning ? 'Guardar de todas formas' : 'Guardar'}
         </Button>
@@ -356,12 +363,17 @@ function SurveyForm({
             variant="outline"
             onClick={() => onSave(true)}
             disabled={saving}
-            className="h-12 px-8 text-base"
+            className="h-12 border border-gray-300 bg-white px-8 text-base text-gray-700 hover:bg-gray-50"
           >
             Guardar y registrar otra
           </Button>
         )}
-        <Button variant="ghost" onClick={onCancel} disabled={saving} className="h-12 px-6">
+        <Button
+          variant="ghost"
+          onClick={onCancel}
+          disabled={saving}
+          className="h-12 px-6 text-gray-600 hover:bg-gray-100"
+        >
           Cancelar
         </Button>
       </div>
