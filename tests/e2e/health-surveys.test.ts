@@ -48,16 +48,21 @@ describe('health survey capture', () => {
     expect(body.surveys).toEqual([]);
   });
 
-  it('rejects a survey without a name', async () => {
-    const res = await postJson(surveysPath(), { phone: '3001112233', ...CONSENT });
-    const body = await expectJson<{ error: string }>(res, 400);
-    expect(body.error).toContain('Nombre');
+  it('stores an anonymous survey: nobody has to give their name or phone', async () => {
+    const res = await postJson(surveysPath(), { ...CONSENT, neighborhood: 'El Jordán etapa 1' });
+    const survey = await expectJson<{ id: number; name: string | null; phone: string | null }>(
+      res,
+      201
+    );
+    expect(survey.name).toBeNull();
+    expect(survey.phone).toBeNull();
+    await del(`${surveysPath()}/${survey.id}`);
   });
 
-  it('rejects a survey without a phone', async () => {
-    const res = await postJson(surveysPath(), { name: 'Ana', ...CONSENT });
+  it('rejects an impossible age instead of storing the survey without it', async () => {
+    const res = await postJson(surveysPath(), { ...CONSENT, name: 'Ana', age: '355' });
     const body = await expectJson<{ error: string }>(res, 400);
-    expect(body.error).toContain('Teléfono');
+    expect(body.error).toContain('Edad');
   });
 
   it('refuses to store a survey without the data-treatment consent', async () => {
@@ -82,13 +87,12 @@ describe('health survey capture', () => {
       phone: '3001112233',
       age: '41',
       neighborhood: 'Boquerón',
-      address: 'Torre 1 Ap 101',
       hasHighBloodPressure: true,
       otherCondition: 'Asma',
       familyHistory: true,
       familyHistoryDetail: 'Madre',
-      drinksWater: false,
-      exercises: true,
+      drinksWater: 'no',
+      exercises: 'aveces',
       wantsPersonalFinanceCourse: true,
       neighborhoodIssue: 'Falta de agua potable',
       neighborhoodImprovement: 'Jornadas con la junta de acción comunal',
@@ -98,8 +102,9 @@ describe('health survey capture', () => {
     expect(survey.name).toBe(`${E2E_PREFIX}Ana Pérez`);
     expect(survey.hasHighBloodPressure).toBe(1);
     expect(survey.hasDiabetes).toBe(0);
-    expect(survey.drinksWater).toBe(0);
-    expect(survey.exercises).toBe(1);
+    expect(survey.drinksWater).toBe('no');
+    // "a veces" is a level of its own, not a "No" in disguise
+    expect(survey.exercises).toBe('aveces');
     // never asked: stays distinguishable from "No"
     expect(survey.sleepsEightHours).toBeNull();
     expect(survey.wantsPersonalFinanceCourse).toBe(1);
@@ -133,14 +138,14 @@ describe('health survey capture', () => {
       ...CONSENT,
       name: `${E2E_PREFIX}Ana Pérez Gómez`,
       phone: '3009998877',
-      drinksWater: true,
+      drinksWater: 'si',
       exercises: null,
       hasHighBloodPressure: false,
     });
 
     const updated = await expectJson<Record<string, unknown>>(res, 200);
     expect(updated.name).toBe(`${E2E_PREFIX}Ana Pérez Gómez`);
-    expect(updated.drinksWater).toBe(1);
+    expect(updated.drinksWater).toBe('si');
     expect(updated.exercises).toBeNull();
     expect(updated.hasHighBloodPressure).toBe(0);
     // fields left out of the payload are cleared, the form always posts them all
@@ -191,6 +196,68 @@ describe('health survey capture', () => {
     const after = await getRes(surveysPath());
     const body = await expectJson<{ surveys: unknown[] }>(after, 200);
     expect(body.surveys).toEqual([]);
+  });
+});
+
+// Volunteers capture on iPads with no signal: surveys queue on the device and
+// are retried when it comes back, so the same POST can arrive twice — or arrive
+// once and have its response lost on the way home. The clientId is what keeps
+// that retry from storing a second row.
+describe('health survey offline retries', () => {
+  const clientId = 'e2e-ipad-a-0001';
+  const phone = '3005550011';
+  const payload = {
+    ...CONSENT,
+    name: `${E2E_PREFIX}Reintento Ana`,
+    phone,
+    clientId,
+    hasDiabetes: true,
+  };
+  let surveyId = 0;
+
+  afterAll(async () => {
+    if (surveyId) await del(`${surveysPath()}/${surveyId}`);
+  });
+
+  it('stores the survey once and answers the retry with the same row', async () => {
+    const first = await postJson(surveysPath(), payload);
+    const created = await expectJson<{ id: number; clientId: string }>(first, 201);
+    surveyId = created.id;
+    expect(created.clientId).toBe(clientId);
+
+    // the same POST again: the success the device never got to see
+    const retry = await postJson(surveysPath(), payload);
+    const same = await expectJson<{ id: number }>(retry, 200);
+    expect(same.id).toBe(created.id);
+
+    const list = await getRes(surveysPath());
+    const { surveys } = await expectJson<{ surveys: { id: number; clientId: string }[] }>(
+      list,
+      200
+    );
+    expect(surveys.filter((s) => s.clientId === clientId)).toHaveLength(1);
+    expect(surveys).toHaveLength(1);
+  });
+
+  it('does not answer 409 to a retry whose phone is already stored', async () => {
+    // the phone matches the row the retry itself created, so checking duplicates
+    // before the clientId would 409 here and leave the survey stuck in the queue
+    const retry = await postJson(surveysPath(), payload);
+    const body = await expectJson<{ id: number; duplicate?: boolean }>(retry, 200);
+    expect(body.id).toBe(surveyId);
+    expect(body.duplicate).toBeUndefined();
+  });
+
+  it('still warns about a real duplicate phone from another device', async () => {
+    const other = await postJson(surveysPath(), {
+      ...CONSENT,
+      name: `${E2E_PREFIX}Otra Persona`,
+      phone,
+      clientId: 'e2e-ipad-b-0002',
+    });
+    const body = await expectJson<{ error: string; duplicate: boolean }>(other, 409);
+    expect(body.duplicate).toBe(true);
+    expect(body.error).toContain('ese teléfono');
   });
 });
 

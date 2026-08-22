@@ -15,6 +15,8 @@ ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 export interface SurveyBar {
   name: string;
   yes: number;
+  /** Only frequency questions have a middle level. */
+  sometimes?: number;
   no: number;
   unanswered: number;
 }
@@ -34,9 +36,22 @@ interface Props {
 // Horizontal bars: the questions are long sentences, unreadable as vertical
 // axis labels.
 export default function SurveyBarChart({ data, total, color, stacked = false }: Props) {
+  const hasSometimes = data.some((d) => (d.sometimes ?? 0) > 0);
+
   const datasets = stacked
     ? [
         { label: 'Sí', data: data.map((d) => d.yes), backgroundColor: color },
+        // "A veces" is the honest answer for most habits: it earns its own band
+        // instead of being folded into "No".
+        ...(hasSometimes
+          ? [
+              {
+                label: 'A veces',
+                data: data.map((d) => d.sometimes ?? 0),
+                backgroundColor: '#a7c99b',
+              },
+            ]
+          : []),
         { label: 'No', data: data.map((d) => d.no), backgroundColor: '#9ca3af' },
         {
           label: 'Sin responder',

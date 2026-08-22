@@ -2,46 +2,78 @@ import { describe, it, expect } from 'vitest';
 import {
   CONSENT_FIELD,
   DEPENDENTS,
+  FREQUENCY_FIELDS,
+  MAX_AGE,
   SURVEY_BLOCKS,
-  summarizeSurveys,
-  surveysToCsv,
   SURVEY_FIELDS,
-  BOOLEAN_FIELDS,
   emptySurveyValues,
   normalizeSurveyPayload,
   rowToFormValues,
+  summarizeSurveys,
+  surveysToCsv,
 } from '@/lib/health-survey';
+
+const consented = { [CONSENT_FIELD]: true };
 
 describe('survey definition', () => {
   it('has unique field names across every block', () => {
     expect(new Set(SURVEY_FIELDS).size).toBe(SURVEY_FIELDS.length);
   });
 
-  it('asks the open neighborhood questions before the contact data', () => {
-    const titles = SURVEY_BLOCKS.map((b) => b.title);
-    expect(titles.indexOf('Su barrio')).toBeLessThan(titles.indexOf('Datos de contacto'));
+  it('asks for permission before anything sensitive', () => {
+    expect(SURVEY_BLOCKS[0].id).toBe('consent');
   });
 
-  it('requires the name and the phone', () => {
+  it('opens with habits and only then asks about conditions', () => {
+    const ids = SURVEY_BLOCKS.map((b) => b.id);
+    expect(ids.indexOf('habits')).toBeLessThan(ids.indexOf('conditions'));
+  });
+
+  it('offers the courses right after the conditions, before the fatigue sets in', () => {
+    const ids = SURVEY_BLOCKS.map((b) => b.id);
+    expect(ids.indexOf('interests')).toBe(ids.indexOf('conditions') + 1);
+  });
+
+  it('keeps the open neighborhood questions before the contact data', () => {
+    const ids = SURVEY_BLOCKS.map((b) => b.id);
+    expect(ids.indexOf('neighborhood')).toBeLessThan(ids.indexOf('contact'));
+  });
+
+  it('requires nothing but the consent', () => {
     const required = SURVEY_BLOCKS.flatMap((b) => b.questions)
       .filter((q) => q.required)
       .map((q) => q.field);
-    expect(required).toEqual(['name', 'phone']);
+    expect(required).toEqual([]);
+  });
+
+  it('asks the family history beside the list of conditions it refers to', () => {
+    const conditions = SURVEY_BLOCKS.find((b) => b.id === 'conditions');
+    expect(conditions?.questions.map((q) => q.field)).toContain('familyHistory');
+  });
+
+  it('measures habits on three levels, not as a binary', () => {
+    expect(FREQUENCY_FIELDS).toEqual([
+      'drinksWater',
+      'exercises',
+      'eatsFruitsVegetables',
+      'sleepsEightHours',
+    ]);
+  });
+
+  it('gives the phone a telephone keypad and no autofill', () => {
+    const phone = SURVEY_BLOCKS.flatMap((b) => b.questions).find((q) => q.field === 'phone');
+    expect(phone).toMatchObject({ inputMode: 'tel', autoComplete: 'off' });
   });
 });
 
 describe('follow-up questions', () => {
-  it('hangs each "¿Cuál?" off the yes/no above it', () => {
-    expect(DEPENDENTS).toEqual({
-      familyHistory: ['familyHistoryDetail'],
-      attendsCheckups: ['checkupsDetail'],
-    });
+  it('hangs the detail off the yes/no above it', () => {
+    expect(DEPENDENTS).toEqual({ familyHistory: ['familyHistoryDetail'] });
   });
 
   it('keeps a follow-up when its parent is "Sí"', () => {
     const { values } = normalizeSurveyPayload({
-      name: 'Ana',
-      phone: '3001234567',
+      ...consented,
       familyHistory: true,
       familyHistoryDetail: 'Diabetes de la madre',
     });
@@ -50,168 +82,105 @@ describe('follow-up questions', () => {
 
   it('drops a follow-up when its parent is "No" or unanswered', () => {
     const answeredNo = normalizeSurveyPayload({
-      name: 'Ana',
-      phone: '3001234567',
+      ...consented,
       familyHistory: false,
       familyHistoryDetail: 'Diabetes',
-      checkupsDetail: 'Glucosa',
     }).values;
-
     expect(answeredNo.familyHistoryDetail).toBeNull();
-    // attendsCheckups was never answered, so its detail goes too
-    expect(answeredNo.checkupsDetail).toBeNull();
+
+    const unanswered = normalizeSurveyPayload({
+      ...consented,
+      familyHistoryDetail: 'Diabetes',
+    }).values;
+    expect(unanswered.familyHistoryDetail).toBeNull();
   });
 });
 
 describe('normalizeSurveyPayload', () => {
-  const consented = { [CONSENT_FIELD]: true };
-
-  it('rejects a payload without a name', () => {
-    const { errors } = normalizeSurveyPayload({ phone: '3001234567', ...consented });
-    expect(errors).toEqual(['Nombre es requerido']);
-  });
-
-  it('rejects a payload without a phone', () => {
-    const { errors } = normalizeSurveyPayload({ name: 'Ana', ...consented });
-    expect(errors).toEqual(['Teléfono es requerido']);
-  });
-
   it('refuses to store anything without the Ley 1581 consent', () => {
     for (const consent of [undefined, false, null]) {
-      const { errors } = normalizeSurveyPayload({
-        name: 'Ana',
-        phone: '3001234567',
-        [CONSENT_FIELD]: consent,
-      });
+      const { errors } = normalizeSurveyPayload({ name: 'Ana', [CONSENT_FIELD]: consent });
       expect(errors, String(consent)).toEqual([
         'Debe autorizar el tratamiento de datos para guardar la encuesta',
       ]);
     }
   });
 
+  it('accepts a survey with consent and nothing else: nobody has to give their name', () => {
+    const { values, errors } = normalizeSurveyPayload(consented);
+    expect(errors).toEqual([]);
+    expect(values.name).toBeNull();
+    expect(values.phone).toBeNull();
+  });
+
   it('stores checks as 0/1 and keeps unanswered yes/no as null', () => {
     const { values, errors } = normalizeSurveyPayload({
-      name: 'Ana',
-      phone: '3001234567',
-      [CONSENT_FIELD]: true,
+      ...consented,
       hasDiabetes: true,
-      drinksWater: false,
-      exercises: true,
+      attendsCheckups: false,
     });
 
     expect(errors).toEqual([]);
     expect(values.hasDiabetes).toBe(1);
     expect(values.hasDepression).toBe(0);
-    expect(values.drinksWater).toBe(0);
-    expect(values.exercises).toBe(1);
+    expect(values.attendsCheckups).toBe(0);
+    expect(values.familyHistory).toBeNull();
+  });
+
+  it('keeps the three habit levels and rejects anything else', () => {
+    const { values } = normalizeSurveyPayload({
+      ...consented,
+      drinksWater: 'si',
+      exercises: 'aveces',
+      eatsFruitsVegetables: 'no',
+      sleepsEightHours: 'quizás',
+    });
+
+    expect(values.drinksWater).toBe('si');
+    expect(values.exercises).toBe('aveces');
+    expect(values.eatsFruitsVegetables).toBe('no');
+    // an unknown token is treated as unanswered, never stored
     expect(values.sleepsEightHours).toBeNull();
   });
 
   it('trims text and turns blanks into null', () => {
     const { values } = normalizeSurveyPayload({
+      ...consented,
       name: '  Ana Pérez  ',
-      phone: ' 3001234567 ',
       neighborhood: '   ',
       neighborhoodIssue: ' Falta de agua ',
     });
 
     expect(values.name).toBe('Ana Pérez');
-    expect(values.phone).toBe('3001234567');
     expect(values.neighborhood).toBeNull();
     expect(values.neighborhoodIssue).toBe('Falta de agua');
   });
 
   it('drops unknown keys so form state can be posted as-is', () => {
-    const { values } = normalizeSurveyPayload({
-      name: 'Ana',
-      phone: '3001234567',
-      id: 7,
-      capturedBy: 'x@y.z',
-    });
+    const { values } = normalizeSurveyPayload({ ...consented, id: 7, capturedBy: 'x@y.z' });
     expect(Object.keys(values).sort()).toEqual([...SURVEY_FIELDS].sort());
-  });
-});
-
-describe('round trip through the form', () => {
-  it('maps a stored row back to form values', () => {
-    const row = {
-      hasDiabetes: 1,
-      hasOverweight: 0,
-      familyHistory: null,
-      drinksWater: 1,
-      exercises: 0,
-      name: 'Ana',
-      phone: null,
-    };
-
-    const values = rowToFormValues(row);
-    expect(values.hasDiabetes).toBe(true);
-    expect(values.hasOverweight).toBe(false);
-    expect(values.familyHistory).toBeNull();
-    expect(values.drinksWater).toBe(true);
-    expect(values.exercises).toBe(false);
-    expect(values.name).toBe('Ana');
-    expect(values.phone).toBe('');
-  });
-
-  it('normalizes an empty form to nothing checked and nothing answered', () => {
-    const { values } = normalizeSurveyPayload({
-      ...emptySurveyValues(),
-      name: 'Ana',
-      phone: '3001234567',
-    });
-
-    for (const field of BOOLEAN_FIELDS) {
-      expect(values[field], field).not.toBe(1);
-    }
-    expect(values.familyHistory).toBeNull();
-    expect(values.hasDiabetes).toBe(0);
   });
 });
 
 describe('age', () => {
   it('parses the age the form posts as a string', () => {
-    const { values } = normalizeSurveyPayload({ name: 'Ana', phone: '3001234567', age: '34' });
+    const { values, errors } = normalizeSurveyPayload({ ...consented, age: '34' });
     expect(values.age).toBe(34);
+    expect(errors).toEqual([]);
   });
 
-  it('drops a blank, negative or impossible age instead of storing it', () => {
-    for (const age of ['', '  ', '-3', '250', 'treinta']) {
-      const { values, errors } = normalizeSurveyPayload({
-        name: 'Ana',
-        phone: '3001234567',
-        [CONSENT_FIELD]: true,
-        age,
-      });
-      expect(values.age, String(age)).toBeNull();
-      // age is optional: a bad value is dropped, not rejected
-      expect(errors).toEqual([]);
+  it('treats a blank age as unanswered', () => {
+    const { values, errors } = normalizeSurveyPayload({ ...consented, age: '  ' });
+    expect(values.age).toBeNull();
+    expect(errors).toEqual([]);
+  });
+
+  it('complains instead of silently dropping an impossible age', () => {
+    for (const age of ['-3', '250', 'treinta']) {
+      const { values, errors } = normalizeSurveyPayload({ ...consented, age });
+      expect(values.age, age).toBeNull();
+      expect(errors[0], age).toBe(`Edad: revise el valor (0 a ${MAX_AGE})`);
     }
-  });
-
-  it('groups ages into bands and counts the missing ones apart', () => {
-    const summary = summarizeSurveys([
-      { age: 8 },
-      { age: 17 },
-      { age: 18 },
-      { age: 45 },
-      { age: 92 },
-      { age: null },
-    ]);
-
-    expect(summary.ageBands).toEqual([
-      { name: 'Menor de 18', count: 2 },
-      { name: '18-29', count: 1 },
-      { name: '30-44', count: 0 },
-      { name: '45-59', count: 1 },
-      { name: '60 o más', count: 1 },
-      { name: 'Sin dato', count: 1 },
-    ]);
-  });
-
-  it('omits the "Sin dato" band when every survey has an age', () => {
-    const summary = summarizeSurveys([{ age: 30 }]);
-    expect(summary.ageBands.map((b) => b.name)).not.toContain('Sin dato');
   });
 });
 
@@ -221,24 +190,12 @@ describe('summarizeSurveys', () => {
       hasDiabetes: 1,
       otherCondition: 'Asma',
       familyHistory: 1,
-      drinksWater: 1,
-      neighborhood: 'Boquerón',
-      wantsHealthTalk: 1,
+      drinksWater: 'si',
+      age: 8,
+      wantsHealthyHabitsCourse: 1,
     },
-    {
-      hasDiabetes: 0,
-      otherCondition: null,
-      familyHistory: 0,
-      drinksWater: 0,
-      neighborhood: 'Boquerón',
-    },
-    {
-      hasDiabetes: 1,
-      otherCondition: '  ',
-      familyHistory: null,
-      drinksWater: null,
-      neighborhood: 'El Jordán',
-    },
+    { hasDiabetes: 0, otherCondition: null, familyHistory: 0, drinksWater: 'aveces', age: 30 },
+    { hasDiabetes: 1, otherCondition: '  ', familyHistory: null, drinksWater: null, age: null },
   ];
 
   const summary = summarizeSurveys(rows);
@@ -247,7 +204,6 @@ describe('summarizeSurveys', () => {
 
   it('counts people, conditions and course interest', () => {
     expect(summary.total).toBe(3);
-    // two by checkbox, and the first one also typed a condition
     expect(summary.withAnyCondition).toBe(2);
     expect(summary.interestedInAnyCourse).toBe(1);
   });
@@ -269,9 +225,28 @@ describe('summarizeSurveys', () => {
     });
   });
 
+  it('splits a habit into sí / a veces / no / sin responder', () => {
+    expect(stat('habits', 'drinksWater')).toMatchObject({
+      yes: 1,
+      sometimes: 1,
+      no: 0,
+      unanswered: 1,
+    });
+  });
+
   it('keeps yes / no / unanswered apart for yes-no questions', () => {
-    expect(stat('family', 'familyHistory')).toMatchObject({ yes: 1, no: 1, unanswered: 1 });
-    expect(stat('habits', 'drinksWater')).toMatchObject({ yes: 1, no: 1, unanswered: 1 });
+    expect(stat('conditions', 'familyHistory')).toMatchObject({ yes: 1, no: 1, unanswered: 1 });
+  });
+
+  it('groups ages into bands and counts the missing ones apart', () => {
+    expect(summary.ageBands).toEqual([
+      { name: 'Menor de 18', count: 1 },
+      { name: '18-29', count: 0 },
+      { name: '30-44', count: 1 },
+      { name: '45-59', count: 0 },
+      { name: '60 o más', count: 0 },
+      { name: 'Sin dato', count: 1 },
+    ]);
   });
 
   it('reports zeros for an empty event instead of dividing by zero', () => {
@@ -281,42 +256,74 @@ describe('summarizeSurveys', () => {
   });
 });
 
+describe('round trip through the form', () => {
+  it('maps a stored row back to form values', () => {
+    const values = rowToFormValues({
+      hasDiabetes: 1,
+      hasOverweight: 0,
+      familyHistory: null,
+      drinksWater: 'aveces',
+      age: 42,
+      name: 'Ana',
+      phone: null,
+    });
+
+    expect(values.hasDiabetes).toBe(true);
+    expect(values.hasOverweight).toBe(false);
+    expect(values.familyHistory).toBeNull();
+    expect(values.drinksWater).toBe('aveces');
+    expect(values.age).toBe('42');
+    expect(values.name).toBe('Ana');
+    expect(values.phone).toBe('');
+  });
+
+  it('normalizes an empty form to nothing checked and nothing answered', () => {
+    const { values } = normalizeSurveyPayload({ ...emptySurveyValues(), ...consented });
+
+    expect(values.hasDiabetes).toBe(0);
+    expect(values.familyHistory).toBeNull();
+    expect(values.drinksWater).toBeNull();
+    expect(values.age).toBeNull();
+  });
+});
+
 describe('surveysToCsv', () => {
   const [header, row] = surveysToCsv([
     {
       name: 'Ana',
       phone: '3001234567',
+      age: 41,
       hasDiabetes: 1,
       hasDepression: 0,
       familyHistory: 0,
-      drinksWater: null,
+      drinksWater: 'aveces',
+      attendsCheckups: null,
       neighborhoodIssue: 'Falta de agua',
-      createdAt: '2026-08-21T10:00:00.000Z',
+      capturedAt: '2026-08-22T10:00:00.000Z',
+      createdAt: '2026-08-22T18:00:00.000Z',
       capturedBy: 'voluntario@example.com',
     },
   ]);
 
+  const cell = (label: string) => row[header.indexOf(label)];
+
   it('leads with the contact data, then the questions and the capture metadata', () => {
-    expect(header.slice(0, 5)).toEqual([
-      'Nombre',
-      'Teléfono',
-      'Edad',
-      'Barrio (sector o etapa)',
-      'Dirección',
-    ]);
-    expect(header[5]).toBe('Diabetes');
+    expect(header.slice(0, 4)).toEqual(['Nombre', 'Teléfono', 'Edad', 'Barrio (sector o etapa)']);
     expect(header.slice(-2)).toEqual(['Registrada', 'Registrada por']);
     expect(header).toHaveLength(SURVEY_FIELDS.length + 2);
   });
 
-  it('writes Sí / No / blank so the columns stay readable', () => {
-    const cell = (label: string) => row[header.indexOf(label)];
+  it('writes Sí / A veces / No / blank so the columns stay readable', () => {
     expect(cell('Diabetes')).toBe('Sí');
-    expect(cell('Depresión')).toBe('');
-    expect(cell('¿Algún familiar padece de alguna de esas enfermedades?')).toBe('No');
-    // unanswered stays blank rather than pretending to be a "No"
-    expect(cell('¿Toma 8 vasos de agua pura al día?')).toBe('');
+    expect(cell('Depresión, ansiedad o estrés')).toBe('');
+    expect(cell('¿Toma 8 vasos de agua pura al día?')).toBe('A veces');
+    expect(cell('¿En el último año se hizo exámenes médicos de control?')).toBe('');
     expect(cell('Nombre')).toBe('Ana');
+    expect(cell('Edad')).toBe('41');
+  });
+
+  it('reports the moment of capture, not the moment it reached the server', () => {
+    expect(cell('Registrada')).toBe('2026-08-22T10:00:00.000Z');
     expect(row[row.length - 1]).toBe('voluntario@example.com');
   });
 });

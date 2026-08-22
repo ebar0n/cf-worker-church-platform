@@ -6,6 +6,8 @@ import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
 import {
   DEPENDENTS,
+  FREQUENCY_LABELS,
+  FREQUENCY_VALUES,
   MAX_AGE,
   SURVEY_BLOCKS,
   emptySurveyValues,
@@ -18,6 +20,9 @@ import {
   type SurveySummary,
 } from '@/lib/health-survey';
 import SurveyBarChart from '@/app/admin/components/SurveyBarChart';
+import { useSurveyOutbox } from '@/app/admin/components/useSurveyOutbox';
+import AccessLogoutButton from '@/app/admin/components/AccessLogoutButton';
+import type { QueuedSurvey } from '@/lib/survey-outbox';
 
 interface SurveyRow extends Record<string, unknown> {
   id: number;
@@ -25,6 +30,7 @@ interface SurveyRow extends Record<string, unknown> {
   phone: string;
   neighborhood: string | null;
   capturedBy: string | null;
+  capturedAt: string | null;
   createdAt: string;
 }
 
@@ -38,6 +44,10 @@ interface Props {
 const PAGE_SIZE = 25;
 
 type SortKey = 'name' | 'phone' | 'neighborhood' | 'createdAt';
+
+// A survey queued offline reaches the server hours later, so its own capture
+// time is the real one; createdAt is the insert time and only a fallback.
+const surveyMoment = (survey: SurveyRow) => survey.capturedAt || survey.createdAt;
 
 // D1 hands back either an ISO string or "YYYY-MM-DD HH:MM:SS" (UTC)
 const parseDate = (value: string) =>
@@ -67,10 +77,16 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
   const [editing, setEditing] = useState<{ id: number | null; values: SurveyPayload } | null>(null);
   const [saving, setSaving] = useState(false);
   const [duplicateWarning, setDuplicateWarning] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
   // The dashboard pushed the list below the fold, so the two live in tabs.
   // Metrics lead: capture starts from the always-visible "Nueva encuesta".
   const [tab, setTab] = useState<'list' | 'stats'>('stats');
   const [page, setPage] = useState(1);
+  const outbox = useSurveyOutbox(eventId);
+  // Set while the survey on screen is already queued on the device, so pressing
+  // Guardar again retries that queued item instead of creating a second one.
+  const [queuedClientId, setQueuedClientId] = useState<string | null>(null);
+
   const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({
     key: 'createdAt',
     dir: 'desc',
@@ -106,11 +122,15 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
 
   const startNew = () => {
     setDuplicateWarning('');
+    setQueuedClientId(null);
+    setStatusMessage('');
     setEditing({ id: null, values: emptySurveyValues() });
     scrollToTop();
   };
   const startEdit = (survey: SurveyRow) => {
     setDuplicateWarning('');
+    setQueuedClientId(null);
+    setStatusMessage('');
     setEditing({ id: survey.id, values: rowToFormValues(survey) });
     scrollToTop();
   };
@@ -135,42 +155,97 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
     });
   };
 
+  const finishSave = (startAnother: boolean) => {
+    setDuplicateWarning('');
+    setQueuedClientId(null);
+    setEditing(startAnother ? { id: null, values: emptySurveyValues() } : null);
+    scrollToTop();
+  };
+
+  // New surveys go through the outbox: written to the device first, then sent.
+  // A tab that dies mid-request still has the survey, and nothing leaves the
+  // queue without the server answering with the stored row.
+  const saveNew = async (startAnother: boolean, values: SurveyPayload) => {
+    const name = String(values.name ?? '').trim() || 'Sin nombre';
+    const outcome = queuedClientId
+      ? (await outbox.retry(queuedClientId, { allowDuplicate: duplicateWarning !== '' }))?.find(
+          (o) => o.item.clientId === queuedClientId
+        )
+      : await outbox.saveThroughOutbox(values, name);
+
+    if (!outcome) {
+      setError('No se pudo guardar la encuesta');
+      return;
+    }
+
+    if (outcome.status === 'synced') {
+      await loadSurveys();
+      finishSave(startAnother);
+      return;
+    }
+
+    setQueuedClientId(outcome.item.clientId);
+
+    if (outcome.reason === 'duplicate') {
+      setDuplicateWarning(
+        outcome.message || 'Ya hay una encuesta con ese teléfono en este evento.'
+      );
+      return;
+    }
+
+    if (outcome.reason === 'invalid') {
+      // The data is still on screen, so the queued copy would be a duplicate of
+      // what the volunteer is about to fix. Dropping it here loses nothing.
+      await outbox.discard(outcome.item.clientId);
+      setQueuedClientId(null);
+      setError(outcome.message || 'Datos incompletos');
+      return;
+    }
+
+    // Offline or an expired session: the survey is safely on the device, so the
+    // form can close. The pending panel is what tells the volunteer it is there.
+    setStatusMessage(
+      outcome.reason === 'auth'
+        ? 'Guardada en el dispositivo. La sesión expiró: vuelve a iniciar sesión para enviarla.'
+        : 'Guardada en el dispositivo. Se enviará cuando haya señal.'
+    );
+    finishSave(startAnother);
+  };
+
   const save = async (startAnother: boolean) => {
     if (!editing) return;
 
     setSaving(true);
     setError('');
+    setStatusMessage('');
     try {
-      const isNew = editing.id === null;
-      const res = await fetch(
-        isNew ? `/api/admin/surveys/${eventId}` : `/api/admin/surveys/${eventId}/${editing.id}`,
-        {
-          method: isNew ? 'POST' : 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          // The server warns about a repeated phone with a 409; pressing Guardar
-          // again sends it through.
-          body: JSON.stringify({ ...editing.values, allowDuplicate: duplicateWarning !== '' }),
-        }
-      );
+      if (editing.id === null) {
+        await saveNew(startAnother, editing.values);
+        return;
+      }
+
+      // Editing an existing survey needs the server: it is not queued, because
+      // merging offline edits of a row someone else may have changed is a
+      // different problem than capturing a new one.
+      const res = await fetch(`/api/admin/surveys/${eventId}/${editing.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editing.values),
+      });
 
       if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as {
-          error?: string;
-          duplicate?: boolean;
-        };
-        if (res.status === 409 && body.duplicate) {
-          setDuplicateWarning(body.error || 'Ya hay una encuesta con ese teléfono en este evento.');
-          return;
-        }
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(body.error || 'No se pudo guardar la encuesta');
       }
 
       await loadSurveys();
-      setDuplicateWarning('');
-      setEditing(startAnother ? { id: null, values: emptySurveyValues() } : null);
-      scrollToTop();
+      finishSave(startAnother);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error guardando la encuesta');
+      setError(
+        err instanceof Error && err.message !== 'Failed to fetch'
+          ? err.message
+          : 'Sin conexión: para editar una encuesta ya guardada hace falta señal'
+      );
     } finally {
       setSaving(false);
     }
@@ -190,6 +265,15 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
     }
   };
 
+  const neighborhoodSuggestions = [
+    ...new Set(
+      surveys
+        .map((s) => (s.neighborhood || '').trim())
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b, 'es'))
+    ),
+  ];
+
   const term = search.trim().toLowerCase();
   const visible = term
     ? surveys.filter((s) =>
@@ -206,7 +290,7 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
   const sorted = [...visible].sort((a, b) => {
     const factor = sort.dir === 'asc' ? 1 : -1;
     if (sort.key === 'createdAt') {
-      return factor * (parseDate(a.createdAt) - parseDate(b.createdAt));
+      return factor * (parseDate(surveyMoment(a)) - parseDate(surveyMoment(b)));
     }
     const left = String(a[sort.key] ?? '');
     const right = String(b[sort.key] ?? '');
@@ -251,17 +335,80 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
       <header className="flex flex-col gap-2 bg-[#4b207f] px-4 py-5 text-white shadow-md md:flex-row md:items-center md:justify-between md:px-8">
         <div>
           <h1 className="font-['Advent_Pro'] text-2xl font-bold md:text-3xl">Encuesta de Salud</h1>
-          <p className="text-sm text-white/80 md:text-base">{eventTitle || 'Voluntariado'}</p>
+          {/* Tapping the jornada reloads its records and retries whatever is
+              queued: the gesture a volunteer reaches for after regaining signal. */}
+          <button
+            type="button"
+            onClick={() => {
+              loadSurveys();
+              outbox.sync();
+            }}
+            className="text-left text-sm text-white/80 underline decoration-white/30 underline-offset-2 hover:text-white md:text-base"
+            title="Actualizar"
+          >
+            {eventTitle || 'Voluntariado'}
+          </button>
         </div>
-        {volunteerEmail && (
-          <div className="text-sm text-white/80 md:text-right">
-            <p>Registrando como</p>
-            <p className="font-medium text-white">{volunteerEmail}</p>
-          </div>
-        )}
+
+        <div className="flex flex-shrink-0 items-center gap-3">
+          {volunteerEmail && (
+            <div className="hidden text-right text-sm text-white/80 md:block">
+              <p>Registrando como</p>
+              <p className="font-medium text-white">{volunteerEmail}</p>
+            </div>
+          )}
+          {/* Where the exit lives in the rest of the admin — here going back to
+              the picker IS the way out, and it never leads into the admin. */}
+          <a
+            href="/admin/surveys"
+            className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-white hover:bg-white/20 md:px-4"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="h-5 w-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
+              />
+            </svg>
+            <span className="hidden md:inline">Jornadas</span>
+          </a>
+          <AccessLogoutButton className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-white hover:bg-white/20 disabled:opacity-60 md:px-4" />
+        </div>
       </header>
 
+      {!outbox.online && (
+        <div className="bg-amber-100 px-4 py-2 text-center text-sm font-medium text-amber-900 md:px-8">
+          Sin conexión — las encuestas se guardan en el dispositivo y se envían al recuperar señal
+        </div>
+      )}
+
       <main className="mx-auto max-w-4xl px-3 py-6 md:px-6">
+        {outbox.pending.length > 0 && (
+          <PendingPanel
+            pending={outbox.pending}
+            syncing={outbox.syncing}
+            blockedMessage={outbox.blockedMessage}
+            onSync={() => outbox.sync()}
+            onRetryAllowingDuplicate={(clientId) =>
+              outbox.retry(clientId, { allowDuplicate: true })
+            }
+            onDiscard={(clientId) => outbox.discard(clientId)}
+          />
+        )}
+
+        {statusMessage && (
+          <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            {statusMessage}
+          </div>
+        )}
+
         {/* While the form is open the message lives next to Guardar: the top of
             a long form scrolls out of sight. */}
         {error && !editing && (
@@ -277,6 +424,7 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
             saving={saving}
             error={error}
             duplicateWarning={duplicateWarning}
+            suggestions={neighborhoodSuggestions}
             onChange={setValue}
             onCancel={closeForm}
             onSave={save}
@@ -373,7 +521,8 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
                           <p className="font-medium text-gray-900">{survey.name}</p>
                           <p className="text-sm text-gray-700">{survey.phone}</p>
                           <p className="text-sm text-gray-500">
-                            {survey.neighborhood || 'Sin barrio'} · {formatDate(survey.createdAt)}
+                            {survey.neighborhood || 'Sin barrio'} ·{' '}
+                            {formatDate(surveyMoment(survey))}
                           </p>
                           <div className="mt-3">
                             <RowActions
@@ -439,10 +588,10 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
                               {/* Stored in UTC and rendered in the viewer's zone;
                                   the tooltip keeps the raw instant auditable. */}
                               <td
-                                title={survey.createdAt}
+                                title={`Capturada: ${surveyMoment(survey)} · Guardada en el servidor: ${survey.createdAt}`}
                                 className="whitespace-nowrap px-4 py-3 text-gray-500"
                               >
-                                {formatDate(survey.createdAt)}
+                                {formatDate(surveyMoment(survey))}
                               </td>
                               <td className="px-4 py-3 text-right">
                                 <RowActions
@@ -499,6 +648,7 @@ function SurveyForm({
   saving,
   error,
   duplicateWarning,
+  suggestions,
   onChange,
   onCancel,
   onSave,
@@ -508,6 +658,7 @@ function SurveyForm({
   saving: boolean;
   error: string;
   duplicateWarning: string;
+  suggestions: string[];
   onChange: (field: string, value: string | boolean | null) => void;
   onCancel: () => void;
   onSave: (startAnother: boolean) => void;
@@ -553,6 +704,7 @@ function SurveyForm({
                   <QuestionField
                     question={question}
                     value={values[question.field]}
+                    suggestions={suggestions}
                     onChange={onChange}
                   />
                   {/* Follow-ups live inside their parent's block, indented and
@@ -570,6 +722,7 @@ function SurveyForm({
                         <QuestionField
                           question={followUp}
                           value={values[followUpField]}
+                          suggestions={suggestions}
                           onChange={onChange}
                         />
                       </div>
@@ -627,10 +780,12 @@ function SurveyForm({
 function QuestionField({
   question,
   value,
+  suggestions,
   onChange,
 }: {
   question: SurveyQuestion;
   value: string | boolean | null | undefined;
+  suggestions: string[];
   onChange: (field: string, value: string | boolean | null) => void;
 }) {
   if (question.type === 'check') {
@@ -644,6 +799,31 @@ function QuestionField({
         />
         <span className="text-sm text-gray-800 md:text-base">{question.label}</span>
       </label>
+    );
+  }
+
+  if (question.type === 'frequency') {
+    return (
+      <div className="flex flex-col gap-2 rounded-md border border-gray-200 px-3 py-2 md:flex-row md:items-center md:justify-between">
+        <span className="text-sm text-gray-800 md:text-base">{question.label}</span>
+        <div className="flex gap-2">
+          {FREQUENCY_VALUES.map((option) => (
+            <button
+              key={option}
+              type="button"
+              aria-pressed={value === option}
+              onClick={() => onChange(question.field, value === option ? null : option)}
+              className={`h-11 min-w-20 rounded-md border px-3 text-base font-medium transition-colors ${
+                value === option
+                  ? 'border-[#4b207f] bg-[#4b207f] text-white'
+                  : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              {FREQUENCY_LABELS[option]}
+            </button>
+          ))}
+        </div>
+      </div>
     );
   }
 
@@ -707,11 +887,27 @@ function QuestionField({
           className="min-h-20 bg-white text-base"
         />
       ) : (
-        <Input
-          value={textValue}
-          onChange={(e) => onChange(question.field, e.target.value)}
-          className="h-12 bg-white text-base"
-        />
+        <>
+          <Input
+            value={textValue}
+            onChange={(e) => onChange(question.field, e.target.value)}
+            inputMode={question.inputMode}
+            autoComplete={question.autoComplete}
+            autoCapitalize={question.autoCapitalize}
+            list={question.suggestFromEvent ? `${question.field}-suggestions` : undefined}
+            className="h-12 bg-white text-base"
+          />
+          {/* One jornada is one barrio: offering what was already typed keeps
+              "Jordán", "el jordan" and "Jordan etapa 5" from being three
+              different places. */}
+          {question.suggestFromEvent && suggestions.length > 0 && (
+            <datalist id={`${question.field}-suggestions`}>
+              {suggestions.map((value) => (
+                <option key={value} value={value} />
+              ))}
+            </datalist>
+          )}
+        </>
       )}
     </div>
   );
@@ -733,21 +929,26 @@ function ChartCard({
   total,
   color,
   stacked,
+  exclude,
 }: {
   title: string;
   block: BlockStat | undefined;
   total: number;
   color: string;
   stacked?: boolean;
+  exclude?: string[];
 }) {
   if (!block) return null;
 
-  const data = block.questions.map((q) => ({
-    name: q.chartLabel,
-    yes: q.yes,
-    no: q.no,
-    unanswered: q.unanswered,
-  }));
+  const data = block.questions
+    .filter((q) => !exclude?.includes(q.field))
+    .map((q) => ({
+      name: q.chartLabel,
+      yes: q.yes,
+      sometimes: q.sometimes,
+      no: q.no,
+      unanswered: q.unanswered,
+    }));
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm md:p-4">
@@ -786,7 +987,9 @@ function CountsChartCard({
 
 function SurveyDashboard({ summary, filtered }: { summary: SurveySummary; filtered: boolean }) {
   const block = (id: string) => summary.blocks.find((b) => b.id === id);
-  const familyHistory = block('family')?.questions.find((q) => q.field === 'familyHistory');
+  const familyHistory = summary.blocks
+    .flatMap((b) => b.questions)
+    .find((q) => q.field === 'familyHistory');
   const pct = (count: number) =>
     summary.total === 0 ? '0%' : `${Math.round((count / summary.total) * 100)}%`;
 
@@ -826,6 +1029,7 @@ function SurveyDashboard({ summary, filtered }: { summary: SurveySummary; filter
           block={block('conditions')}
           total={summary.total}
           color="#7f264a"
+          exclude={['familyHistory']}
         />
         <ChartCard
           title="Hábitos"
@@ -900,5 +1104,104 @@ function RowActions({
         Eliminar
       </Button>
     </div>
+  );
+}
+
+function PendingPanel({
+  pending,
+  syncing,
+  blockedMessage,
+  onSync,
+  onRetryAllowingDuplicate,
+  onDiscard,
+}: {
+  pending: QueuedSurvey[];
+  syncing: boolean;
+  blockedMessage: string;
+  onSync: () => void;
+  onRetryAllowingDuplicate: (clientId: string) => void;
+  onDiscard: (clientId: string) => void;
+}) {
+  const [confirmDiscard, setConfirmDiscard] = useState<string | null>(null);
+
+  return (
+    <section className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3 md:p-4">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="font-semibold text-amber-900">
+            {pending.length} {pending.length === 1 ? 'encuesta' : 'encuestas'} en este dispositivo,
+            sin enviar
+          </p>
+          <p className="text-sm text-amber-800">
+            No cierres la app hasta enviarlas. Se reintenta solo al recuperar señal.
+          </p>
+        </div>
+        <Button
+          onClick={onSync}
+          disabled={syncing}
+          className="h-11 bg-amber-700 px-5 text-white hover:bg-amber-800"
+        >
+          {syncing ? 'Enviando…' : 'Enviar ahora'}
+        </Button>
+      </div>
+
+      {blockedMessage && (
+        <p className="mt-2 text-sm font-medium text-amber-900">{blockedMessage}</p>
+      )}
+
+      <ul className="mt-3 divide-y divide-amber-200 text-sm">
+        {pending.map((item) => (
+          <li key={item.clientId} className="flex flex-col gap-1 py-2">
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-medium text-amber-900">{item.name}</span>
+              <span className="text-xs text-amber-700">{formatDate(item.capturedAt)}</span>
+            </div>
+            {item.lastError && (
+              <p className="text-xs text-amber-800">
+                {item.lastError}
+                {item.attempts > 1 && ` · ${item.attempts} intentos`}
+              </p>
+            )}
+            {/* A repeated phone is the operator's call, not the queue's */}
+            {item.lastError?.includes('teléfono') && (
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  className="h-9 border border-amber-400 bg-white text-amber-900 hover:bg-amber-100"
+                  onClick={() => onRetryAllowingDuplicate(item.clientId)}
+                >
+                  Enviar de todas formas
+                </Button>
+                {confirmDiscard === item.clientId ? (
+                  <>
+                    <Button
+                      className="h-9 bg-red-600 text-white hover:bg-red-700"
+                      onClick={() => onDiscard(item.clientId)}
+                    >
+                      Sí, descartar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-9 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                      onClick={() => setConfirmDiscard(null)}
+                    >
+                      Cancelar
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="h-9 border border-red-300 bg-white text-red-700 hover:bg-red-50"
+                    onClick={() => setConfirmDiscard(item.clientId)}
+                  >
+                    Descartar
+                  </Button>
+                )}
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

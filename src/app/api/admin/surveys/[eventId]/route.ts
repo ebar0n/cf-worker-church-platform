@@ -27,7 +27,9 @@ export async function GET(
     }
 
     const surveys = await env.DB.prepare(
-      'SELECT * FROM HealthSurvey WHERE volunteerEventId = ? ORDER BY createdAt DESC, id DESC'
+      // capturedAt (device time) is the real order of a jornada, and it is the
+      // indexed one; id breaks ties within the same second.
+      'SELECT * FROM HealthSurvey WHERE volunteerEventId = ? ORDER BY capturedAt DESC, id DESC'
     )
       .bind(eventId)
       .all();
@@ -66,6 +68,29 @@ export async function POST(
       return NextResponse.json({ error: errors.join('. ') }, { status: 400 });
     }
 
+    // Optional id minted on the device before the survey is queued. Older
+    // clients do not send it and keep the previous behavior.
+    const rawClientId = typeof body.clientId === 'string' ? body.clientId.trim() : '';
+    const clientId = rawClientId === '' ? null : rawClientId;
+
+    // Idempotency has to be resolved BEFORE the duplicate-phone check below.
+    // Volunteers capture offline and the device retries a POST whose response
+    // was lost, so the survey may already be stored under this clientId: the
+    // retry must look like the success the client never saw. Checking the phone
+    // first would answer 409 to that retry and the survey would sit in the
+    // device queue forever.
+    if (clientId) {
+      const stored = await env.DB.prepare(
+        'SELECT * FROM HealthSurvey WHERE volunteerEventId = ? AND clientId = ?'
+      )
+        .bind(eventId, clientId)
+        .first();
+
+      if (stored) {
+        return NextResponse.json(stored);
+      }
+    }
+
     // Two volunteers on different iPads cannot see each other's lists, so the
     // duplicate check belongs here. The phone is not unique in the schema (a
     // household may share a line), so this warns once and the client retries
@@ -90,21 +115,57 @@ export async function POST(
 
     const now = new Date().toISOString();
     const capturedBy = request.headers.get('cf-access-authenticated-user-email');
-    const columns = [...SURVEY_FIELDS, 'volunteerEventId', 'capturedBy', 'createdAt', 'updatedAt'];
+
+    // Device time, sent by the offline queue. Trusted only as a timestamp: a
+    // survey synced hours later must keep the moment the person was surveyed,
+    // while createdAt stays the insert time for auditing.
+    const rawCapturedAt = typeof body.capturedAt === 'string' ? body.capturedAt : '';
+    const parsedCapturedAt = rawCapturedAt ? new Date(rawCapturedAt) : null;
+    const capturedAt =
+      parsedCapturedAt && !isNaN(parsedCapturedAt.getTime()) ? parsedCapturedAt.toISOString() : now;
+    const columns = [
+      ...SURVEY_FIELDS,
+      'volunteerEventId',
+      'clientId',
+      'capturedBy',
+      'capturedAt',
+      'createdAt',
+      'updatedAt',
+    ];
     const bindings = [
       ...SURVEY_FIELDS.map((field) => values[field]),
       eventId,
+      clientId,
       capturedBy,
+      capturedAt,
       now,
       now,
     ];
 
-    const result = await env.DB.prepare(
-      `INSERT INTO HealthSurvey (${columns.join(', ')})
-       VALUES (${columns.map(() => '?').join(', ')})`
-    )
-      .bind(...bindings)
-      .run();
+    let result: D1Result;
+    try {
+      result = await env.DB.prepare(
+        `INSERT INTO HealthSurvey (${columns.join(', ')})
+         VALUES (${columns.map(() => '?').join(', ')})`
+      )
+        .bind(...bindings)
+        .run();
+    } catch (error) {
+      // Two retries can arrive close enough that both miss the lookup above;
+      // the unique index is what actually keeps the row single, so the loser of
+      // that race serves the row the winner stored.
+      const stored =
+        clientId && error instanceof Error && /UNIQUE constraint failed/i.test(error.message)
+          ? await env.DB.prepare(
+              'SELECT * FROM HealthSurvey WHERE volunteerEventId = ? AND clientId = ?'
+            )
+              .bind(eventId, clientId)
+              .first()
+          : null;
+
+      if (!stored) throw error;
+      return NextResponse.json(stored);
+    }
 
     const survey = await env.DB.prepare('SELECT * FROM HealthSurvey WHERE id = ?')
       .bind(result.meta.last_row_id)

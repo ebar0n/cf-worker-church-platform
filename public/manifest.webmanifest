@@ -1,0 +1,39 @@
+{
+  "name": "Iglesia Jordán Ibagué",
+  "short_name": "Iglesia Jordán",
+  "description": "Iglesia Adventista del Séptimo Día El Jordán, Ibagué",
+  "lang": "es-CO",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#4b207f",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Encuestas de salud",
+      "url": "/admin/volunteer-events",
+      "description": "Jornadas de voluntariado y sus encuestas"
+    }
+  ]
+}

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import AccessLogoutButton from '@/app/admin/components/AccessLogoutButton';
 
 export default function AdminLayout({
   children,
@@ -60,26 +61,7 @@ export default function AdminLayout({
             <span className="ml-6 hidden text-lg text-white/80 md:inline">Hola, {adminEmail}</span>
           )}
         </div>
-        <Link
-          href="/"
-          className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-white hover:bg-white/20 md:px-4"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="h-5 w-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
-            />
-          </svg>
-          <span className="hidden md:inline">Salir</span>
-        </Link>
+        <AccessLogoutButton className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-white hover:bg-white/20 disabled:opacity-60 md:px-4" />
       </header>
 
       <div className="mx-auto flex max-w-7xl pt-20">

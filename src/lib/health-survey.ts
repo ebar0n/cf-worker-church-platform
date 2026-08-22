@@ -1,12 +1,20 @@
 // Health survey ("Encuesta de Salud", Asociación Sur Colombiana / ¡Quiero Vivir
 // Sano!) captured by volunteers during a volunteer event. This module is the
-// single source of truth for the questionnaire: the admin form, the table, the
-// CSV export and the API validation all derive from SURVEY_BLOCKS, so adding a
+// single source of truth for the questionnaire: the admin form, the dashboard,
+// the CSV export and the API validation all derive from SURVEY_BLOCKS, so a new
 // question means touching one list (plus a migration for its column).
 //
-// Block order follows the printed sheet, except that the two open questions
-// about the neighborhood come before the contact data: once someone writes
-// their name and phone the form feels finished and open answers are skipped.
+// The block order is not the printed sheet's. It was rebuilt around a spoken
+// interview in the street:
+//   1. consent first — nothing sensitive is asked before permission, and a "no"
+//      costs 20 seconds instead of 8 minutes;
+//   2. habits next — a neutral opening nobody resents;
+//   3. conditions after that, once there is rapport, with the family history
+//      question beside the list its wording refers to;
+//   4. interest in courses right after the person has admitted they do not
+//      sleep or exercise, when the offer is most relevant;
+//   5. the neighborhood questions as the emotional high point;
+//   6. contact last, when the person has a reason to leave a phone number.
 
 /** Bands the dashboard groups ages into; the stored value is the exact age. */
 export const AGE_BANDS: { name: string; min: number; max: number }[] = [
@@ -19,7 +27,21 @@ export const AGE_BANDS: { name: string; min: number; max: number }[] = [
 
 export const MAX_AGE = 120;
 
-export type SurveyQuestionType = 'check' | 'yesno' | 'text' | 'textarea' | 'number';
+/**
+ * Habits use three states instead of Sí/No. "¿Toma 8 vasos de agua al día?"
+ * answered as a binary forces false precision: the honest answer for most
+ * people is "a veces", which used to land in "No" next to those who never do
+ * it, making change between jornadas unmeasurable.
+ */
+export const FREQUENCY_VALUES = ['si', 'aveces', 'no'] as const;
+export type FrequencyValue = (typeof FREQUENCY_VALUES)[number];
+export const FREQUENCY_LABELS: Record<FrequencyValue, string> = {
+  si: 'Sí',
+  aveces: 'A veces',
+  no: 'No',
+};
+
+export type SurveyQuestionType = 'check' | 'yesno' | 'frequency' | 'text' | 'textarea' | 'number';
 
 export interface SurveyQuestion {
   field: string;
@@ -34,21 +56,24 @@ export interface SurveyQuestion {
    * checkboxes next to it even though it is typed in.
    */
   countPresence?: boolean;
-
-  // Follow-up question: only asked when the parent yes/no is "Sí". The form
-  // nests it under its parent and the payload clears it otherwise, so a stale
-  // detail can never outlive the answer it belongs to.
+  /** Follow-up: only asked when the parent yes/no is "Sí", cleared otherwise. */
   dependsOn?: string;
+  /** Keyboard hints; a phone field must not open a QWERTY on an iPad. */
+  inputMode?: 'text' | 'tel' | 'numeric';
+  autoCapitalize?: 'none' | 'words';
+  /** Suggestions from a previous answer must not leak to the next person. */
+  autoComplete?: string;
+  /** Offers the values already used in this event (one jornada, one barrio). */
+  suggestFromEvent?: boolean;
 }
 
 export type SurveyBlockId =
-  | 'conditions'
-  | 'family'
+  | 'consent'
   | 'habits'
+  | 'conditions'
   | 'interests'
   | 'neighborhood'
-  | 'contact'
-  | 'consent';
+  | 'contact';
 
 export interface SurveyBlock {
   id: SurveyBlockId;
@@ -61,45 +86,19 @@ export interface SurveyBlock {
 
 export const SURVEY_BLOCKS: SurveyBlock[] = [
   {
-    id: 'conditions',
-    title: '¿Padece usted de alguna de estas enfermedades?',
-    hint: 'Marque las que apliquen.',
-    questions: [
-      { field: 'hasDiabetes', label: 'Diabetes', type: 'check' },
-      { field: 'hasHighBloodPressure', label: 'Presión arterial', type: 'check' },
-      { field: 'hasHeartDisease', label: 'Enfermedades del corazón', type: 'check' },
-      {
-        field: 'hasHighCholesterol',
-        label: 'Nivel alto de colesterol y/o triglicéridos en la sangre',
-        chartLabel: 'Colesterol / triglicéridos',
-        type: 'check',
-      },
-      { field: 'hasOverweight', label: 'Sobrepeso y obesidad', type: 'check' },
-      { field: 'hasDepression', label: 'Depresión', type: 'check' },
-      {
-        field: 'otherCondition',
-        label: 'Otra enfermedad',
-        chartLabel: 'Otras enfermedades',
-        type: 'text',
-        countPresence: true,
-      },
-    ],
-  },
-  {
-    id: 'family',
-    title: 'Antecedentes familiares',
+    id: 'consent',
+    title: 'Autorización',
+    // Read out loud, not a legal paragraph nobody reads: the formal Ley 1581
+    // text lives in this hint and in the linked policy.
+    hint: 'Ley 1581 de 2012: la iglesia guarda estos datos, incluidos los de salud, con la finalidad exclusiva de organizar sus programas de salud, y la persona puede pedir su eliminación en cualquier momento. Sin autorización no se guarda la encuesta.',
+    link: { href: '/privacy', label: 'Ver la política de tratamiento de datos' },
     questions: [
       {
-        field: 'familyHistory',
-        label: '¿Algún familiar padece de alguna de esas enfermedades?',
-        chartLabel: 'Antecedente familiar',
+        field: 'acceptsDataTreatment',
+        label:
+          'Sus datos se usan solo para invitarlo a los programas de salud de la iglesia, y puede pedir que los borremos cuando quiera. ¿Nos autoriza a guardarlos?',
+        chartLabel: 'Autoriza sus datos',
         type: 'yesno',
-      },
-      {
-        field: 'familyHistoryDetail',
-        label: '¿Cuál enfermedad?',
-        type: 'text',
-        dependsOn: 'familyHistory',
       },
     ],
   },
@@ -111,74 +110,125 @@ export const SURVEY_BLOCKS: SurveyBlock[] = [
         field: 'drinksWater',
         label: '¿Toma 8 vasos de agua pura al día?',
         chartLabel: '8 vasos de agua',
-        type: 'yesno',
+        type: 'frequency',
       },
       {
         field: 'exercises',
         label: '¿Hace ejercicio físico durante 30 minutos diarios?',
         chartLabel: 'Ejercicio 30 min',
-        type: 'yesno',
+        type: 'frequency',
       },
       {
         field: 'eatsFruitsVegetables',
-        label: '¿Consume regularmente frutas y verduras?',
+        label: '¿Consume frutas y verduras?',
         chartLabel: 'Frutas y verduras',
-        type: 'yesno',
+        type: 'frequency',
       },
       {
         field: 'sleepsEightHours',
-        label: '¿Duerme regularmente 8 horas diarias?',
+        label: '¿Duerme 8 horas diarias?',
         chartLabel: '8 horas de sueño',
-        type: 'yesno',
+        type: 'frequency',
       },
       {
+        // Anchored in time and free of the old "etc.": the previous wording
+        // mixed frequency, a list of exams and an "etcétera" that read badly out
+        // loud, and its "¿cuáles?" follow-up asked the people who DO go, when
+        // the segment the church can act on is the ones who do not.
         field: 'attendsCheckups',
-        label:
-          '¿Va regularmente al centro de salud para hacerse exámenes de diabetes, cáncer, etc.?',
+        label: '¿En el último año se hizo exámenes médicos de control?',
         chartLabel: 'Exámenes de control',
         type: 'yesno',
       },
+    ],
+  },
+  {
+    id: 'conditions',
+    title: '¿Padece usted de alguna de estas enfermedades?',
+    hint: 'Marque las que apliquen.',
+    questions: [
+      { field: 'hasDiabetes', label: 'Diabetes', type: 'check' },
       {
-        field: 'checkupsDetail',
-        label: '¿Cuáles exámenes?',
+        // "¿Padece usted de presión arterial?" has no answer: everyone has blood
+        // pressure. Each volunteer was improvising their own version of it.
+        field: 'hasHighBloodPressure',
+        label: 'Presión arterial alta (hipertensión)',
+        chartLabel: 'Hipertensión',
+        type: 'check',
+      },
+      { field: 'hasHeartDisease', label: 'Enfermedades del corazón', type: 'check' },
+      {
+        field: 'hasHighCholesterol',
+        label: 'Colesterol o triglicéridos altos',
+        chartLabel: 'Colesterol / triglicéridos',
+        type: 'check',
+      },
+      { field: 'hasOverweight', label: 'Sobrepeso u obesidad', type: 'check' },
+      {
+        // Easier to admit than "Depresión" alone, and it matches the emotional
+        // health course the church already offers.
+        field: 'hasDepression',
+        label: 'Depresión, ansiedad o estrés',
+        chartLabel: 'Depresión / ansiedad',
+        type: 'check',
+      },
+      {
+        field: 'otherCondition',
+        label: 'Otra enfermedad',
+        chartLabel: 'Otras enfermedades',
         type: 'text',
-        dependsOn: 'attendsCheckups',
+        countPresence: true,
+        autoComplete: 'off',
+      },
+      {
+        // Lives here, next to the list it refers to: as its own block the "esas
+        // enfermedades" had no antecedent, least of all in the CSV header.
+        field: 'familyHistory',
+        label:
+          '¿Algún familiar cercano (padres, hermanos, hijos) padece alguna de estas enfermedades?',
+        chartLabel: 'Antecedente familiar',
+        type: 'yesno',
+      },
+      {
+        field: 'familyHistoryDetail',
+        label: '¿Cuáles?',
+        type: 'text',
+        dependsOn: 'familyHistory',
+        autoComplete: 'off',
       },
     ],
   },
   {
     id: 'interests',
-    title: 'Interés en formación',
+    title: '¿Cuál de estos le gustaría?',
+    // One spoken question with four options instead of five near-identical
+    // yes/no questions in a row, which by minute five got Sí to everything or No
+    // to everything — precisely the data that decides which courses open.
+    hint: 'Puede escoger varios.',
     questions: [
       {
         field: 'wantsHealthyHabitsCourse',
-        label: '¿Le interesaría un curso de hábitos saludables?',
+        label: 'Curso de hábitos saludables',
         chartLabel: 'Hábitos saludables',
-        type: 'yesno',
-      },
-      {
-        field: 'wantsHealthTalk',
-        label: '¿Le interesaría escuchar algún tema de salud?',
-        chartLabel: 'Charla de salud',
-        type: 'yesno',
+        type: 'check',
       },
       {
         field: 'wantsHealthyCookingCourse',
-        label: '¿Le interesaría tomar un curso de cocina saludable?',
+        label: 'Curso de cocina saludable',
         chartLabel: 'Cocina saludable',
-        type: 'yesno',
+        type: 'check',
       },
       {
         field: 'wantsEmotionalHealthCourse',
-        label: '¿Le interesaría tomar un curso de salud emocional?',
+        label: 'Curso de salud emocional',
         chartLabel: 'Salud emocional',
-        type: 'yesno',
+        type: 'check',
       },
       {
         field: 'wantsPersonalFinanceCourse',
-        label: '¿Le interesaría tomar un curso de salud financiera?',
+        label: 'Curso de salud financiera',
         chartLabel: 'Salud financiera',
-        type: 'yesno',
+        type: 'check',
       },
     ],
   },
@@ -190,41 +240,46 @@ export const SURVEY_BLOCKS: SurveyBlock[] = [
         field: 'neighborhoodIssue',
         label: '¿Cuál cree que es la problemática más importante a tratar en su barrio?',
         type: 'textarea',
+        autoComplete: 'off',
       },
       {
         field: 'neighborhoodImprovement',
         label: '¿Cómo cree que se podría mejorar?',
         type: 'textarea',
-      },
-    ],
-  },
-  {
-    id: 'consent',
-    title: 'Autorización',
-    hint: 'Léala a la persona antes de guardar. Sin autorización no se guarda la encuesta.',
-    link: { href: '/privacy', label: 'Ver la política de tratamiento de datos' },
-    questions: [
-      {
-        field: 'acceptsDataTreatment',
-        label:
-          '¿Autoriza el tratamiento de sus datos personales (incluidos datos de salud) para la gestión de los programas de salud de la iglesia, según la Ley 1581 de 2012?',
-        chartLabel: 'Autoriza sus datos',
-        type: 'yesno',
+        autoComplete: 'off',
       },
     ],
   },
   {
     id: 'contact',
     title: 'Datos de contacto',
+    // Nothing here is required: someone willing to answer about their health but
+    // not to leave a phone number must still be recordable, and a survey with no
+    // identifiers is not personal data at all.
+    hint: 'Opcional. Si la persona no quiere dar sus datos, deje los campos vacíos.',
     questions: [
-      { field: 'name', label: 'Nombre', type: 'text', required: true },
-      { field: 'phone', label: 'Teléfono', type: 'text', required: true },
-      // Age, never a birth date: the health answers only mean something read by
-      // age group, and the exact number can be re-banded later without asking
-      // again.
+      {
+        field: 'name',
+        label: 'Nombre',
+        type: 'text',
+        autoCapitalize: 'words',
+        autoComplete: 'off',
+      },
+      {
+        field: 'phone',
+        label: 'Teléfono',
+        type: 'text',
+        inputMode: 'tel',
+        autoComplete: 'off',
+      },
       { field: 'age', label: 'Edad', type: 'number' },
-      { field: 'neighborhood', label: 'Barrio (sector o etapa)', type: 'text' },
-      { field: 'address', label: 'Dirección', type: 'text' },
+      {
+        field: 'neighborhood',
+        label: 'Barrio (sector o etapa)',
+        type: 'text',
+        autoComplete: 'off',
+        suggestFromEvent: true,
+      },
     ],
   },
 ];
@@ -236,18 +291,18 @@ export const CONSENT_FIELD = 'acceptsDataTreatment';
 
 export const CHECK_FIELDS = SURVEY_QUESTIONS.filter((q) => q.type === 'check').map((q) => q.field);
 export const YESNO_FIELDS = SURVEY_QUESTIONS.filter((q) => q.type === 'yesno').map((q) => q.field);
+export const FREQUENCY_FIELDS = SURVEY_QUESTIONS.filter((q) => q.type === 'frequency').map(
+  (q) => q.field
+);
 export const TEXT_FIELDS = SURVEY_QUESTIONS.filter(
   (q) => q.type === 'text' || q.type === 'textarea'
 ).map((q) => q.field);
-
 export const NUMBER_FIELDS = SURVEY_QUESTIONS.filter((q) => q.type === 'number').map(
   (q) => q.field
 );
 
 export const BOOLEAN_FIELDS = [...CHECK_FIELDS, ...YESNO_FIELDS];
 export const SURVEY_FIELDS = SURVEY_QUESTIONS.map((q) => q.field);
-
-export const REQUIRED_FIELDS = SURVEY_QUESTIONS.filter((q) => q.required).map((q) => q.field);
 
 /** parent field -> follow-up fields that only apply when it is answered "Sí". */
 export const DEPENDENTS: Record<string, string[]> = SURVEY_QUESTIONS.reduce<
@@ -263,8 +318,9 @@ export type SurveyPayload = Record<string, string | boolean | null>;
 
 /**
  * Normalizes an incoming payload to the columns we store: checks become 0/1,
- * yes/no answers keep "unanswered" as null, and blank text becomes null.
- * Unknown keys are dropped, so callers can post form state as-is.
+ * yes/no answers keep "unanswered" as null, frequencies keep their token, and
+ * blank text becomes null. Unknown keys are dropped, so callers can post form
+ * state as-is.
  */
 export function normalizeSurveyPayload(input: Record<string, unknown>): {
   values: Record<string, string | number | null>;
@@ -282,29 +338,42 @@ export function normalizeSurveyPayload(input: Record<string, unknown>): {
     values[field] = value === true || value === 1 ? 1 : value === false || value === 0 ? 0 : null;
   }
 
+  for (const field of FREQUENCY_FIELDS) {
+    const value = input[field];
+    values[field] =
+      typeof value === 'string' && FREQUENCY_VALUES.includes(value as FrequencyValue)
+        ? value
+        : null;
+  }
+
   for (const field of TEXT_FIELDS) {
     const value = input[field];
     const text = typeof value === 'string' ? value.trim() : '';
     values[field] = text === '' ? null : text;
   }
 
-  // Ages arrive as strings from the form; anything out of range is dropped
+  // An age typed as "355" used to be dropped in silence, and age is the
+  // dimension the rest of the answers get read by.
   for (const field of NUMBER_FIELDS) {
-    const parsed = Number.parseInt(String(input[field] ?? ''), 10);
-    values[field] = Number.isFinite(parsed) && parsed >= 0 && parsed <= MAX_AGE ? parsed : null;
+    const raw = String(input[field] ?? '').trim();
+    if (raw === '') {
+      values[field] = null;
+      continue;
+    }
+    const parsed = Number.parseInt(raw, 10);
+    if (!Number.isFinite(parsed) || parsed < 0 || parsed > MAX_AGE) {
+      const question = SURVEY_QUESTIONS.find((q) => q.field === field);
+      errors.push(`${question?.label ?? field}: revise el valor (0 a ${MAX_AGE})`);
+      values[field] = null;
+      continue;
+    }
+    values[field] = parsed;
   }
 
   // A follow-up without a "Sí" above it is noise: drop it whatever the client sent
   for (const [parent, followUps] of Object.entries(DEPENDENTS)) {
     if (values[parent] !== 1) {
       for (const field of followUps) values[field] = null;
-    }
-  }
-
-  for (const field of REQUIRED_FIELDS) {
-    if (!values[field]) {
-      const question = SURVEY_QUESTIONS.find((q) => q.field === field);
-      errors.push(`${question?.label ?? field} es requerido`);
     }
   }
 
@@ -316,7 +385,7 @@ export function normalizeSurveyPayload(input: Record<string, unknown>): {
   return { values, errors };
 }
 
-/** Turns a stored row into the shape the form uses (booleans instead of 0/1). */
+/** Turns a stored row into the shape the form uses. */
 export function rowToFormValues(row: Record<string, unknown>): SurveyPayload {
   const values: SurveyPayload = {};
 
@@ -325,6 +394,9 @@ export function rowToFormValues(row: Record<string, unknown>): SurveyPayload {
   }
   for (const field of YESNO_FIELDS) {
     values[field] = row[field] === null || row[field] === undefined ? null : row[field] === 1;
+  }
+  for (const field of FREQUENCY_FIELDS) {
+    values[field] = typeof row[field] === 'string' ? (row[field] as string) : null;
   }
   for (const field of TEXT_FIELDS) {
     values[field] = typeof row[field] === 'string' ? (row[field] as string) : '';
@@ -341,6 +413,7 @@ export function emptySurveyValues(): SurveyPayload {
   const values: SurveyPayload = {};
   for (const field of CHECK_FIELDS) values[field] = false;
   for (const field of YESNO_FIELDS) values[field] = null;
+  for (const field of FREQUENCY_FIELDS) values[field] = null;
   for (const field of TEXT_FIELDS) values[field] = '';
   for (const field of NUMBER_FIELDS) values[field] = '';
   return values;
@@ -354,6 +427,8 @@ export interface QuestionStat {
   chartLabel: string;
   type: SurveyQuestionType;
   yes: number;
+  /** Only meaningful for frequency questions. */
+  sometimes: number;
   no: number;
   unanswered: number;
   /** share of the surveys answered "Sí" (0-100, rounded) */
@@ -377,11 +452,12 @@ export interface SurveySummary {
 
 const isYes = (value: unknown) => value === 1 || value === true;
 const isNo = (value: unknown) => value === 0 || value === false;
+const hasText = (value: unknown) => typeof value === 'string' && value.trim() !== '';
 
 /**
- * Counts every check and yes/no question, block by block, so the breakdown
- * follows SURVEY_BLOCKS instead of a hand-kept list. Checkboxes have no "No":
- * an unmarked box counts as no.
+ * Counts every countable question, block by block, so the breakdown follows
+ * SURVEY_BLOCKS instead of a hand-kept list. Checkboxes have no "No": an
+ * unmarked box counts as no.
  */
 export function summarizeSurveys(rows: Record<string, unknown>[]): SurveySummary {
   const total = rows.length;
@@ -391,11 +467,32 @@ export function summarizeSurveys(rows: Record<string, unknown>[]): SurveySummary
     id: block.id,
     title: block.title,
     questions: block.questions
-      .filter((q) => q.type === 'check' || q.type === 'yesno' || q.countPresence)
+      .filter(
+        (q) => q.type === 'check' || q.type === 'yesno' || q.type === 'frequency' || q.countPresence
+      )
       .map((question) => {
         const values = rows.map((row) => row[question.field]);
+
+        if (question.type === 'frequency') {
+          const yes = values.filter((v) => v === 'si').length;
+          const sometimes = values.filter((v) => v === 'aveces').length;
+          const no = values.filter((v) => v === 'no').length;
+
+          return {
+            field: question.field,
+            label: question.label,
+            chartLabel: question.chartLabel ?? question.label,
+            type: question.type,
+            yes,
+            sometimes,
+            no,
+            unanswered: total - yes - sometimes - no,
+            pct: pct(yes),
+          };
+        }
+
         const yes = question.countPresence
-          ? values.filter((value) => typeof value === 'string' && value.trim() !== '').length
+          ? values.filter(hasText).length
           : values.filter(isYes).length;
         const no = question.type === 'yesno' ? values.filter(isNo).length : total - yes;
 
@@ -405,6 +502,7 @@ export function summarizeSurveys(rows: Record<string, unknown>[]): SurveySummary
           chartLabel: question.chartLabel ?? question.label,
           type: question.type,
           yes,
+          sometimes: 0,
           no,
           unanswered: total - yes - no,
           pct: pct(yes),
@@ -435,7 +533,7 @@ export function summarizeSurveys(rows: Record<string, unknown>[]): SurveySummary
       ...(withoutAge > 0 ? [{ name: 'Sin dato', count: withoutAge }] : []),
     ],
     withAnyCondition: rows.filter(
-      (row) => conditionFields.some((field) => isYes(row[field])) || !!row.otherCondition
+      (row) => conditionFields.some((field) => isYes(row[field])) || hasText(row.otherCondition)
     ).length,
     interestedInAnyCourse: rows.filter((row) => courseFields.some((field) => isYes(row[field])))
       .length,
@@ -446,6 +544,10 @@ export function summarizeSurveys(rows: Record<string, unknown>[]): SurveySummary
 const csvAnswer = (value: unknown, type: SurveyQuestionType) => {
   if (type === 'check') return isYes(value) ? 'Sí' : '';
   if (type === 'yesno') return isYes(value) ? 'Sí' : isNo(value) ? 'No' : '';
+  if (type === 'frequency')
+    return typeof value === 'string' && FREQUENCY_VALUES.includes(value as FrequencyValue)
+      ? FREQUENCY_LABELS[value as FrequencyValue]
+      : '';
   if (type === 'number') return typeof value === 'number' ? String(value) : '';
   return typeof value === 'string' ? value : '';
 };
@@ -462,7 +564,12 @@ export function surveysToCsv(rows: Record<string, unknown>[]): string[][] {
   const header = [...columns.map((q) => q.label), 'Registrada', 'Registrada por'];
   const body = rows.map((row) => [
     ...columns.map((q) => csvAnswer(row[q.field], q.type)),
-    typeof row.createdAt === 'string' ? row.createdAt : '',
+    // The device's capture time is the real moment; createdAt is the insert.
+    typeof row.capturedAt === 'string'
+      ? row.capturedAt
+      : typeof row.createdAt === 'string'
+        ? row.createdAt
+        : '',
     typeof row.capturedBy === 'string' ? row.capturedBy : '',
   ]);
 
