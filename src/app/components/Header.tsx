@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import ReloadInAppButton from './ReloadInAppButton';
 
 export default function Header() {
   return (
@@ -26,6 +27,8 @@ export default function Header() {
             passing through the rest of the admin. Icons only — labels crowded
             the header on a phone. */}
         <nav className="flex items-center gap-1">
+          {/* Only renders in the installed app, which has no reload button */}
+          <ReloadInAppButton />
           <Link
             href="/admin/surveys"
             title="Encuestas de salud"

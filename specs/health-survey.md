@@ -67,7 +67,26 @@ storage: `normalizeSurveyPayload` rejects any payload whose
 `acceptsDataTreatment` is not "Sí", which means the API refuses the record — the
 same rule for the form and for any other client.
 
-## Data (migration 0022)
+## Who ran the interview
+
+Three questions that used to be one: who interviewed the person, who delivered
+the record, and which account was signed in. With an offline queue they diverge —
+if María captures 20 surveys with no signal, signs out, and Pedro syncs them,
+`capturedBy` (written from the Access header when the POST lands) credits all 20
+to Pedro.
+
+- `interviewerName` (migration 0023) is the volunteer's own name, asked **on
+  arrival** at a jornada and remembered on the device. It is the attribution:
+  with a shared Access account the email identifies nobody, and unlike the Access
+  identity it cannot go stale — offline the page comes from the service worker
+  cache, which may have been rendered for whoever used the iPad before.
+- `capturedBy` stays as the trusted record of who delivered it.
+
+An earlier `capturedByDevice` (the Access identity at capture) was dropped: it
+was as untrusted as the typed name and could be stale, which is worse than
+absent — a wrong value with an air of authority.
+
+## Data (migrations 0022-0023)
 
 `HealthSurvey`, one row per surveyed person, cascading from `VolunteerEvent`. The
 table was built over several iterations while the questionnaire was being
@@ -146,6 +165,17 @@ without it.
   never just "guardada".
 - **Editing an existing survey is online-only**: merging offline edits of a row
   someone else may have changed is a different problem from capturing a new one.
+- **A half-filled form survives** a reload, a closed app or iOS killing the tab
+  (`surveys.draft.<eventId>` in localStorage, written as the volunteer types).
+  It is **never restored on its own**: the list shows "Hay una encuesta a medio
+  llenar", with the name and how long ago, and Continuar / Descartar. Silently
+  refilling the fields is how one person's answers end up saved under another's
+  name. It is cleared on save and on an explicit cancel — the draft only outlives
+  what nobody chose.
+- Because of that draft, the capture view leaves the **rubber-band scroll alone**:
+  in the installed app it is the only reload gesture there is, and an accidental
+  pull no longer costs anything. The site header also carries a reload button
+  that appears **only** in standalone mode, where there is no browser chrome.
 
 Access notes for the field: use **One-time PIN** for the volunteers'
 application, so the login stays on our own domain — a third-party IdP redirect
@@ -218,6 +248,13 @@ the picker.
 - **Encuestas** — search over nombre/teléfono/barrio, sortable columns with
   `aria-sort` (newest first), pagination of 25 with a clamped page index, and
   cards instead of the table below 640px.
+- **Salir** closes the Cloudflare Access session for real
+  (`/cdn-cgi/access/logout`, fetched rather than navigated to, since its page is
+  a dead end in an installed app). It asks in a dialog first — getting back in
+  means a new code — and offers **Solo ir al inicio** for the other intention
+  behind that tap. In the capture view it warns when surveys are still queued:
+  the outbox cannot sync without a session. The dialog disarms itself after 15
+  seconds so a prompt left open cannot sign out the next person who taps.
 - **Form** — iPad-sized tap targets (48px rows, segmented buttons with
   `aria-pressed`), a telephone keypad for the phone and `autoComplete="off"` on
   the text fields so Safari cannot offer the previous person's data to the next
@@ -233,8 +270,10 @@ few thousand records per event.
 ## CSV
 
 Contact data first — that is what identifies a row in a spreadsheet — then every
-question in the order it is asked, then `Registrada` (the capture time) and
-`Registrada por`. Checks export as `Sí`/blank, yes/no as `Sí`/`No`/blank, habits
+question in the order it is asked, then `Registrada` (the capture
+time), `Encuestada por` (the volunteer's typed name, falling back to whoever
+delivered it) and `Entregada por` — `capturedBy`, the one field the device cannot
+forge, kept for audit. Checks export as `Sí`/blank, yes/no as `Sí`/`No`/blank, habits
 as `Sí`/`A veces`/`No`/blank; unanswered stays blank rather than pretending to be
 a "No". The download covers the current filter.
 
@@ -255,7 +294,7 @@ a "No". The download covers the current filter.
 
 ## Deploy
 
-`yarn db:migrate` (migration 0022) before `yarn deploy`, then create the two
+`yarn db:migrate` (migrations 0022-0023) before `yarn deploy`, then create the two
 Access applications described above. Before a jornada: open the app once on each
 iPad with signal, install it to the home screen, log in, and verify in airplane
 mode that it opens and that saving queues.

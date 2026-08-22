@@ -49,6 +49,16 @@ type SortKey = 'name' | 'phone' | 'neighborhood' | 'createdAt';
 // time is the real one; createdAt is the insert time and only a fallback.
 const surveyMoment = (survey: SurveyRow) => survey.capturedAt || survey.createdAt;
 
+// "hace 6 minutos" is what lets a volunteer tell whether the draft belongs to
+// the person in front of them or to the previous one.
+const timeAgo = (iso: string) => {
+  const minutes = Math.round((Date.now() - parseDate(iso)) / 60000);
+  if (!Number.isFinite(minutes) || minutes < 1) return 'hace unos segundos';
+  if (minutes < 60) return `hace ${minutes} ${minutes === 1 ? 'minuto' : 'minutos'}`;
+  const hours = Math.round(minutes / 60);
+  return `hace ${hours} ${hours === 1 ? 'hora' : 'horas'}`;
+};
+
 // D1 hands back either an ISO string or "YYYY-MM-DD HH:MM:SS" (UTC)
 const parseDate = (value: string) =>
   new Date(value.includes('T') ? value : value.replace(' ', 'T') + 'Z').getTime();
@@ -82,7 +92,91 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
   // Metrics lead: capture starts from the always-visible "Nueva encuesta".
   const [tab, setTab] = useState<'list' | 'stats'>('stats');
   const [page, setPage] = useState(1);
-  const outbox = useSurveyOutbox(eventId);
+  // The prop comes from the server-rendered HTML, which offline is served from
+  // the service worker cache — and that copy may have been rendered for whoever
+  // used the iPad before. Re-ask the server whenever there is signal.
+  const [accessEmail, setAccessEmail] = useState(volunteerEmail);
+
+  useEffect(() => {
+    fetch('/api/admin/me')
+      .then((res) => (res.ok ? (res.json() as Promise<{ email?: string }>) : null))
+      .then((data) => {
+        if (data?.email) setAccessEmail(data.email);
+      })
+      .catch(() => {
+        /* offline: keep the rendered value, and the typed name carries the day */
+      });
+  }, []);
+
+  // A half-filled form survives a reload or iOS killing the tab, but it is never
+  // restored on its own: the volunteer may already be in front of a different
+  // person, and silently refilling the fields is how one person's answers end up
+  // saved under another's name.
+  const [draft, setDraft] = useState<{ values: SurveyPayload; savedAt: string } | null>(null);
+  const draftKey = `surveys.draft.${eventId}`;
+
+  const readDraft = useCallback(() => {
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (!raw) return null;
+      return JSON.parse(raw) as { values: SurveyPayload; savedAt: string };
+    } catch {
+      return null;
+    }
+  }, [draftKey]);
+
+  const writeDraft = useCallback(
+    (values: SurveyPayload) => {
+      try {
+        localStorage.setItem(
+          draftKey,
+          JSON.stringify({ values, savedAt: new Date().toISOString() })
+        );
+      } catch {
+        /* private mode or full storage: the form still works, just unprotected */
+      }
+    },
+    [draftKey]
+  );
+
+  const clearDraft = useCallback(() => {
+    try {
+      localStorage.removeItem(draftKey);
+    } catch {
+      /* nothing to clean up */
+    }
+    setDraft(null);
+  }, [draftKey]);
+
+  useEffect(() => {
+    setDraft(readDraft());
+  }, [readDraft]);
+
+  const [interviewer, setInterviewer] = useState('');
+  const [interviewerLoaded, setInterviewerLoaded] = useState(false);
+  const [editingInterviewer, setEditingInterviewer] = useState(false);
+
+  // Typed once per device and remembered there: with a shared Access account the
+  // email identifies nobody, and this survives both the cache and a sign-out.
+  useEffect(() => {
+    try {
+      setInterviewer(localStorage.getItem('surveys.interviewer') || '');
+    } catch {
+      /* private mode or blocked storage: the name is simply not remembered */
+    }
+    setInterviewerLoaded(true);
+  }, []);
+
+  const saveInterviewer = (value: string) => {
+    setInterviewer(value);
+    try {
+      localStorage.setItem('surveys.interviewer', value);
+    } catch {
+      /* nothing to do: the name still applies to this session */
+    }
+  };
+
+  const outbox = useSurveyOutbox(eventId, interviewer);
   // Set while the survey on screen is already queued on the device, so pressing
   // Guardar again retries that queued item instead of creating a second one.
   const [queuedClientId, setQueuedClientId] = useState<string | null>(null);
@@ -140,6 +234,8 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
     scrollToTop();
   };
   const closeForm = () => {
+    // Cancelling is a decision; the draft only outlives what was not chosen.
+    clearDraft();
     setDuplicateWarning('');
     setError('');
     setEditing(null);
@@ -156,11 +252,16 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
         for (const followUp of DEPENDENTS[field] ?? []) values[followUp] = '';
       }
 
+      // Only new captures are protected: an edit of a stored survey has the
+      // server copy to fall back on.
+      if (current.id === null) writeDraft(values);
+
       return { ...current, values };
     });
   };
 
   const finishSave = (startAnother: boolean) => {
+    clearDraft();
     setDuplicateWarning('');
     setQueuedClientId(null);
     setEditing(startAnother ? { id: null, values: emptySurveyValues() } : null);
@@ -333,6 +434,12 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
     URL.revokeObjectURL(link.href);
   };
 
+  // Asked on arrival, not at save time: the typed name is the only record of who
+  // ran the interview, and discovering it is missing after a full form is worse.
+  if (interviewerLoaded && !interviewer.trim()) {
+    return <InterviewerPrompt eventTitle={eventTitle} onSubmit={saveInterviewer} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#f7f6f3] font-sans">
       {/* Standalone header: this view is used by volunteers on shared iPads,
@@ -356,12 +463,29 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
         </div>
 
         <div className="flex flex-shrink-0 items-center gap-3">
-          {volunteerEmail && (
-            <div className="hidden text-right text-sm text-white/80 md:block">
-              <p>Registrando como</p>
-              <p className="font-medium text-white">{volunteerEmail}</p>
-            </div>
-          )}
+          <div className="hidden text-right text-sm text-white/80 md:block">
+            <p>Encuestando</p>
+            {editingInterviewer ? (
+              <input
+                autoFocus
+                value={interviewer}
+                onChange={(e) => saveInterviewer(e.target.value)}
+                onBlur={() => setEditingInterviewer(false)}
+                onKeyDown={(e) => e.key === 'Enter' && setEditingInterviewer(false)}
+                placeholder="Su nombre"
+                className="w-44 rounded bg-white/90 px-2 py-1 text-right text-sm text-gray-900"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setEditingInterviewer(true)}
+                className="font-medium text-white underline decoration-white/30 underline-offset-2"
+              >
+                {interviewer || 'Escriba su nombre'}
+              </button>
+            )}
+            {accessEmail && <p className="text-xs text-white/60">{accessEmail}</p>}
+          </div>
           {/* Where the exit lives in the rest of the admin — here going back to
               the picker IS the way out, and it never leads into the admin. */}
           <a
@@ -404,8 +528,19 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
       )}
 
       <main className="mx-auto max-w-4xl px-3 py-6 md:px-6">
+        {outbox.pending.length === 0 && outbox.pendingElsewhere > 0 && (
+          <div className="mb-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            Hay {outbox.pendingElsewhere} {outbox.pendingElsewhere === 1 ? 'encuesta' : 'encuestas'}{' '}
+            sin enviar de otra jornada en este dispositivo.{' '}
+            <button type="button" onClick={() => outbox.sync()} className="font-semibold underline">
+              Enviar ahora
+            </button>
+          </div>
+        )}
+
         {outbox.pending.length > 0 && (
           <PendingPanel
+            pendingElsewhere={outbox.pendingElsewhere}
             pending={outbox.pending}
             syncing={outbox.syncing}
             blockedMessage={outbox.blockedMessage}
@@ -469,6 +604,21 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
                 </Button>
               </div>
             </div>
+
+            {draft && (
+              <DraftNotice
+                draft={draft}
+                onResume={() => {
+                  setDuplicateWarning('');
+                  setQueuedClientId(null);
+                  setStatusMessage('');
+                  setEditing({ id: null, values: draft.values });
+                  setDraft(null);
+                  scrollToTop();
+                }}
+                onDiscard={clearDraft}
+              />
+            )}
 
             <div role="tablist" className="mb-4 flex gap-2 border-b border-gray-200">
               {(
@@ -778,10 +928,10 @@ function SurveyForm({
             </Button>
           )}
           <Button
-            variant="ghost"
+            variant="outline"
             onClick={onCancel}
             disabled={saving}
-            className="h-12 px-6 text-gray-600 hover:bg-gray-100"
+            className="h-12 border border-gray-300 bg-white px-6 text-base text-gray-600 hover:bg-gray-50"
           >
             Cancelar
           </Button>
@@ -1123,6 +1273,7 @@ function RowActions({
 
 function PendingPanel({
   pending,
+  pendingElsewhere,
   syncing,
   blockedMessage,
   onSync,
@@ -1130,6 +1281,7 @@ function PendingPanel({
   onDiscard,
 }: {
   pending: QueuedSurvey[];
+  pendingElsewhere: number;
   syncing: boolean;
   blockedMessage: string;
   onSync: () => void;
@@ -1148,6 +1300,8 @@ function PendingPanel({
           </p>
           <p className="text-sm text-amber-800">
             No cierres la app hasta enviarlas. Se reintenta solo al recuperar señal.
+            {pendingElsewhere > 0 &&
+              ` Además hay ${pendingElsewhere} de otra jornada en este dispositivo.`}
           </p>
         </div>
         <Button
@@ -1170,6 +1324,9 @@ function PendingPanel({
               <span className="font-medium text-amber-900">{item.name}</span>
               <span className="text-xs text-amber-700">{formatDate(item.capturedAt)}</span>
             </div>
+            {item.interviewerName && (
+              <p className="text-xs text-amber-700">Capturada por {item.interviewerName}</p>
+            )}
             {item.lastError && (
               <p className="text-xs text-amber-800">
                 {item.lastError}
@@ -1217,5 +1374,114 @@ function PendingPanel({
         ))}
       </ul>
     </section>
+  );
+}
+
+function DraftNotice({
+  draft,
+  onResume,
+  onDiscard,
+}: {
+  draft: { values: SurveyPayload; savedAt: string };
+  onResume: () => void;
+  onDiscard: () => void;
+}) {
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const name = String(draft.values.name ?? '').trim();
+
+  return (
+    <section className="mb-4 rounded-lg border border-[#4b207f]/30 bg-white p-3 shadow-sm md:p-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="font-semibold text-gray-900">Hay una encuesta a medio llenar</p>
+          <p className="text-sm text-gray-600">
+            {name || 'Sin nombre'} · {timeAgo(draft.savedAt)}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={onResume}
+            className="h-11 bg-[#4b207f] px-5 text-white hover:bg-[#3b1965]"
+          >
+            Continuar
+          </Button>
+          {confirmDiscard ? (
+            <>
+              <Button
+                className="h-11 bg-red-600 px-4 text-white hover:bg-red-700"
+                onClick={onDiscard}
+              >
+                Sí, descartar
+              </Button>
+              <Button
+                variant="outline"
+                className="h-11 border border-gray-300 bg-white px-4 text-gray-700 hover:bg-gray-50"
+                onClick={() => setConfirmDiscard(false)}
+              >
+                Cancelar
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="outline"
+              className="h-11 border border-gray-300 bg-white px-4 text-gray-700 hover:bg-gray-50"
+              onClick={() => setConfirmDiscard(true)}
+            >
+              Descartar
+            </Button>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function InterviewerPrompt({
+  eventTitle,
+  onSubmit,
+}: {
+  eventTitle: string;
+  onSubmit: (name: string) => void;
+}) {
+  const [name, setName] = useState('');
+
+  return (
+    <div className="flex min-h-screen flex-col bg-[#f7f6f3] font-sans">
+      <header className="bg-[#4b207f] px-4 py-5 text-white shadow-md md:px-8">
+        <h1 className="font-['Advent_Pro'] text-2xl font-bold md:text-3xl">Encuesta de Salud</h1>
+        <p className="text-sm text-white/80 md:text-base">{eventTitle || 'Voluntariado'}</p>
+      </header>
+
+      <main className="mx-auto w-full max-w-sm px-4 py-10">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (name.trim()) onSubmit(name.trim());
+          }}
+          className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+        >
+          <h2 className="text-lg font-semibold text-gray-900">¿Quién está encuestando?</h2>
+          <p className="mt-1 text-sm text-gray-600">
+            Su nombre queda en cada encuesta que registre. Se pide una sola vez en este dispositivo.
+          </p>
+          <Input
+            autoFocus
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="Nombre y apellido"
+            autoCapitalize="words"
+            autoComplete="off"
+            className="mt-4 h-12 bg-white text-base"
+          />
+          <Button
+            type="submit"
+            disabled={!name.trim()}
+            className="mt-4 h-12 w-full bg-[#4b207f] text-base text-white hover:bg-[#3b1965] disabled:opacity-50"
+          >
+            Continuar
+          </Button>
+        </form>
+      </main>
+    </div>
   );
 }

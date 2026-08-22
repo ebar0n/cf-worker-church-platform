@@ -20,6 +20,12 @@ export interface QueuedSurvey {
   capturedAt: string;
   /** Name shown in the pending list, so the volunteer recognizes the record. */
   name: string;
+  /**
+   * Volunteer's own name, typed once per device. Travels with the survey so it
+   * keeps who ran the interview even when another volunteer's session delivers
+   * it — signing out does not clear the queue.
+   */
+  interviewerName?: string;
   attempts: number;
   lastError?: string;
 }

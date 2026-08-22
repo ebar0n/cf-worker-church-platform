@@ -301,7 +301,8 @@ describe('surveysToCsv', () => {
       neighborhoodIssue: 'Falta de agua',
       capturedAt: '2026-08-22T10:00:00.000Z',
       createdAt: '2026-08-22T18:00:00.000Z',
-      capturedBy: 'voluntario@example.com',
+      interviewerName: 'María',
+      capturedBy: 'pedro@example.com',
     },
   ]);
 
@@ -309,8 +310,8 @@ describe('surveysToCsv', () => {
 
   it('leads with the contact data, then the questions and the capture metadata', () => {
     expect(header.slice(0, 4)).toEqual(['Nombre', 'Teléfono', 'Edad', 'Barrio (sector o etapa)']);
-    expect(header.slice(-2)).toEqual(['Registrada', 'Registrada por']);
-    expect(header).toHaveLength(SURVEY_FIELDS.length + 2);
+    expect(header.slice(-3)).toEqual(['Registrada', 'Encuestada por', 'Entregada por']);
+    expect(header).toHaveLength(SURVEY_FIELDS.length + 3);
   });
 
   it('writes Sí / A veces / No / blank so the columns stay readable', () => {
@@ -324,6 +325,16 @@ describe('surveysToCsv', () => {
 
   it('reports the moment of capture, not the moment it reached the server', () => {
     expect(cell('Registrada')).toBe('2026-08-22T10:00:00.000Z');
-    expect(row[row.length - 1]).toBe('voluntario@example.com');
+  });
+
+  it('separates who ran the interview from who delivered it', () => {
+    expect(cell('Encuestada por')).toBe('María');
+    // the trusted, Access-signed field: the one the device cannot forge
+    expect(cell('Entregada por')).toBe('pedro@example.com');
+  });
+
+  it('falls back to the delivering identity when no name was typed', () => {
+    const [head, noName] = surveysToCsv([{ capturedBy: 'pedro@example.com' }]);
+    expect(noName[head.indexOf('Encuestada por')]).toBe('pedro@example.com');
   });
 });
