@@ -1,7 +1,0 @@
-# Ignore build output
-.next
-out
-
-# Ignore node modules
-node_modules
-src/prisma/client

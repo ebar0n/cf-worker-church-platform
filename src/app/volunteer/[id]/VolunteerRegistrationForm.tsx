@@ -632,7 +632,8 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                 <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
               </svg>
               <p className="mb-2 text-sm italic leading-relaxed text-white/95 sm:text-base">
-                "Hijitos míos, no amemos de palabra ni de lengua, sino de hecho y en verdad."
+                &quot;Hijitos míos, no amemos de palabra ni de lengua, sino de hecho y en
+                verdad.&quot;
               </p>
               <p className="text-xs font-semibold text-white/70 sm:text-sm">1 Juan 3:18</p>
             </div>

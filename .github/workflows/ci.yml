@@ -39,6 +39,9 @@ jobs:
         # Same scope as the `yarn format` script
         run: yarn prettier --check "**/*.{js,jsx,ts,tsx,json,md}"
 
+      - name: Lint
+        run: yarn lint
+
       - name: Typecheck
         run: yarn tsc --noEmit
 

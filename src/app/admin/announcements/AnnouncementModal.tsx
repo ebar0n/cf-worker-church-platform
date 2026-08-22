@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm';
 import { DEPARTMENTS } from '@/lib/constants';
 import DepartmentSelector from './DepartmentSelector';
 import styles from './AnnouncementModal.module.css';
+import { MarkdownImage } from '@/app/components/MarkdownImage';
 
 interface Announcement {
   id: number;
@@ -275,7 +276,7 @@ export default function AnnouncementModal({
                       className="rounded px-2 py-1 text-sm hover:bg-gray-200"
                       title="Quote"
                     >
-                      "
+                      &quot;
                     </button>
                     <button
                       type="button"
@@ -573,54 +574,7 @@ export default function AnnouncementModal({
                           <hr {...props} className="my-2 border-gray-300" />
                         ),
                         // Customize image styling
-                        img: ({ node, ...props }) => {
-                          const [imageError, setImageError] = React.useState(false);
-                          const [imageLoading, setImageLoading] = React.useState(true);
-
-                          if (imageError) {
-                            return (
-                              <div className="mb-2 flex items-center justify-center rounded bg-gray-100 p-3 text-xs text-gray-500">
-                                <svg
-                                  className="mr-1 h-3 w-3"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                  />
-                                </svg>
-                                Imagen no disponible
-                              </div>
-                            );
-                          }
-
-                          return (
-                            <div className="relative mb-2">
-                              {imageLoading && (
-                                <div className="absolute inset-0 flex items-center justify-center rounded bg-gray-100">
-                                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#4b207f] border-t-transparent"></div>
-                                </div>
-                              )}
-                              <img
-                                {...props}
-                                className={`max-w-full rounded shadow-sm transition-opacity duration-200 ${
-                                  imageLoading ? 'opacity-0' : 'opacity-100'
-                                }`}
-                                loading="lazy"
-                                onLoad={() => setImageLoading(false)}
-                                onError={() => {
-                                  setImageLoading(false);
-                                  setImageError(true);
-                                }}
-                                style={{ maxHeight: '200px', objectFit: 'contain' }}
-                              />
-                            </div>
-                          );
-                        },
+                        img: (props) => <MarkdownImage {...props} size="sm" />,
                       }}
                     >
                       {formData.content}
@@ -731,13 +685,13 @@ export default function AnnouncementModal({
                   <div className="rounded bg-gray-50 p-3 font-mono text-sm">
                     [Texto del enlace](https://ejemplo.com)
                     <br />
-                    [Enlace con título](https://ejemplo.com "Título del enlace")
+                    [Enlace con título](https://ejemplo.com &quot;Título del enlace&quot;)
                     <br />
                     &lt;https://ejemplo.com&gt;
                     <br />
                     [Enlace de referencia][id]
                     <br />
-                    [id]: https://ejemplo.com "Título opcional"
+                    [id]: https://ejemplo.com &quot;Título opcional&quot;
                   </div>
                 </div>
 
@@ -746,7 +700,7 @@ export default function AnnouncementModal({
                   <div className="rounded bg-gray-50 p-3 font-mono text-sm">
                     ![Texto alternativo](url-imagen)
                     <br />
-                    ![Texto alternativo](url-imagen "Título de la imagen")
+                    ![Texto alternativo](url-imagen &quot;Título de la imagen&quot;)
                     <br />
                     ![Imagen con enlace](url-imagen)
                     <br />
@@ -791,11 +745,11 @@ export default function AnnouncementModal({
                     <br />
                     ```javascript
                     <br />
-                    // Bloque de código
+                    {'// Bloque de código'}
                     <br />
                     function ejemplo() {'{'}
                     <br />
-                    &nbsp;&nbsp;return "Hola mundo";
+                    &nbsp;&nbsp;return &quot;Hola mundo&quot;;
                     <br />
                     {'}'}
                     <br />

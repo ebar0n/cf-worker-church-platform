@@ -6,6 +6,7 @@ import AdminLayout from '@/app/admin/components/AdminLayout';
 import { DEPARTMENTS } from '@/lib/constants';
 import DepartmentSelector from './DepartmentSelector';
 import AnnouncementModal from './AnnouncementModal';
+import { MarkdownImage } from '@/app/components/MarkdownImage';
 
 interface Announcement {
   id: number;
@@ -357,54 +358,7 @@ export default function AnnouncementsAdmin({ adminEmail }: { adminEmail: string 
                         <hr {...props} className="my-2 border-gray-300" />
                       ),
                       // Customize image styling
-                      img: ({ node, ...props }) => {
-                        const [imageError, setImageError] = React.useState(false);
-                        const [imageLoading, setImageLoading] = React.useState(true);
-
-                        if (imageError) {
-                          return (
-                            <div className="mb-2 flex items-center justify-center rounded bg-gray-100 p-3 text-xs text-gray-500">
-                              <svg
-                                className="mr-1 h-3 w-3"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                />
-                              </svg>
-                              Imagen no disponible
-                            </div>
-                          );
-                        }
-
-                        return (
-                          <div className="relative mb-2">
-                            {imageLoading && (
-                              <div className="absolute inset-0 flex items-center justify-center rounded bg-gray-100">
-                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#4b207f] border-t-transparent"></div>
-                              </div>
-                            )}
-                            <img
-                              {...props}
-                              className={`max-w-full rounded shadow-sm transition-opacity duration-200 ${
-                                imageLoading ? 'opacity-0' : 'opacity-100'
-                              }`}
-                              loading="lazy"
-                              onLoad={() => setImageLoading(false)}
-                              onError={() => {
-                                setImageLoading(false);
-                                setImageError(true);
-                              }}
-                              style={{ maxHeight: '200px', objectFit: 'contain' }}
-                            />
-                          </div>
-                        );
-                      },
+                      img: (props) => <MarkdownImage {...props} size="sm" />,
                     }}
                   >
                     {announcement.content}
