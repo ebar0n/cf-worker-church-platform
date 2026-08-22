@@ -119,6 +119,13 @@ export async function POST(
     // Device time, sent by the offline queue. Trusted only as a timestamp: a
     // survey synced hours later must keep the moment the person was surveyed,
     // while createdAt stays the insert time for auditing.
+    // The volunteer's own name, typed once per device: what identifies the
+    // person when several of them share one Access account, and the only
+    // attribution that cannot go stale — capturedBy records who delivered it.
+    const rawInterviewer =
+      typeof body.interviewerName === 'string' ? body.interviewerName.trim().slice(0, 120) : '';
+    const interviewerName = rawInterviewer === '' ? null : rawInterviewer;
+
     const rawCapturedAt = typeof body.capturedAt === 'string' ? body.capturedAt : '';
     const parsedCapturedAt = rawCapturedAt ? new Date(rawCapturedAt) : null;
     const capturedAt =
@@ -128,6 +135,7 @@ export async function POST(
       'volunteerEventId',
       'clientId',
       'capturedBy',
+      'interviewerName',
       'capturedAt',
       'createdAt',
       'updatedAt',
@@ -137,6 +145,7 @@ export async function POST(
       eventId,
       clientId,
       capturedBy,
+      interviewerName,
       capturedAt,
       now,
       now,

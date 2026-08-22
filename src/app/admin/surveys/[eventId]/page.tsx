@@ -19,10 +19,11 @@ export default async function HealthSurveysPage({
     <>
       {/* The view paints the viewport #f7f6f3 while the site's body stays white,
           so the rubber-band scroll on macOS/iOS exposed a white strip that read
-          as a blank section below the list. Painting the canvas the same color
-          closes it, and stopping the vertical bounce also disables pull-to-refresh
-          so the iPads cannot drag the page while a volunteer fills the form. */}
-      <style>{`body { background: #f7f6f3; overscroll-behavior-y: none; }`}</style>
+          as a blank section below the list; painting the canvas the same color is
+          what closes it. The bounce itself is left alone on purpose: in the
+          installed app it is the only reload gesture there is, and a half-filled
+          form now survives a reload as a draft. */}
+      <style>{`body { background: #f7f6f3; }`}</style>
       <HealthSurveysAdmin eventId={parseInt(eventId)} volunteerEmail={volunteerEmail} />
     </>
   );

@@ -1,0 +1,13 @@
+-- Who actually ran the interview.
+--
+-- capturedBy (migration 0022) is written from the Cloudflare Access header when
+-- the POST arrives, so with an offline queue it records whoever's session
+-- DELIVERED the survey: if María captures 20 with no signal, signs out, and
+-- Pedro syncs them, all 20 are credited to Pedro.
+--
+-- interviewerName is the volunteer's own name, typed once per device and kept
+-- there. It is what identifies the person when several volunteers share one
+-- Access account, where the email identifies nobody, and unlike the Access
+-- identity it cannot go stale: offline the page is served from the service
+-- worker cache, which may have been rendered for whoever used the iPad before.
+ALTER TABLE HealthSurvey ADD COLUMN interviewerName TEXT;

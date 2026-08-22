@@ -26,6 +26,7 @@ async function postSurvey(eventId: number, item: QueuedSurvey): Promise<PostResu
       ...item.payload,
       clientId: item.clientId,
       capturedAt: item.capturedAt,
+      interviewerName: item.interviewerName,
     }),
   });
 
@@ -47,9 +48,17 @@ async function postSurvey(eventId: number, item: QueuedSurvey): Promise<PostResu
  * device, and nothing is ever removed from the queue without the server
  * answering with the stored row.
  */
-export function useSurveyOutbox(eventId: number, store: OutboxStore = createIdbStore()) {
+export function useSurveyOutbox(
+  eventId: number,
+  interviewerName = '',
+  store: OutboxStore = createIdbStore()
+) {
   const storeRef = useRef(store);
   const [pending, setPending] = useState<QueuedSurvey[]>([]);
+  // Queued for other jornadas: sync drains the whole queue, but the panel only
+  // lists this event's, so without this a volunteer who opens another jornada
+  // sees nothing and assumes the device is empty.
+  const [pendingElsewhere, setPendingElsewhere] = useState(0);
   const [online, setOnline] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [blockedMessage, setBlockedMessage] = useState('');
@@ -57,6 +66,7 @@ export function useSurveyOutbox(eventId: number, store: OutboxStore = createIdbS
   const refresh = useCallback(async () => {
     const all = await storeRef.current.all();
     setPending(all.filter((item) => item.eventId === eventId));
+    setPendingElsewhere(all.filter((item) => item.eventId !== eventId).length);
   }, [eventId]);
 
   const sync = useCallback(async () => {
@@ -119,6 +129,7 @@ export function useSurveyOutbox(eventId: number, store: OutboxStore = createIdbS
         // came back, not when the person was surveyed.
         capturedAt: new Date().toISOString(),
         name,
+        interviewerName: interviewerName || undefined,
         attempts: 0,
       };
 
@@ -128,7 +139,7 @@ export function useSurveyOutbox(eventId: number, store: OutboxStore = createIdbS
       const outcomes = await sync();
       return outcomes.find((o) => o.item.clientId === item.clientId);
     },
-    [eventId, refresh, sync]
+    [eventId, refresh, sync, interviewerName]
   );
 
   useEffect(() => {
@@ -168,6 +179,7 @@ export function useSurveyOutbox(eventId: number, store: OutboxStore = createIdbS
 
   return {
     pending,
+    pendingElsewhere,
     online,
     syncing,
     blockedMessage,

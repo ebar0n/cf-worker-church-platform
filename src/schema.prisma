@@ -370,7 +370,8 @@ model HealthSurvey {
   // Capture metadata
   clientId   String?   @unique // idempotency key minted on the device
   capturedAt DateTime? // device time; createdAt is when it reached the server
-  capturedBy String?   // Cloudflare Access email of the device that captured it
+  capturedBy       String? // Access identity that delivered it (trusted)
+  interviewerName  String? // volunteer's own name, typed once per device
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

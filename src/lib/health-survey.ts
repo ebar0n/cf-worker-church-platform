@@ -561,16 +561,17 @@ export function surveysToCsv(rows: Record<string, unknown>[]): string[][] {
   const contact = SURVEY_BLOCKS.find((block) => block.id === 'contact')?.questions ?? [];
   const columns = [...contact, ...SURVEY_QUESTIONS.filter((q) => !contact.includes(q))];
 
-  const header = [...columns.map((q) => q.label), 'Registrada', 'Registrada por'];
+  const text = (value: unknown) => (typeof value === 'string' && value.trim() ? value : '');
+
+  const header = [...columns.map((q) => q.label), 'Registrada', 'Encuestada por', 'Entregada por'];
   const body = rows.map((row) => [
     ...columns.map((q) => csvAnswer(row[q.field], q.type)),
     // The device's capture time is the real moment; createdAt is the insert.
-    typeof row.capturedAt === 'string'
-      ? row.capturedAt
-      : typeof row.createdAt === 'string'
-        ? row.createdAt
-        : '',
-    typeof row.capturedBy === 'string' ? row.capturedBy : '',
+    text(row.capturedAt) || text(row.createdAt),
+    // Who ran the interview. capturedBy alone would credit whoever synced the
+    // queue, which after a shift change is a different volunteer.
+    text(row.interviewerName) || text(row.capturedBy),
+    text(row.capturedBy),
   ]);
 
   return [header, ...body];
