@@ -21,25 +21,23 @@ export default function Header() {
             Iglesia Adventista del 7mo día
           </span>
         </a>
-        <Link
-          href="/admin"
-          className="inline-flex items-center gap-2 rounded-lg bg-[#4b207f] px-6 py-3 text-white transition-colors hover:bg-[#4b207f]/90"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="h-5 w-5"
+        {/* Two entry points on purpose: the site is installed as an app that
+            starts at "/", and volunteers need to reach the surveys without
+            passing through the rest of the admin. */}
+        <nav className="flex items-center gap-2">
+          <Link
+            href="/admin/surveys"
+            className="rounded-lg border border-white/40 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 md:text-base"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M11.25 9V5.25A2.25 2.25 0 0013.5 3h6A2.25 2.25 0 0121.75 5.25v13.5A2.25 2.25 0 0119.5 21h-6a2.25 2.25 0 01-2.25-2.25V15m-3-3h8.25m0 0l-3-3m3 3l-3 3"
-            />
-          </svg>
-        </Link>
+            Encuestas
+          </Link>
+          <Link
+            href="/admin"
+            className="rounded-lg border border-white/40 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 md:text-base"
+          >
+            Admin
+          </Link>
+        </nav>
       </header>
       <div className="h-20" /> {/* Spacer for fixed header */}
     </>

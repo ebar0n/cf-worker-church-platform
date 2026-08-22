@@ -36,6 +36,9 @@ function cleanTestData() {
   d1(`DELETE FROM FriendRequest WHERE name LIKE '${E2E_PREFIX}%'`);
   d1(`DELETE FROM Announcement WHERE title LIKE '${E2E_PREFIX}%'`);
   d1(`DELETE FROM Program WHERE title LIKE '${E2E_PREFIX}%'`);
+  d1(
+    `DELETE FROM HealthSurvey WHERE volunteerEventId IN (SELECT id FROM VolunteerEvent WHERE title LIKE '${E2E_PREFIX}%')`
+  );
   d1(`DELETE FROM VolunteerEvent WHERE title LIKE '${E2E_PREFIX}%'`);
   d1(`DELETE FROM Course WHERE slug='${TEST_COURSE_SLUG}' OR title LIKE '${E2E_PREFIX}%'`);
 }

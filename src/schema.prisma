@@ -241,6 +241,7 @@ model VolunteerEvent {
 
   // Relations
   registrations VolunteerRegistration[]
+  healthSurveys HealthSurvey[]
 
   @@index([eventDate])
   @@index([isActive])
@@ -320,3 +321,64 @@ model CourseEnrollment {
   @@index([status])
   @@index([createdAt])
 }
+
+
+model HealthSurvey {
+
+  id               Int      @id @default(autoincrement())
+  volunteerEventId Int
+
+  // Ley 1581 consent, asked before anything else. The API refuses to store a
+  // row without it; nullable so the rule lives in one place instead of two.
+  acceptsDataTreatment Boolean?
+
+  // Habits: 'si' | 'aveces' | 'no', null = sin responder. Not booleans: as a
+  // binary, every honest "a veces" landed in "No" (see migration 0022).
+  drinksWater          String?
+  exercises            String?
+  eatsFruitsVegetables String?
+  sleepsEightHours     String?
+  attendsCheckups      Boolean?
+
+  // Conditions
+  hasDiabetes          Boolean @default(false)
+  hasHighBloodPressure Boolean @default(false)
+  hasHeartDisease      Boolean @default(false)
+  hasHighCholesterol   Boolean @default(false)
+  hasOverweight        Boolean @default(false)
+  hasDepression        Boolean @default(false)
+  otherCondition       String?
+  familyHistory        Boolean?
+  familyHistoryDetail  String?
+
+  // Interest in courses (one spoken question, several boxes)
+  wantsHealthyHabitsCourse   Boolean @default(false)
+  wantsHealthyCookingCourse  Boolean @default(false)
+  wantsEmotionalHealthCourse Boolean @default(false)
+  wantsPersonalFinanceCourse Boolean @default(false)
+
+  // Open questions about the neighborhood
+  neighborhoodIssue       String?
+  neighborhoodImprovement String?
+
+  // Contact data, all optional: a survey with no identifiers is still valid
+  name         String?
+  phone        String?
+  age          Int?
+  neighborhood String?
+
+  // Capture metadata
+  clientId   String?   @unique // idempotency key minted on the device
+  capturedAt DateTime? // device time; createdAt is when it reached the server
+  capturedBy String?   // Cloudflare Access email of the device that captured it
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  event VolunteerEvent @relation(fields: [volunteerEventId], references: [id], onDelete: Cascade)
+
+  @@index([volunteerEventId, capturedAt])
+  @@index([volunteerEventId, phone])
+}
+
