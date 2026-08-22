@@ -2,7 +2,7 @@
 //
 // Goal: volunteers install the site from Safari on iPads and use it during
 // health outreach days in neighborhoods with no coverage. The app must OPEN
-// offline and show the last known survey data.
+// offline. Survey data is never cached; only the app shell is.
 //
 // Hard rules:
 //  - Only GET is ever intercepted. Mutations (POST/PUT/DELETE) go straight to
@@ -14,11 +14,12 @@
 //    non-200 responses are never cached and are passed through as-is so the
 //    user can re-authenticate.
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const STATIC_CACHE = `jordan-static-${CACHE_VERSION}`;
 const PAGES_CACHE = `jordan-pages-${CACHE_VERSION}`;
-const API_CACHE = `jordan-api-${CACHE_VERSION}`;
-const CURRENT_CACHES = [STATIC_CACHE, PAGES_CACHE, API_CACHE];
+// No API cache on purpose: see networkOnly below. Bumping the version also
+// evicts the jordan-api-* cache an earlier worker may have written.
+const CURRENT_CACHES = [STATIC_CACHE, PAGES_CACHE];
 
 // Synthetic key holding the last successful navigation, used as the app shell
 // when an offline navigation targets a URL that was never cached.
@@ -110,7 +111,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (isSurveyApi(url)) {
-    event.respondWith(networkFirst(event, request, API_CACHE));
+    event.respondWith(networkOnly(request));
     return;
   }
 
@@ -193,21 +194,16 @@ async function cacheFirst(event, request, cacheName) {
   return response;
 }
 
-// Survey reads: always prefer the network, but keep the last good payload so
-// the list and the metrics still render the last known state offline.
-async function networkFirst(event, request, cacheName) {
-  const cache = await caches.open(cacheName);
-
+// Survey reads: network only, deliberately NOT cached. Cache Storage ignores
+// Cache-Control, so caching these answers would leave the health data of every
+// person surveyed sitting on the iPad in clear text, indefinitely — for a screen
+// (the list and the metrics) that is read with signal anyway. Offline, the app
+// gets a clear 503 and says "sin conexión" instead of showing stale records; the
+// volunteer's own pending surveys come from the device queue, not from here.
+async function networkOnly(request) {
   try {
-    const response = await fetch(request);
-    if (isCacheable(response)) {
-      event.waitUntil(cache.put(request, response.clone()));
-    }
-    return response;
+    return await fetch(request);
   } catch {
-    const cached = await cache.match(request, { ignoreSearch: false });
-    if (cached) return cached;
-
     return new Response(JSON.stringify({ error: 'offline', offline: true }), {
       status: 503,
       headers: { 'Content-Type': 'application/json; charset=utf-8', 'X-SW-Offline': '1' },

@@ -97,6 +97,11 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
       setLoading(true);
       const res = await fetch(`/api/admin/surveys/${eventId}`);
       if (res.status === 404) throw new Error('Evento no encontrado');
+      // The service worker answers 503 {offline} rather than serving stale
+      // records: capturing still works, only the list needs signal.
+      if (res.status === 503) {
+        throw new Error('Sin conexión: el listado y las métricas se verán cuando haya señal');
+      }
       if (!res.ok) throw new Error('No se pudieron cargar las encuestas');
       const data = (await res.json()) as {
         event: { id: number; title: string };

@@ -103,19 +103,27 @@ Volunteers work with no signal, so the app has to open and keep capturing
 without it.
 
 - **Installed as an app.** `public/manifest.webmanifest` ("Iglesia Jordán",
-  `start_url: /`, standalone) plus the icons generated from the church logo. Not
-  cosmetic: iOS evicts site data — caches **and the IndexedDB queue** — after
+  `start_url: /`, standalone) plus the icons generated from the church logo and
+  long-press shortcuts to Encuestas, Admin and Inicio (Android and desktop only:
+  iOS ignores `shortcuts`, which is why the site header carries the same two
+  entry points). Not cosmetic: iOS evicts site data — caches **and the IndexedDB queue** — after
   about seven days without visits, and home-screen web apps are exempt. An iPad
   stored for two weeks with unsynced surveys in a Safari tab can come back empty.
 - **Service worker** (`public/sw.js`, registered by
   `src/app/components/ServiceWorkerRegistrar.tsx`): cache-first for
   `/_next/static`, fonts and icons; network-first with a cached fallback for
-  navigations and for survey GETs, so the list and the metrics show the last
-  known state. It **never** touches POST/PUT/DELETE — a service worker answering
-  "ok" to a mutation it did not send is how data disappears silently — and it
-  never caches a redirect, an opaque response or anything that is not a 200 from
-  our own origin, which is what keeps Cloudflare Access login pages out of the
-  cache.
+  navigations, which is what makes the app open with no signal. It **never**
+  touches POST/PUT/DELETE — a service worker answering "ok" to a mutation it did
+  not send is how data disappears silently — and it never caches a redirect, an
+  opaque response or anything that is not a 200 from our own origin, which is
+  what keeps Cloudflare Access login pages out of the cache.
+- **Survey reads are not cached at all.** Cache Storage ignores `Cache-Control`,
+  so caching them would leave the health data of everyone surveyed on the iPad in
+  clear text indefinitely — to serve a screen (the list and the metrics) that is
+  read with signal anyway. Offline the app answers 503 and says so; the
+  volunteer's own pending surveys come from the device queue. The only health
+  data at rest on the device is therefore what has not been delivered yet, and it
+  is deleted as soon as it is.
 - **Outbox** (`src/lib/survey-outbox.ts` + `useSurveyOutbox`): every new survey
   is written to IndexedDB **first** and only then sent, so a tab that dies
   mid-request still has it. The one rule that matters: **a queued survey is

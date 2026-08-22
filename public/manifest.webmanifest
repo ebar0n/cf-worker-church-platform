@@ -32,8 +32,21 @@
   "shortcuts": [
     {
       "name": "Encuestas de salud",
-      "url": "/admin/volunteer-events",
-      "description": "Jornadas de voluntariado y sus encuestas"
+      "short_name": "Encuestas",
+      "url": "/admin/surveys",
+      "description": "Jornadas de voluntariado y captura de encuestas"
+    },
+    {
+      "name": "Administración",
+      "short_name": "Admin",
+      "url": "/admin",
+      "description": "Panel de administración de la iglesia"
+    },
+    {
+      "name": "Inicio",
+      "short_name": "Inicio",
+      "url": "/",
+      "description": "Página principal del sitio"
     }
   ]
 }
