@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
               phone: member.phone,
               email: member.email,
               birthDate: member.birthDate,
+              gender: member.gender,
               updatedAt: member.updatedAt,
             },
           });

@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import { getDepartmentImage, getDepartmentName, getDepartmentColor } from '@/lib/constants';
 import ProgramLandingPageClient from '@/app/program/[id]/components/ProgramLandingPageClient';
+import ProgramEnrollmentClient from '@/app/program/[id]/components/ProgramEnrollmentClient';
+import { usesFamilyEnrollment } from '@/lib/constants';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 interface Program {
@@ -112,6 +114,42 @@ export async function generateMetadata({
   }
 }
 
-export default function ProgramPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ProgramPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const programId = parseInt(id);
+
+  // Family-enrollment programs use the family-group flow; everything else
+  // keeps the per-child landing
+  if (!isNaN(programId)) {
+    try {
+      const { env } = getCloudflareContext();
+      const program = (await env.DB.prepare(
+        'SELECT id, title, content, department FROM Program WHERE id = ? AND isActive = 1'
+      )
+        .bind(programId)
+        .first()) as {
+        id: number;
+        title: string;
+        content: string | null;
+        department: string;
+      } | null;
+
+      if (program && usesFamilyEnrollment(program.department)) {
+        return (
+          <ProgramEnrollmentClient
+            programId={program.id}
+            programTitle={program.title}
+            programContent={program.content}
+            programColor={getDepartmentColor(program.department)}
+            departmentName={getDepartmentName(program.department)}
+            departmentImage={getDepartmentImage(program.department)}
+          />
+        );
+      }
+    } catch (error) {
+      console.error('Error resolving program flow:', error);
+    }
+  }
+
   return <ProgramLandingPageClient />;
 }

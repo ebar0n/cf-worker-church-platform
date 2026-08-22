@@ -2,13 +2,11 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "sqlite"
-  url      = env("NOT_USED")
 }
 
 model Member {
@@ -64,6 +62,9 @@ model Member {
   // Relations
   childGuardians         ChildGuardian[]         @relation("ChildGuardians")
   volunteerRegistrations VolunteerRegistration[] @relation("VolunteerRegistrations")
+  healthProfile          HealthProfile?          @relation("MemberHealthProfile")
+  adultEnrollments       ProgramAdultEnrollment[] @relation("AdultEnrollments")
+  enrolledChildren       Enrollment[]            @relation("EnrolledChildren")
 }
 
 model FriendRequest {
@@ -103,7 +104,8 @@ model Program {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  enrollments Enrollment[]
+  enrollments      Enrollment[]
+  adultEnrollments ProgramAdultEnrollment[]
 
   @@index([department])
   @@index([isActive])
@@ -123,6 +125,7 @@ model Child {
   // Relations
   enrollments   Enrollment[] @relation("ChildEnrollments")
   guardians     ChildGuardian[]
+  healthProfile HealthProfile? @relation("ChildHealthProfile")
 
   @@index([createdAt])
   @@index([documentID])
@@ -153,6 +156,9 @@ model Enrollment {
   programId   Int      // Reference to the program/event
   childId     Int      // Required - programs are for children only
 
+  physicalFormReceivedAt DateTime? // signed authorization printout received
+  enrolledByMemberId     Int?      // which tutor registered the child
+
   // Timestamps
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -160,11 +166,63 @@ model Enrollment {
   // Relations
   program     Program  @relation(fields: [programId], references: [id])
   child       Child    @relation("ChildEnrollments", fields: [childId], references: [id])
+  enrolledBy  Member?  @relation("EnrolledChildren", fields: [enrolledByMemberId], references: [id])
 
   @@unique([programId, childId])
   @@index([programId])
   @@index([childId])
   @@index([createdAt])
+}
+
+// Health record: one per person (child XOR member), program-independent.
+model HealthProfile {
+  id       Int  @id @default(autoincrement())
+  childId  Int? @unique
+  memberId Int? @unique
+
+  bloodType   String?
+  eps         String?
+  allergies   String?
+  conditions  String?
+  medications String?
+
+  photoUrl      String?
+  idDocumentUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  child  Child?  @relation("ChildHealthProfile", fields: [childId], references: [id], onDelete: Cascade)
+  member Member? @relation("MemberHealthProfile", fields: [memberId], references: [id], onDelete: Cascade)
+}
+
+// Adult participation in a program's family enrollment. The adult's consent
+// covers the children they register.
+model ProgramAdultEnrollment {
+  id           Int     @id @default(autoincrement())
+  programId    Int
+  memberId     Int
+  role         String  @default("tutor") // legacy, unused (relationship replaced it)
+  relationship String? // father | mother | tutor (the adult's relation to the children)
+
+  dataTreatmentAcceptedAt  DateTime?
+  participationConfirmedAt DateTime?
+  physicalFormReceivedAt   DateTime?
+
+  // Family-group emergency contact (denormalized across the group's adults)
+  emergencyContactName     String?
+  emergencyContactPhone    String?
+  emergencyContactRelation String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  member  Member  @relation("AdultEnrollments", fields: [memberId], references: [id])
+
+  @@unique([programId, memberId])
+  @@index([programId])
+  @@index([memberId])
 }
 
 // Volunteer Event information

@@ -1,11 +1,12 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Header from '@/app/components/Header';
 import Footer from '@/app/components/Footer';
 import { getDepartmentImage, getDepartmentColor, getDepartmentName } from '@/lib/constants';
+import { MarkdownImage } from '@/app/components/MarkdownImage';
 
 interface Announcement {
   id: number;
@@ -386,54 +387,7 @@ export default function AnnouncementDetailPageClient() {
                         <hr {...props} className="my-8 border-gray-300" />
                       ),
                       // Customize image styling
-                      img: ({ node, ...props }) => {
-                        const [imageError, setImageError] = React.useState(false);
-                        const [imageLoading, setImageLoading] = React.useState(true);
-
-                        if (imageError) {
-                          return (
-                            <div className="mb-4 flex items-center justify-center rounded bg-gray-100 p-6 text-gray-500">
-                              <svg
-                                className="mr-2 h-6 w-6"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                />
-                              </svg>
-                              Imagen no disponible
-                            </div>
-                          );
-                        }
-
-                        return (
-                          <div className="relative mb-4">
-                            {imageLoading && (
-                              <div className="absolute inset-0 flex items-center justify-center rounded bg-gray-100">
-                                <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#4b207f] border-t-transparent"></div>
-                              </div>
-                            )}
-                            <img
-                              {...props}
-                              className={`max-w-full rounded shadow-lg transition-opacity duration-200 ${
-                                imageLoading ? 'opacity-0' : 'opacity-100'
-                              }`}
-                              loading="lazy"
-                              onLoad={() => setImageLoading(false)}
-                              onError={() => {
-                                setImageLoading(false);
-                                setImageError(true);
-                              }}
-                              style={{ maxHeight: '500px', objectFit: 'contain' }}
-                            />
-                          </div>
-                        );
-                      },
+                      img: (props) => <MarkdownImage {...props} size="lg" />,
                     }}
                   >
                     {announcement.content}

@@ -224,7 +224,7 @@ export default function MemberFormClient() {
         const createRes = await fetch('/api/member', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(initialData),
+          body: JSON.stringify({ ...initialData, token: turnstileToken }),
         });
 
         if (createRes.ok) {
@@ -274,7 +274,7 @@ export default function MemberFormClient() {
       const res = await fetch('/api/member', {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, token: turnstileToken }),
       });
 
       if (!res.ok) {
@@ -371,7 +371,7 @@ export default function MemberFormClient() {
       const res = await fetch('/api/member', {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, token: turnstileToken }),
       });
 
       if (res.ok) {

@@ -6,7 +6,7 @@ import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Checkbox } from '@/app/components/ui/checkbox';
 import { Program, Enrollment } from '@/app/types';
-import { DEPARTMENTS, getDepartmentName } from '@/lib/constants';
+import { DEPARTMENTS, getDepartmentName, usesFamilyEnrollment } from '@/lib/constants';
 
 interface ProgramsAdminProps {
   adminEmail: string;
@@ -726,6 +726,14 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                   Inscritos en {selectedProgram.title}
                 </h2>
                 <div className="flex space-x-2">
+                  {usesFamilyEnrollment(selectedProgram.department) && (
+                    <a
+                      href={`/admin/programs/${selectedProgram.id}/roster`}
+                      className="inline-flex items-center rounded-md border border-green-700 bg-white px-4 text-sm font-medium text-green-700 hover:bg-green-700 hover:text-white"
+                    >
+                      Grupos familiares
+                    </a>
+                  )}
                   <Button
                     onClick={() => downloadCSV(selectedProgram)}
                     className="bg-green-600 text-white hover:bg-green-700"

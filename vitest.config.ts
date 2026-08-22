@@ -17,6 +17,17 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
+    coverage: {
+      provider: 'v8',
+      // Total app coverage: everything under src/ except Prisma's generated
+      // client. Caveat: the E2E suite exercises API routes and pages inside
+      // workerd (a separate process), which V8 coverage cannot instrument —
+      // so this number reflects unit/component tests only and undercounts
+      // the real tested surface.
+      include: ['src/**'],
+      exclude: ['src/prisma/**', '**/*.d.ts'],
+      reporter: ['text-summary'],
+    },
     projects: [
       {
         extends: true,

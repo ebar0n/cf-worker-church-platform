@@ -73,6 +73,21 @@ export default function IdentificationStep({
     }
   }, [siteKey, onTurnstileChange, widgetRendered]);
 
+  // Fallback for lost widget callbacks (e.g. after transient error 600010):
+  // Turnstile mirrors the token into a hidden input, so sync from it
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const value = turnstileRef.current?.querySelector<HTMLInputElement>(
+        'input[name="cf-turnstile-response"]'
+      )?.value;
+      if (value) {
+        onTurnstileChange(value);
+      }
+    }, 1500);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const renderTurnstileWidget = () => {
     if (turnstileRef.current && window.turnstile) {
       window.turnstile.render(turnstileRef.current, {
@@ -84,7 +99,18 @@ export default function IdentificationStep({
           onTurnstileChange('');
         },
         'error-callback': () => {
+          // Transient widget errors (e.g. 600010) can strand the flow:
+          // reset so Turnstile retries with a fresh instance
           onTurnstileChange('');
+          setTimeout(() => {
+            if (window.turnstile && turnstileRef.current) {
+              try {
+                window.turnstile.reset(turnstileRef.current);
+              } catch {
+                // widget already gone
+              }
+            }
+          }, 2000);
         },
         appearance: 'always',
         theme: 'light',

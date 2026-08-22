@@ -11,6 +11,7 @@ vi.mock('@opennextjs/cloudflare', () => ({
 }));
 
 import {
+  isDevelopmentRequest,
   attachFormPass,
   hasValidFormPass,
   withTurnstileProtection,
@@ -182,6 +183,68 @@ describe('withTurnstileProtection', () => {
     expect(res.status).toBe(400); // token still required
   });
 
+  it('forwards the JSON body on PUT (not only POST)', async () => {
+    vi.stubGlobal('fetch', siteverifyOk());
+    const request = new NextRequest('https://example.org/api/x', {
+      method: 'PUT',
+      body: JSON.stringify({ token: 'tok', documentID: '77' }),
+    });
+    const handler = vi.fn(async (req: NextRequest) => {
+      const body = (await req.json()) as { documentID: string };
+      return NextResponse.json({ got: body.documentID });
+    });
+    const res = await withTurnstileProtection(request, handler);
+    expect(await res.json()).toEqual({ got: '77' });
+  });
+
+  const multipartRequest = (withToken: boolean, cookie?: string) => {
+    const form = new FormData();
+    if (withToken) form.append('token', 'tok');
+    form.append('documentID', '55');
+    form.append('photo', new File([new Uint8Array(16)], 'foto.jpg', { type: 'image/jpeg' }));
+    return new NextRequest('https://example.org/api/x', {
+      method: 'POST',
+      headers: cookie ? { cookie } : undefined,
+      body: form,
+    });
+  };
+
+  it('rejects multipart without token', async () => {
+    const res = await withTurnstileProtection(multipartRequest(false), vi.fn() as any);
+    expect(res.status).toBe(400);
+  });
+
+  it('verifies multipart and forwards a parseable FormData with files', async () => {
+    vi.stubGlobal('fetch', siteverifyOk());
+    const handler = vi.fn(async (req: NextRequest) => {
+      const form = await req.formData();
+      const photo = form.get('photo') as File;
+      return NextResponse.json({ doc: form.get('documentID'), photoSize: photo.size });
+    });
+    const res = await withTurnstileProtection(multipartRequest(true), handler);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ doc: '55', photoSize: 16 });
+    expect(res.cookies.get('form_pass')?.value).toBeTruthy();
+  });
+
+  it('lets a valid form pass skip verification on multipart too', async () => {
+    const cookieValue = await issueCookie();
+    const fetchSpy = siteverifyOk();
+    vi.stubGlobal('fetch', fetchSpy);
+    const handler = vi.fn(async (req: NextRequest) => {
+      const form = await req.formData();
+      return NextResponse.json({ doc: form.get('documentID') });
+    });
+    const res = await withTurnstileProtection(
+      multipartRequest(false, `form_pass=${cookieValue}`),
+      handler,
+      { allowFormPass: true }
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ doc: '55' });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
   it('reads the token from query params on GET', async () => {
     vi.stubGlobal('fetch', siteverifyOk());
     const request = new NextRequest('https://example.org/api/x?token=tok', { method: 'GET' });
@@ -189,6 +252,34 @@ describe('withTurnstileProtection', () => {
     const res = await withTurnstileProtection(request, handler);
     expect(res.status).toBe(200);
     expect(handler).toHaveBeenCalled();
+  });
+});
+
+describe('isDevelopmentRequest', () => {
+  it('detects localhost via the host header', () => {
+    const req = new NextRequest('http://localhost:3000/api/x', {
+      headers: { host: 'localhost:3000' },
+    });
+    expect(isDevelopmentRequest(req)).toBe(true);
+  });
+
+  it('treats a production host as non-development', () => {
+    const req = new NextRequest('https://iglesiajordanibague.org/api/x', {
+      headers: { host: 'iglesiajordanibague.org' },
+    });
+    expect(isDevelopmentRequest(req)).toBe(false);
+  });
+
+  it('treats a *.workers.dev preview host as development (test keys)', () => {
+    const req = new NextRequest(
+      'https://feature-club-family-enrollment-cf-worker-church-platform.ebar0n.workers.dev/api/x',
+      {
+        headers: {
+          host: 'feature-club-family-enrollment-cf-worker-church-platform.ebar0n.workers.dev',
+        },
+      }
+    );
+    expect(isDevelopmentRequest(req)).toBe(true);
   });
 });
 

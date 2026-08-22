@@ -23,6 +23,9 @@ function cleanTestData() {
   d1(`DELETE FROM VolunteerRegistration WHERE memberDocumentID IN (${docIds})`);
   d1(`DELETE FROM CourseEnrollment WHERE documentNumber IN (${docIds})`);
   d1(
+    `DELETE FROM ProgramAdultEnrollment WHERE memberId IN (SELECT id FROM Member WHERE documentID IN (${docIds}))`
+  );
+  d1(
     `DELETE FROM Enrollment WHERE childId IN (SELECT id FROM Child WHERE documentID IN (${docIds}))`
   );
   d1(

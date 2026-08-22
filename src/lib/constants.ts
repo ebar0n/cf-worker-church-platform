@@ -114,6 +114,13 @@ export const DEPARTMENTS: Department[] = [
   },
 ];
 
+// Programs in these departments use the family-group enrollment flow
+// (adults + children + emergency contact) instead of the per-child one
+export const FAMILY_ENROLLMENT_DEPARTMENTS = ['club-aventureros', 'club-conquistadores'];
+
+export const usesFamilyEnrollment = (code: string): boolean =>
+  FAMILY_ENROLLMENT_DEPARTMENTS.includes(code);
+
 export const getDepartmentByCode = (code: string): Department | undefined => {
   return DEPARTMENTS.find((dept) => dept.code === code);
 };

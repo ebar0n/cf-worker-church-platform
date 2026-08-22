@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
       const parse = friendRequestSchema.safeParse(data);
       if (!parse.success) {
         return NextResponse.json(
-          { error: 'Invalid input', details: parse.error.errors },
+          { error: 'Invalid input', details: parse.error.issues },
           { status: 400 }
         );
       }

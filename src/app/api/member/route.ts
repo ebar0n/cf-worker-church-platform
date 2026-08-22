@@ -89,7 +89,7 @@ async function handleCreateMember(request: NextRequest) {
 
     if (!parse.success) {
       return NextResponse.json(
-        { error: 'Invalid input', details: parse.error.errors },
+        { error: 'Invalid input', details: parse.error.issues },
         { status: 400 }
       );
     }
@@ -133,7 +133,7 @@ async function handleUpdateMember(request: NextRequest) {
 
     if (!parse.success) {
       return NextResponse.json(
-        { error: 'Invalid input', details: parse.error.errors },
+        { error: 'Invalid input', details: parse.error.issues },
         { status: 400 }
       );
     }

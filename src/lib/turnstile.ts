@@ -50,11 +50,26 @@ export async function verifyTurnstileToken(
   }
 }
 
-// Resolve the secret key for a request: test key on localhost, real key in production
-export function getTurnstileSecretKeyForRequest(request: NextRequest): string {
+// True when the request should use the Turnstile TEST keys instead of the
+// production pair: local development and preview deployments. Primary signal is
+// NEXTJS_ENV (set to "development" in .dev.vars, unset/"production" in prod);
+// the host check is a fallback for `next dev`. Under `opennextjs preview` the
+// Host header is not localhost, so relying on host alone left the widget on
+// the production sitekey and the token never validated.
+// Preview deployments live on `*.workers.dev`, where the production sitekey is
+// domain-locked (to iglesiajordanibague.org) and the widget refuses to render —
+// so those hosts also fall back to the test keys. Production is served from the
+// custom domain, which keeps the real keys.
+export function isDevelopmentRequest(request: NextRequest): boolean {
+  const { env } = getCloudflareContext();
+  if (env.NEXTJS_ENV === 'development') return true;
   const host = request.headers.get('host') || '';
-  const isDevelopment = host.includes('localhost') || host.includes('127.0.0.1');
-  return isDevelopment ? TURNSTILE_TEST_SECRET_KEY : getTurnstileSecretKey();
+  return host.includes('localhost') || host.includes('127.0.0.1') || host.endsWith('.workers.dev');
+}
+
+// Resolve the secret key for a request: test key in dev, real key in production
+export function getTurnstileSecretKeyForRequest(request: NextRequest): string {
+  return isDevelopmentRequest(request) ? TURNSTILE_TEST_SECRET_KEY : getTurnstileSecretKey();
 }
 
 async function getFormPassKey(): Promise<CryptoKey> {
@@ -72,9 +87,9 @@ function toHex(buffer: ArrayBuffer): string {
     .join('');
 }
 
-function fromHex(hex: string): Uint8Array | null {
+function fromHex(hex: string): Uint8Array<ArrayBuffer> | null {
   if (!/^[0-9a-f]+$/.test(hex) || hex.length % 2 !== 0) return null;
-  const bytes = new Uint8Array(hex.length / 2);
+  const bytes = new Uint8Array(new ArrayBuffer(hex.length / 2));
   for (let i = 0; i < bytes.length; i++) {
     bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
   }
@@ -103,11 +118,14 @@ export async function hasValidFormPass(request: NextRequest): Promise<boolean> {
   return crypto.subtle.verify('HMAC', key, signature, new TextEncoder().encode(`${exp}`));
 }
 
-// Attach (or refresh) the form-pass cookie after a successful verification
-export async function attachFormPass(response: NextResponse): Promise<void> {
+// Attach (or refresh) the form-pass cookie after a successful verification.
+// The Secure flag follows the request protocol: some browsers (Safari) drop
+// Secure cookies over plain-http local development, which silently broke
+// every cookie-backed form flow there.
+export async function attachFormPass(response: NextResponse, secure = true): Promise<void> {
   response.cookies.set(FORM_PASS_COOKIE, await createFormPassValue(), {
     httpOnly: true,
-    secure: true,
+    secure,
     sameSite: 'strict',
     path: '/api',
     maxAge: FORM_PASS_TTL_SECONDS,
@@ -125,23 +143,29 @@ export async function withTurnstileProtection(
   options?: { allowFormPass?: boolean }
 ): Promise<NextResponse> {
   try {
+    const secureCookie = request.url.startsWith('https://');
+
     if (options?.allowFormPass && (await hasValidFormPass(request))) {
       const response = await handler(request);
-      await attachFormPass(response); // sliding expiration
+      await attachFormPass(response, secureCookie); // sliding expiration
       return response;
     }
 
     const secretKey = getTurnstileSecretKeyForRequest(request);
+    const contentType = request.headers.get('content-type') || '';
+    const isMultipart = contentType.includes('multipart/form-data');
     let token: string;
 
-    // Get token based on HTTP method
+    // Get token based on HTTP method and body type
     let originalBody: any = {};
+    let originalFormData: FormData | null = null;
     if (request.method === 'GET') {
-      // For GET requests, get token from query parameters
       const url = new URL(request.url);
       token = url.searchParams.get('token') || '';
+    } else if (isMultipart) {
+      originalFormData = await request.formData();
+      token = (originalFormData.get('token') as string) || '';
     } else {
-      // For POST requests, get token from request body
       originalBody = await request.json();
       token = originalBody.token;
     }
@@ -172,18 +196,31 @@ export async function withTurnstileProtection(
       );
     }
 
-    // Create a new request with the original body for the handler
-    const newRequest = new NextRequest(request.url, {
-      method: request.method,
-      headers: request.headers,
-      body: request.method === 'POST' ? JSON.stringify(originalBody) : undefined,
-    });
+    // Create a new request with the original body for the handler. For
+    // multipart, drop the original content-type so the runtime sets a fresh
+    // boundary matching the re-encoded body.
+    let newRequest: NextRequest;
+    if (originalFormData) {
+      const headers = new Headers(request.headers);
+      headers.delete('content-type');
+      newRequest = new NextRequest(request.url, {
+        method: request.method,
+        headers,
+        body: originalFormData,
+      });
+    } else {
+      newRequest = new NextRequest(request.url, {
+        method: request.method,
+        headers: request.headers,
+        body: request.method === 'GET' ? undefined : JSON.stringify(originalBody),
+      });
+    }
 
     // If verification passes, call the original handler.
     // The form pass is issued regardless of the handler's outcome: the
     // captcha was solved, so follow-up lookups shouldn't need a new token.
     const response = await handler(newRequest);
-    await attachFormPass(response);
+    await attachFormPass(response, secureCookie);
     return response;
   } catch (error) {
     console.error('Error in Turnstile protection middleware:', error);
