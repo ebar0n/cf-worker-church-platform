@@ -241,6 +241,7 @@ model VolunteerEvent {
 
   // Relations
   registrations VolunteerRegistration[]
+  healthSurveys HealthSurvey[]
 
   @@index([eventDate])
   @@index([isActive])
@@ -319,4 +320,61 @@ model CourseEnrollment {
   @@index([documentNumber])
   @@index([status])
   @@index([createdAt])
+}
+
+
+model HealthSurvey {
+
+  id               Int      @id @default(autoincrement())
+  volunteerEventId Int
+
+  // Own conditions (marked with an "X" on the printed sheet)
+  hasDiabetes           Boolean @default(false)
+  hasHighBloodPressure  Boolean @default(false)
+  hasHeartDisease       Boolean @default(false)
+  hasHighCholesterol    Boolean @default(false)
+  hasOverweight         Boolean @default(false)
+  hasDepression         Boolean @default(false)
+  otherCondition        String?
+
+  // Family history
+  familyHistory       Boolean? // null = unanswered
+  familyHistoryDetail String?
+
+  // Habits
+  drinksWater          Boolean?
+  exercises            Boolean?
+  eatsFruitsVegetables Boolean?
+  sleepsEightHours     Boolean?
+  attendsCheckups      Boolean?
+  checkupsDetail       String?
+
+  // Interest in courses and talks
+  wantsHealthyHabitsCourse   Boolean?
+  wantsHealthTalk            Boolean?
+  wantsHealthyCookingCourse  Boolean?
+  wantsEmotionalHealthCourse Boolean?
+  wantsPersonalFinanceCourse Boolean?
+
+  // Open questions about the neighborhood
+  neighborhoodIssue       String?
+  neighborhoodImprovement String?
+
+  // Contact data
+  name         String
+  phone        String
+  neighborhood String?
+  address      String?
+
+  capturedBy String? // Cloudflare Access email of the device that captured it
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  event VolunteerEvent @relation(fields: [volunteerEventId], references: [id], onDelete: Cascade)
+
+  @@index([volunteerEventId])
+  @@index([createdAt])
+  @@index([phone])
 }

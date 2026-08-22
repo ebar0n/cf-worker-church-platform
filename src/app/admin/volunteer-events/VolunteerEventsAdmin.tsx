@@ -19,6 +19,7 @@ interface VolunteerEvent {
   updatedAt: string;
   _count?: {
     registrations: number;
+    healthSurveys: number;
   };
 }
 
@@ -647,6 +648,13 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                     Ver Voluntarios
                     {event._count && <span className="ml-1">({event._count.registrations})</span>}
                   </button>
+                  <a
+                    href={`/admin/surveys/${event.id}`}
+                    className="rounded-lg border border-green-700 bg-white px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-700 hover:text-white"
+                  >
+                    Encuestas
+                    {event._count && <span className="ml-1">({event._count.healthSurveys})</span>}
+                  </a>
                   <button
                     onClick={() => copyRegistrationLink(event.id)}
                     className="flex items-center gap-2 rounded-lg border border-[#4b207f] bg-white px-4 py-2 text-sm font-medium text-[#4b207f] hover:bg-[#4b207f]/10"

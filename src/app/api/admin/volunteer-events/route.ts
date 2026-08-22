@@ -25,19 +25,22 @@ export async function GET(request: NextRequest) {
       .bind(...params)
       .all();
 
-    // For each event, count the number of volunteer registrations
+    // For each event, count volunteer registrations and captured health surveys
     const eventsWithCounts = await Promise.all(
       (events.results as any[]).map(async (event) => {
         const countResult = await env.DB.prepare(
-          'SELECT COUNT(*) as count FROM VolunteerRegistration WHERE volunteerEventId = ?'
+          `SELECT
+             (SELECT COUNT(*) FROM VolunteerRegistration WHERE volunteerEventId = ?) AS registrations,
+             (SELECT COUNT(*) FROM HealthSurvey WHERE volunteerEventId = ?) AS healthSurveys`
         )
-          .bind(event.id)
+          .bind(event.id, event.id)
           .first();
 
         return {
           ...event,
           _count: {
-            registrations: countResult ? (countResult as any).count : 0,
+            registrations: countResult ? (countResult as any).registrations : 0,
+            healthSurveys: countResult ? (countResult as any).healthSurveys : 0,
           },
         };
       })
