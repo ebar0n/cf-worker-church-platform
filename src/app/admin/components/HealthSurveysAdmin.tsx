@@ -384,7 +384,16 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
             </svg>
             <span className="hidden md:inline">Jornadas</span>
           </a>
-          <AccessLogoutButton className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-white hover:bg-white/20 disabled:opacity-60 md:px-4" />
+          {/* Signing out with surveys still queued strands them: the queue
+              cannot sync without a session. */}
+          <AccessLogoutButton
+            className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-white hover:bg-white/20 disabled:opacity-60 md:px-4"
+            warning={
+              outbox.pending.length > 0
+                ? `Quedan ${outbox.pending.length} encuestas sin enviar en este dispositivo`
+                : undefined
+            }
+          />
         </div>
       </header>
 
