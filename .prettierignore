@@ -1,0 +1,4 @@
+# Generated files: keep the generator's exact output so re-running
+# `yarn cf:typegen` (or a Next build) leaves no diff behind.
+cloudflare-env.d.ts
+next-env.d.ts
