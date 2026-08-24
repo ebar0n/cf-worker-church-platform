@@ -23,6 +23,7 @@ yarn db:generate           # Generate Prisma client
 yarn dev                   # Start development server with Turbopack
 yarn build                 # Production build
 yarn format                # Format code with Prettier
+yarn lint                  # ESLint
 ```
 
 ### Testing
@@ -32,6 +33,7 @@ yarn test                  # Unit tests (lib logic) + component tests (Testing L
 yarn test:watch            # Watch mode
 yarn test:e2e              # E2E suite against the built worker in workerd (local D1/R2).
                            # Requires .open-next/worker.js: re-run `yarn cf:build` after code changes.
+yarn test:coverage         # Unit + component tests with coverage
 ```
 
 - `tests/unit/` — pure logic (turnstile form-pass, uploads, cache middleware)
@@ -54,6 +56,7 @@ yarn db:generate          # Regenerate Prisma client after schema changes
 yarn deploy               # Full build and deploy to Cloudflare Workers
 yarn cf:build             # Build for Cloudflare (includes Prisma generation)
 yarn cf:deploy            # Deploy only (after cf:build)
+yarn cf:secrets           # Push .dev.vars to Worker secrets in bulk
 yarn preview              # Build and preview locally before deploy
 ```
 
@@ -61,12 +64,12 @@ yarn preview              # Build and preview locally before deploy
 
 ### Tech Stack
 
-- **Frontend:** Next.js 15.3.2 (App Router) + React 18 + TypeScript
+- **Frontend:** Next.js 16.2 (App Router) + React 19 + TypeScript
 - **Styling:** TailwindCSS v4 with custom Advent typography
 - **UI Components:** Radix UI primitives for accessibility
-- **Database:** Cloudflare D1 (SQLite) with Prisma ORM
+- **Database:** Cloudflare D1 (SQLite) with Prisma 7 ORM
 - **Deployment:** Cloudflare Workers via OpenNext.js adapter
-- **Forms:** React Hook Form + Zod validation + Turnstile protection
+- **Forms:** React Hook Form + Zod 4 validation + Turnstile protection
 
 ### Database Schema
 
@@ -168,9 +171,10 @@ const result = await env.DB.prepare(
 ### Deployment Context
 
 - Production domain: `iglesiajordanibague.org`
-- D1 database: `church-jordan`
+- D1 database: `church-jordan`; R2 bucket: `church-jordan` (uploads)
 - Environment variables required: `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`
 - Static assets served via Cloudflare CDN
+- Node is pinned by `.nvmrc` (v22.13.0): run `nvm use` before anything else
 
 ## Common Development Tasks
 
