@@ -38,6 +38,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         const phone = formString(form, 'phone');
         const birthDate = formString(form, 'birthDate');
         const gender = formString(form, 'gender');
+        const email = formString(form, 'email');
         const relationship = formString(form, 'relationship');
 
         if (
@@ -81,28 +82,69 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           );
         }
 
+        const familyChild = await env.DB.prepare(
+          `
+          SELECT e.id FROM Enrollment e JOIN ChildGuardian cg ON cg.childId = e.childId
+          WHERE e.programId = ? AND cg.memberId = ? LIMIT 1
+        `
+        )
+          .bind(programId, registrant.memberId)
+          .first();
+        if (!familyChild) {
+          return NextResponse.json(
+            { error: 'Agrega primero un niño para vincular otro responsable a la familia' },
+            { status: 400 }
+          );
+        }
+
+        // Reject partial health records before mutating identity or uploading files.
+        const providedHealth = ['bloodType', 'eps', 'allergies', 'conditions', 'medications'].some(
+          (key) => formString(form, key)
+        );
+        const health = providedHealth ? parseHealthFields(form) : null;
+        if (health && !health.success) {
+          return NextResponse.json({ error: health.error }, { status: 400 });
+        }
+        const hasFiles = ['photo', 'idDocument'].some((key) => {
+          const file = form.get(key);
+          return file instanceof File && file.size > 0;
+        });
+        if (!health && hasFiles) {
+          return NextResponse.json(
+            { error: 'Completa tipo de sangre y EPS antes de adjuntar archivos' },
+            { status: 400 }
+          );
+        }
+        const files = await uploadEnrollmentFiles(env.UPLOADS, form);
+        if (!files.success) {
+          return NextResponse.json({ error: files.error }, { status: 400 });
+        }
+
         const member = await getOrCreateMember(env.DB, {
           documentID,
           name,
           phone,
           birthDate,
           gender,
+          email,
         });
 
         // Keep identity in sync on edit (getOrCreateMember only creates)
         await env.DB.prepare(
-          'UPDATE Member SET name = ?, phone = ?, birthDate = ?, gender = ?, updatedAt = ? WHERE id = ?'
+          'UPDATE Member SET name = ?, phone = ?, birthDate = ?, gender = ?, email = ?, updatedAt = ? WHERE id = ?'
         )
-          .bind(name, phone, birthDate, gender || null, new Date().toISOString(), member.id)
+          .bind(
+            name,
+            phone,
+            birthDate,
+            gender || null,
+            email || null,
+            new Date().toISOString(),
+            member.id
+          )
           .run();
 
-        // Health is optional for co-adults; store it only when provided
-        const health = parseHealthFields(form);
-        const files = await uploadEnrollmentFiles(env.UPLOADS, form);
-        if (!files.success) {
-          return NextResponse.json({ error: files.error }, { status: 400 });
-        }
-        if (health.success) {
+        if (health?.success) {
           await upsertHealthProfile(env.DB, { memberId: member.id }, health.data, files);
         }
 

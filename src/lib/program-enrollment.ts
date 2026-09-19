@@ -110,17 +110,25 @@ export async function uploadEnrollmentFiles(
 > {
   const result: { photoUrl?: string; idDocumentUrl?: string } = {};
 
+  // Validate both files before writing either object to R2.
+  for (const [key, types, label] of [
+    ['photo', ALLOWED_IMAGE_TYPES, 'Foto'],
+    ['idDocument', ALLOWED_DOCUMENT_TYPES, 'Documento'],
+  ] as const) {
+    const file = form.get(key);
+    if (file instanceof File && file.size > 0) {
+      const validation = validateUploadFile(file, types);
+      if (!validation.valid) return { success: false, error: `${label}: ${validation.error}` };
+    }
+  }
+
   const photo = form.get('photo');
   if (photo instanceof File && photo.size > 0) {
-    const validation = validateUploadFile(photo, ALLOWED_IMAGE_TYPES);
-    if (!validation.valid) return { success: false, error: `Foto: ${validation.error}` };
     result.photoUrl = `/api/admin/files/${await uploadFileToR2(bucket, photo, 'enrollments')}`;
   }
 
   const idDocument = form.get('idDocument');
   if (idDocument instanceof File && idDocument.size > 0) {
-    const validation = validateUploadFile(idDocument, ALLOWED_DOCUMENT_TYPES);
-    if (!validation.valid) return { success: false, error: `Documento: ${validation.error}` };
     result.idDocumentUrl = `/api/admin/files/${await uploadFileToR2(bucket, idDocument, 'enrollments')}`;
   }
 
@@ -259,24 +267,10 @@ export const GUARDIAN_RELATIONSHIPS = ['father', 'mother', 'tutor'];
 
 export interface EnrollmentPdfData {
   programTitle: string;
-  person: {
-    name: string;
-    documentID: string;
-    birthDate: string | null;
-    bloodType: string | null;
-    eps: string | null;
-    allergies: string | null;
-    conditions: string | null;
-    medications: string | null;
-    emergencyContactName: string | null;
-    emergencyContactPhone: string | null;
-  };
-  tutor: {
-    name: string;
-    documentID: string;
-    phone: string | null;
-    relationship: string | null;
-  } | null;
+  person: import('./program-pdf').PdfPerson;
+  tutor: import('./program-pdf').PdfTutor | null;
+  tutors: import('./program-pdf').PdfTutor[];
+  isChild: boolean;
 }
 
 // Resolves the data for the authorization PDF: the person can be an enrolled
@@ -294,7 +288,7 @@ export async function getEnrollmentPdfData(
 
   const child = await db
     .prepare(
-      `SELECT c.name, c.documentID, c.birthDate,
+      `SELECT c.id as childId, c.name, c.documentID, c.birthDate,
               hp.bloodType, hp.eps, hp.allergies, hp.conditions, hp.medications,
               e.enrolledByMemberId
        FROM Child c
@@ -306,24 +300,27 @@ export async function getEnrollmentPdfData(
     .first<any>();
 
   if (child) {
-    const tutor = await db
+    const guardians = await db
       .prepare(
-        `SELECT m.name, m.documentID, m.phone, cg.relationship,
-                pae.emergencyContactName, pae.emergencyContactPhone
+        `SELECT DISTINCT m.name, m.documentID, m.phone, pae.relationship,
+                pae.emergencyContactName, pae.emergencyContactPhone, pae.emergencyContactRelation
          FROM Member m
          JOIN ProgramAdultEnrollment pae ON pae.memberId = m.id AND pae.programId = ?
-         LEFT JOIN ChildGuardian cg
-           ON cg.memberId = m.id
-           AND cg.childId = (SELECT id FROM Child WHERE documentID = ?)
-         WHERE m.id = COALESCE(
-           ?,
-           (SELECT cg2.memberId FROM ChildGuardian cg2
-            JOIN Child c2 ON c2.id = cg2.childId
-            WHERE c2.documentID = ? ORDER BY cg2.id LIMIT 1)
-         )`
+         WHERE m.id = ? OR EXISTS (
+           SELECT 1 FROM ChildGuardian cg WHERE cg.memberId = m.id AND cg.childId = ?
+         )
+         ORDER BY m.name`
       )
-      .bind(programId, documentID, child.enrolledByMemberId, documentID)
-      .first<any>();
+      .bind(programId, child.enrolledByMemberId, child.childId)
+      .all<
+        import('./program-pdf').PdfTutor & {
+          emergencyContactName: string | null;
+          emergencyContactPhone: string | null;
+          emergencyContactRelation: string | null;
+        }
+      >();
+    const tutors = guardians.results || [];
+    const tutor = tutors[0];
 
     return {
       programTitle: program.title,
@@ -331,16 +328,19 @@ export async function getEnrollmentPdfData(
         ...child,
         emergencyContactName: tutor?.emergencyContactName ?? null,
         emergencyContactPhone: tutor?.emergencyContactPhone ?? null,
+        emergencyContactRelation: tutor?.emergencyContactRelation ?? null,
       },
       tutor: tutor || null,
+      tutors,
+      isChild: true,
     };
   }
 
   const adult = await db
     .prepare(
-      `SELECT m.name, m.documentID, m.birthDate,
+      `SELECT m.name, m.documentID, m.birthDate, m.phone, m.email,
               hp.bloodType, hp.eps, hp.allergies, hp.conditions, hp.medications,
-              pae.emergencyContactName, pae.emergencyContactPhone
+              pae.emergencyContactName, pae.emergencyContactPhone, pae.emergencyContactRelation
        FROM Member m
        JOIN ProgramAdultEnrollment pae ON pae.memberId = m.id AND pae.programId = ?
        LEFT JOIN HealthProfile hp ON hp.memberId = m.id
@@ -350,5 +350,5 @@ export async function getEnrollmentPdfData(
     .first<any>();
 
   if (!adult) return null;
-  return { programTitle: program.title, person: adult, tutor: null };
+  return { programTitle: program.title, person: adult, tutor: null, tutors: [], isChild: false };
 }

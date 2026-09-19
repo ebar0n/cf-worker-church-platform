@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { GUARDIAN_RELATIONSHIPS } from '@/lib/program-enrollment';
+import { describe, it, expect, vi } from 'vitest';
+import { GUARDIAN_RELATIONSHIPS, uploadEnrollmentFiles } from '@/lib/program-enrollment';
 
 // The frontend derives the family relationship from gender + a tutor flag.
 // This mirrors relationshipFrom in ProgramEnrollmentClient so the rule is
@@ -104,5 +104,20 @@ describe('isPersonComplete (green tint rule)', () => {
 
   it('rejects a non-tutor without a gender', () => {
     expect(isPersonComplete({ ...base, gender: null, relationship: 'father' })).toBe(false);
+  });
+});
+
+describe('enrollment upload validation', () => {
+  it('does not upload a valid photo when the companion document is invalid', async () => {
+    const put = vi.fn();
+    const form = new FormData();
+    form.append('photo', new File(['dummy'], 'photo.png', { type: 'image/png' }));
+    form.append(
+      'idDocument',
+      new File(['dummy'], 'document.exe', { type: 'application/octet-stream' })
+    );
+    const result = await uploadEnrollmentFiles({ put } as unknown as R2Bucket, form);
+    expect(result.success).toBe(false);
+    expect(put).not.toHaveBeenCalled();
   });
 });

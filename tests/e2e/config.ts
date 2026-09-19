@@ -18,6 +18,7 @@ export const DOC_IDS = {
   adminMember: '9900110028',
   clubTutor: '9900110029',
   clubChild: '9900110030',
+  clubSecondChild: '9900110033',
   clubConsejero: '9900110031',
   clubPrefill: '9900110032',
 };
