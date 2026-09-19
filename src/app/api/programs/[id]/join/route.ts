@@ -66,7 +66,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         // Health is optional at registration: the responsible can start with
         // basic identity and complete their health record + files later from
         // the dashboard. Validate only when any health field is provided.
-        const providedHealth = Boolean(formString(form, 'bloodType') || formString(form, 'eps'));
+        const providedHealth = ['bloodType', 'eps', 'allergies', 'conditions', 'medications'].some(
+          (key) => formString(form, key)
+        );
         let healthData: HealthFields | null = null;
         if (providedHealth) {
           const health = parseHealthFields(form);
@@ -74,6 +76,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             return NextResponse.json({ error: health.error }, { status: 400 });
           }
           healthData = health.data;
+        }
+
+        const hasFiles = ['photo', 'idDocument'].some((key) => {
+          const file = form.get(key);
+          return file instanceof File && file.size > 0;
+        });
+        if (!healthData && hasFiles) {
+          return NextResponse.json(
+            { error: 'Completa tipo de sangre y EPS antes de adjuntar archivos' },
+            { status: 400 }
+          );
         }
 
         const files = await uploadEnrollmentFiles(env.UPLOADS, form);

@@ -1,10 +1,17 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { BASE_URL, E2E_PREFIX, DOC_IDS } from './config';
 import { getRes, postJson, del, ANY_TOKEN } from './helpers';
 
 let programId: number;
 
-const health = { bloodType: 'O+', eps: 'Sanitas', allergies: 'Polen' };
+const health = {
+  bloodType: 'O+',
+  eps: 'Sanitas',
+  allergies: 'Polen',
+  conditions: 'Asma',
+  medications: 'Medicamento QA',
+};
 
 // Adult registration form (multipart). relationship is father/mother/tutor;
 // the frontend derives it from gender + a tutor checkbox, but the API takes
@@ -14,10 +21,17 @@ function adultForm(fields: Record<string, string>, withFiles = false): FormData 
   form.append('token', ANY_TOKEN);
   for (const [key, value] of Object.entries({ ...health, ...fields })) form.append(key, value);
   if (withFiles) {
-    form.append('photo', new File([new Uint8Array(24)], 'foto.jpg', { type: 'image/jpeg' }));
+    form.append(
+      'photo',
+      new File([readFileSync('tests/fixtures/enrollment/foto.png')], 'foto.png', {
+        type: 'image/png',
+      })
+    );
     form.append(
       'idDocument',
-      new File([new Uint8Array(24)], 'doc.pdf', { type: 'application/pdf' })
+      new File([readFileSync('tests/fixtures/enrollment/documento.png')], 'documento.png', {
+        type: 'image/png',
+      })
     );
   }
   return form;
@@ -34,10 +48,20 @@ interface LookupResult {
   adult: {
     relationship?: string;
     bloodType?: string;
+    dataTreatmentAcceptedAt?: string | null;
+    participationConfirmedAt?: string | null;
     photoUrl?: string;
     emergencyContactName?: string | null;
   } | null;
-  adults?: Array<{ documentID: string; relationship?: string; isSelf?: boolean }>;
+  adults?: Array<{
+    documentID: string;
+    relationship?: string;
+    isSelf?: boolean;
+    allergies?: string;
+    conditions?: string;
+    medications?: string;
+    email?: string;
+  }>;
   children: Array<{
     documentID: string;
     gender?: string | null;
@@ -101,6 +125,8 @@ describe('adult registration', () => {
     const data = await lookup(DOC_IDS.clubConsejero);
     expect(data.found).toBe(true);
     expect(data.adult?.bloodType).toBeFalsy();
+    expect(data.adult?.dataTreatmentAcceptedAt).toBeNull();
+    expect(data.adult?.participationConfirmedAt).toBeNull();
   });
 
   it('rejects a partial health record (blood type without the rest)', async () => {
@@ -143,6 +169,29 @@ describe('adult registration', () => {
     };
     expect(data.relationship).toBe('father');
     expect(data.classification.category).toBe('Guía Mayor');
+  });
+});
+
+describe('explicit consent', () => {
+  it('rejects unchecked boxes, persists explicit acceptance, and preserves its date on retry', async () => {
+    const path = `/api/programs/${programId}/consent`;
+    const data = {
+      documentID: DOC_IDS.clubConsejero,
+      token: ANY_TOKEN,
+      acceptDataTreatment: true,
+      confirmParticipation: false,
+    };
+    expect((await postJson(path, data)).status).toBe(400);
+    expect((await lookup(DOC_IDS.clubConsejero)).adult?.dataTreatmentAcceptedAt).toBeNull();
+    data.confirmParticipation = true;
+    expect((await postJson(path, data)).status).toBe(200);
+    const first = (await lookup(DOC_IDS.clubConsejero)).adult!;
+    expect(first.dataTreatmentAcceptedAt).toBeTruthy();
+    expect(first.participationConfirmedAt).toBeTruthy();
+    expect((await postJson(path, data)).status).toBe(200);
+    expect((await lookup(DOC_IDS.clubConsejero)).adult?.dataTreatmentAcceptedAt).toBe(
+      first.dataTreatmentAcceptedAt
+    );
   });
 });
 
@@ -225,6 +274,7 @@ describe('family group lookup', () => {
     expect(data.found).toBe(true);
     expect(data.adult?.relationship).toBe('father');
     expect(data.adult?.bloodType).toBe('O+');
+    expect(data.adults?.find((a) => a.documentID === DOC_IDS.clubTutor)).toMatchObject(health);
     expect(data.adult?.photoUrl).toMatch(/^\/api\/admin\/files\/enrollments\//);
     expect(data.children).toHaveLength(1);
     // child inherits the tutor's relationship (father)
@@ -283,6 +333,7 @@ describe('co-responsible adults', () => {
     form.append('birthDate', '1992-04-20');
     form.append('gender', 'F');
     form.append('relationship', 'mother');
+    form.append('email', 'madre.qa@example.invalid');
 
     const res = await fetch(`${BASE_URL}/api/programs/${programId}/adults`, {
       method: 'POST',
@@ -300,6 +351,29 @@ describe('co-responsible adults', () => {
     expect(group.children).toHaveLength(1);
     // both parents appear in the responsibles list
     expect(group.adults?.length).toBe(2);
+    expect(group.adults?.find((a) => a.documentID === DOC_IDS.clubPrefill)?.email).toBe(
+      'madre.qa@example.invalid'
+    );
+  });
+
+  it('rejects partial health without changing the mother identity', async () => {
+    const form = adultForm({
+      tutorDocumentID: DOC_IDS.clubTutor,
+      documentID: DOC_IDS.clubPrefill,
+      name: 'SHOULD NOT PERSIST',
+      phone: '3090001111',
+      birthDate: '1992-04-20',
+      gender: 'F',
+      relationship: 'mother',
+    });
+    form.delete('eps');
+    const res = await fetch(`${BASE_URL}/api/programs/${programId}/adults`, {
+      method: 'POST',
+      body: form,
+    });
+    expect(res.status).toBe(400);
+    const group = await lookup(DOC_IDS.clubPrefill);
+    expect(group.adult).toMatchObject({ name: 'E2E Madre' });
   });
 
   it('removes a co-responsible from the group', async () => {
@@ -327,11 +401,44 @@ describe('co-responsible adults', () => {
     form.append('birthDate', '1992-04-20');
     form.append('gender', 'F');
     form.append('relationship', 'mother');
+    form.append('email', 'madre.qa@example.invalid');
     const readd = await fetch(`${BASE_URL}/api/programs/${programId}/adults`, {
       method: 'POST',
       body: form,
     });
     expect(readd.status).toBe(201);
+  });
+});
+
+describe('a second child added after both parents', () => {
+  it('links both parents so either can retrieve and print both children', async () => {
+    const res = await addChild(
+      adultForm({
+        tutorDocumentID: DOC_IDS.clubTutor,
+        documentID: DOC_IDS.clubSecondChild,
+        name: 'E2E Hermana',
+        gender: 'F',
+        birthDate: '2021-03-05',
+      })
+    );
+    expect(res.status).toBe(201);
+    for (const parent of [DOC_IDS.clubTutor, DOC_IDS.clubPrefill]) {
+      const group = await lookup(parent);
+      expect(group.children.map((c) => c.documentID).sort()).toEqual(
+        [DOC_IDS.clubChild, DOC_IDS.clubSecondChild].sort()
+      );
+    }
+    // Leave the original fixture unchanged for the remaining suites.
+    const removed = await fetch(`${BASE_URL}/api/programs/${programId}/children`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tutorDocumentID: DOC_IDS.clubTutor,
+        documentID: DOC_IDS.clubSecondChild,
+        token: ANY_TOKEN,
+      }),
+    });
+    expect(removed.status).toBe(200);
   });
 });
 

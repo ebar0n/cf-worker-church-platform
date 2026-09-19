@@ -55,6 +55,8 @@ interface PersonRecord extends Partial<HealthValues> {
   photoUrl?: string | null;
   idDocumentUrl?: string | null;
   physicalFormReceivedAt?: string | null;
+  dataTreatmentAcceptedAt?: string | null;
+  participationConfirmedAt?: string | null;
   classification?: { age: number; category: string; className: string | null } | null;
 }
 
@@ -263,6 +265,7 @@ function FileCapture({
   viewUrl?: string | null;
   onChange: (file: File | null) => void;
 }) {
+  const fileId = React.useId();
   const [preview, setPreview] = useState<string | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
 
@@ -288,7 +291,9 @@ function FileCapture({
 
   return (
     <div>
-      <p className={LABEL_CLASS}>{label}</p>
+      <label htmlFor={fileId} className={LABEL_CLASS}>
+        {label}
+      </label>
       <div className="flex flex-wrap items-center gap-3 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-3">
         {preview || existingThumb ? (
           /* eslint-disable-next-line @next/next/no-img-element */
@@ -325,6 +330,8 @@ function FileCapture({
             <label className="cursor-pointer rounded-md bg-white px-3 py-1 text-xs font-semibold text-[#4b207f] shadow-sm ring-1 ring-gray-200">
               📎 Subir archivo
               <input
+                id={fileId}
+                aria-label={label}
                 type="file"
                 accept={accept}
                 className="hidden"
@@ -375,8 +382,11 @@ function HealthFields({
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <div>
-        <label className={LABEL_CLASS}>Tipo de sangre *</label>
+        <label htmlFor="enrollment-field-1" className={LABEL_CLASS}>
+          Tipo de sangre *
+        </label>
         <select
+          id="enrollment-field-1"
           value={values.bloodType}
           onChange={set('bloodType')}
           className={INPUT_CLASS}
@@ -391,12 +401,23 @@ function HealthFields({
         </select>
       </div>
       <div>
-        <label className={LABEL_CLASS}>EPS *</label>
-        <input value={values.eps} onChange={set('eps')} className={INPUT_CLASS} required />
+        <label htmlFor="enrollment-field-2" className={LABEL_CLASS}>
+          EPS *
+        </label>
+        <input
+          id="enrollment-field-2"
+          value={values.eps}
+          onChange={set('eps')}
+          className={INPUT_CLASS}
+          required
+        />
       </div>
       <div>
-        <label className={LABEL_CLASS}>Alergias</label>
+        <label htmlFor="enrollment-field-3" className={LABEL_CLASS}>
+          Alergias
+        </label>
         <input
+          id="enrollment-field-3"
           value={values.allergies}
           onChange={set('allergies')}
           onBlur={fillNa('allergies')}
@@ -405,8 +426,11 @@ function HealthFields({
         />
       </div>
       <div>
-        <label className={LABEL_CLASS}>Enfermedades o condiciones</label>
+        <label htmlFor="enrollment-field-4" className={LABEL_CLASS}>
+          Enfermedades o condiciones
+        </label>
         <input
+          id="enrollment-field-4"
           value={values.conditions}
           onChange={set('conditions')}
           onBlur={fillNa('conditions')}
@@ -415,8 +439,11 @@ function HealthFields({
         />
       </div>
       <div className="sm:col-span-2">
-        <label className={LABEL_CLASS}>Medicamentos (si utiliza)</label>
+        <label htmlFor="enrollment-field-5" className={LABEL_CLASS}>
+          Medicamentos (si utiliza)
+        </label>
         <input
+          id="enrollment-field-5"
           value={values.medications}
           onChange={set('medications')}
           onBlur={fillNa('medications')}
@@ -441,8 +468,11 @@ function EmergencyFields({
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <div>
-        <label className={LABEL_CLASS}>Nombre del contacto *</label>
+        <label htmlFor="enrollment-field-6" className={LABEL_CLASS}>
+          Nombre del contacto *
+        </label>
         <input
+          id="enrollment-field-6"
           value={values.emergencyContactName}
           onChange={set('emergencyContactName')}
           className={INPUT_CLASS}
@@ -451,8 +481,11 @@ function EmergencyFields({
         />
       </div>
       <div>
-        <label className={LABEL_CLASS}>Teléfono *</label>
+        <label htmlFor="enrollment-field-7" className={LABEL_CLASS}>
+          Teléfono *
+        </label>
         <input
+          id="enrollment-field-7"
           value={values.emergencyContactPhone}
           onChange={set('emergencyContactPhone')}
           className={INPUT_CLASS}
@@ -481,7 +514,12 @@ function Modal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 sm:items-center">
-      <div className="my-8 w-full max-w-lg rounded-2xl bg-white shadow-xl">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className="my-8 w-full max-w-lg rounded-2xl bg-white shadow-xl"
+      >
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
           <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
           <button
@@ -527,6 +565,29 @@ export default function ProgramEnrollmentClient({
   const [step, setStep] = useState<'identify' | 'adult' | 'dashboard'>('identify');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [savedMessage, setSavedMessage] = useState('');
+  const [pendingClose, setPendingClose] = useState<(() => void) | null>(null);
+
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
+
+  const closeEditor = (close: () => void) => {
+    if (busy) return;
+    if (dirty) {
+      setPendingClose(() => close);
+      return;
+    }
+    setDirty(false);
+    close();
+  };
 
   const turnstileRef = useRef<HTMLDivElement>(null);
   const [siteKey, setSiteKey] = useState('');
@@ -661,6 +722,10 @@ export default function ProgramEnrollmentClient({
     setAdult(group.adult);
     setAdults(group.adults || []);
     setChildren(group.children);
+    setDirty(false);
+    setSavedMessage(
+      'Información guardada. Puedes volver con tu documento para continuar o descargar los formatos.'
+    );
   };
 
   const handleIdentify = async () => {
@@ -673,6 +738,7 @@ export default function ProgramEnrollmentClient({
         setAdult(data.adult);
         setAdults(data.adults || []);
         setChildren(data.children);
+        setDirty(false);
         setStep('dashboard');
       } else {
         if (data.member) {
@@ -789,6 +855,7 @@ export default function ProgramEnrollmentClient({
     setChildExisting(null);
     setChildEditing(false);
     setError(null);
+    setDirty(false);
     setChildModalOpen(true);
   };
 
@@ -806,6 +873,7 @@ export default function ProgramEnrollmentClient({
     setChildExisting(child);
     setChildEditing(true);
     setError(null);
+    setDirty(false);
     setChildModalOpen(true);
   };
 
@@ -874,6 +942,7 @@ export default function ProgramEnrollmentClient({
     setCoAdultEditing(false);
     setEditingSelf(false);
     setError(null);
+    setDirty(false);
     setAdultModalOpen(true);
   };
 
@@ -896,6 +965,7 @@ export default function ProgramEnrollmentClient({
     setCoAdultEditing(true);
     setEditingSelf(Boolean(person.isSelf) || person.documentID === documentID.trim());
     setError(null);
+    setDirty(false);
     setAdultModalOpen(true);
   };
 
@@ -918,13 +988,10 @@ export default function ProgramEnrollmentClient({
       if (coAdultIdDoc) form.append('idDocument', coAdultIdDoc);
 
       let endpoint = `/api/programs/${programId}/adults`;
+      if (coAdultForm.email) form.append('email', coAdultForm.email);
       if (editingSelf) {
-        // The primary responsible saves through /join; consents were already
-        // accepted at first registration.
+        // Editing personal data must not grant consent.
         endpoint = `/api/programs/${programId}/join`;
-        if (coAdultForm.email) form.append('email', coAdultForm.email);
-        form.append('acceptDataTreatment', 'true');
-        form.append('confirmParticipation', 'true');
       } else {
         form.append('tutorDocumentID', documentID.trim());
       }
@@ -973,6 +1040,7 @@ export default function ProgramEnrollmentClient({
       emergencyContactRelation: adult?.emergencyContactRelation || '',
     });
     setError(null);
+    setDirty(false);
     setEmergencyModalOpen(true);
   };
 
@@ -1001,6 +1069,33 @@ export default function ProgramEnrollmentClient({
     }
   };
 
+  const finalized = Boolean(adult?.dataTreatmentAcceptedAt && adult?.participationConfirmedAt);
+
+  const handleFinalize = async () => {
+    if (!finalizeAccept || !finalizeConfirm) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/programs/${programId}/consent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          documentID: documentID.trim(),
+          token: turnstileToken,
+          acceptDataTreatment: finalizeAccept,
+          confirmParticipation: finalizeConfirm,
+        }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(data.error || 'No se pudo guardar la confirmación');
+      await refreshGroup();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al finalizar');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const pdfUrl = (doc: string) =>
     `/api/programs/${programId}/pdf/${doc}${turnstileToken ? `?token=${turnstileToken}` : ''}`;
 
@@ -1010,6 +1105,10 @@ export default function ProgramEnrollmentClient({
 
   return (
     <div
+      onChangeCapture={() => {
+        setDirty(true);
+        setSavedMessage('');
+      }}
       className="min-h-screen px-4 py-8"
       style={{ background: 'linear-gradient(135deg, #f8f6f2 0%, #f0f0f0 100%)' }}
     >
@@ -1057,6 +1156,12 @@ export default function ProgramEnrollmentClient({
           </div>
         )}
 
+        {savedMessage && !dirty && (
+          <p role="status" className="mb-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">
+            {savedMessage}
+          </p>
+        )}
+
         {/* Step 1: identify */}
         {step === 'identify' && (
           <div className="rounded-2xl bg-white p-6 shadow-lg">
@@ -1067,8 +1172,11 @@ export default function ProgramEnrollmentClient({
               Ingresa tu documento. Si ya estás inscrito verás tu grupo familiar; si no, podrás
               registrarte. Los niños siempre se inscriben a través de un adulto responsable.
             </p>
-            <label className={LABEL_CLASS}>Documento del adulto responsable *</label>
+            <label htmlFor="enrollment-field-8" className={LABEL_CLASS}>
+              Documento del adulto responsable *
+            </label>
             <input
+              id="enrollment-field-8"
               value={documentID}
               onChange={(e) => setDocumentID(e.target.value)}
               className={INPUT_CLASS}
@@ -1099,8 +1207,11 @@ export default function ProgramEnrollmentClient({
             </p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <label className={LABEL_CLASS}>Nombre completo *</label>
+                <label htmlFor="enrollment-field-9" className={LABEL_CLASS}>
+                  Nombre completo *
+                </label>
                 <input
+                  id="enrollment-field-9"
                   value={adultForm.name}
                   onChange={(e) => setAdultForm({ ...adultForm, name: e.target.value })}
                   className={INPUT_CLASS}
@@ -1108,8 +1219,11 @@ export default function ProgramEnrollmentClient({
                 />
               </div>
               <div>
-                <label className={LABEL_CLASS}>Teléfono *</label>
+                <label htmlFor="enrollment-field-10" className={LABEL_CLASS}>
+                  Teléfono *
+                </label>
                 <input
+                  id="enrollment-field-10"
                   value={adultForm.phone}
                   onChange={(e) => setAdultForm({ ...adultForm, phone: e.target.value })}
                   className={INPUT_CLASS}
@@ -1117,8 +1231,11 @@ export default function ProgramEnrollmentClient({
                 />
               </div>
               <div>
-                <label className={LABEL_CLASS}>Fecha de nacimiento *</label>
+                <label htmlFor="enrollment-field-11" className={LABEL_CLASS}>
+                  Fecha de nacimiento *
+                </label>
                 <input
+                  id="enrollment-field-11"
                   type="date"
                   value={adultForm.birthDate}
                   onChange={(e) => setAdultForm({ ...adultForm, birthDate: e.target.value })}
@@ -1132,8 +1249,11 @@ export default function ProgramEnrollmentClient({
                 )}
               </div>
               <div>
-                <label className={LABEL_CLASS}>Correo (opcional)</label>
+                <label htmlFor="enrollment-field-12" className={LABEL_CLASS}>
+                  Correo (opcional)
+                </label>
                 <input
+                  id="enrollment-field-12"
                   type="email"
                   value={adultForm.email}
                   onChange={(e) => setAdultForm({ ...adultForm, email: e.target.value })}
@@ -1141,8 +1261,11 @@ export default function ProgramEnrollmentClient({
                 />
               </div>
               <div>
-                <label className={LABEL_CLASS}>Género {adultForm.isTutor ? '' : '*'}</label>
+                <label htmlFor="adult-gender" className={LABEL_CLASS}>
+                  Género {adultForm.isTutor ? '' : '*'}
+                </label>
                 <select
+                  id="adult-gender"
                   value={adultForm.gender}
                   onChange={(e) => setAdultForm({ ...adultForm, gender: e.target.value })}
                   className={INPUT_CLASS}
@@ -1197,7 +1320,8 @@ export default function ProgramEnrollmentClient({
             <div className="text-center">
               <h2 className="text-2xl font-bold text-gray-900">Tu grupo familiar</h2>
               <p className="text-sm text-gray-600">
-                Gestiona a los responsables y los niños. Vuelve cuando quieras con tu documento.
+                Guarda cada formulario antes de cerrarlo. Los datos guardados se conservan: puedes
+                volver con tu documento para continuar y descargar los formatos.
               </p>
             </div>
 
@@ -1274,12 +1398,24 @@ export default function ProgramEnrollmentClient({
                 </h3>
                 <button
                   onClick={openAdultModal}
+                  disabled={children.length === 0 || busy}
+                  title={
+                    children.length === 0
+                      ? 'Agrega primero un niño para vincular otro responsable a la familia'
+                      : undefined
+                  }
                   className="rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm"
                   style={{ backgroundColor: FORM_COLOR }}
                 >
                   + Agregar responsable
                 </button>
               </div>
+              {children.length === 0 && (
+                <p className="mb-3 text-sm text-gray-600">
+                  Para agregar al otro padre o tutor, guarda primero un niño. Después podrás
+                  gestionar a toda la familia desde cualquiera de los responsables.
+                </p>
+              )}
               <ul className="divide-y divide-gray-100">
                 {adults.map((a) => (
                   <li
@@ -1367,30 +1503,49 @@ export default function ProgramEnrollmentClient({
                 programa: ese documento firmado es la confirmación física de la inscripción.
               </p>
 
-              <div className="mt-4 space-y-3">
-                <label className="flex items-start gap-2 text-sm text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={finalizeAccept}
-                    onChange={(e) => setFinalizeAccept(e.target.checked)}
-                    className="mt-0.5"
-                  />
-                  Autorizo el tratamiento de datos personales (incluidos datos de salud) para la
-                  gestión del programa, según la Ley 1581 de 2012.
-                </label>
-                <label className="flex items-start gap-2 text-sm text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={finalizeConfirm}
-                    onChange={(e) => setFinalizeConfirm(e.target.checked)}
-                    className="mt-0.5"
-                  />
-                  Confirmo la inscripción a {programTitle} y me comprometo a entregar el formato
-                  impreso y firmado.
-                </label>
-              </div>
+              {!finalized && (
+                <div className="mt-4 space-y-3">
+                  <label className="flex items-start gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={finalizeAccept}
+                      onChange={(e) => setFinalizeAccept(e.target.checked)}
+                      className="mt-0.5"
+                    />
+                    Autorizo el tratamiento de datos personales (incluidos datos de salud) para la
+                    gestión del programa, según la Ley 1581 de 2012.
+                  </label>
+                  <label className="flex items-start gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={finalizeConfirm}
+                      onChange={(e) => setFinalizeConfirm(e.target.checked)}
+                      className="mt-0.5"
+                    />
+                    Confirmo la inscripción a {programTitle} y me comprometo a entregar el formato
+                    impreso y firmado.
+                  </label>
+                </div>
+              )}
 
-              {finalizeAccept && finalizeConfirm ? (
+              {!finalized && (
+                <button
+                  type="button"
+                  onClick={handleFinalize}
+                  disabled={busy || !finalizeAccept || !finalizeConfirm}
+                  className="mt-4 rounded-lg px-4 py-3 text-sm font-semibold text-white"
+                  style={primaryStyle(busy || !finalizeAccept || !finalizeConfirm)}
+                >
+                  {busy ? 'Guardando...' : 'Confirmar y habilitar descargas'}
+                </button>
+              )}
+              {finalized && (
+                <p className="mt-4 text-sm text-green-800">
+                  Confirmación guardada. Cada adulto debe firmar su formato; los padres o tutores
+                  incluidos deben firmar la autorización del menor.
+                </p>
+              )}
+              {finalized ? (
                 <div className="mt-5 space-y-2">
                   {[...adults, ...children].map((person) => (
                     <a
@@ -1418,7 +1573,7 @@ export default function ProgramEnrollmentClient({
                 </div>
               ) : (
                 <p className="mt-4 text-sm text-gray-500">
-                  Marca ambas casillas para ver y descargar los formatos.
+                  Marca ambas casillas y guarda la confirmación para descargar los formatos.
                 </p>
               )}
             </div>
@@ -1426,17 +1581,64 @@ export default function ProgramEnrollmentClient({
         )}
       </div>
 
+      {pendingClose && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4">
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-label="Cambios sin guardar"
+            className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl"
+          >
+            <h3 className="font-semibold">Tienes cambios sin guardar</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Vuelve al formulario y guarda la información para conservarla.
+            </p>
+            <button
+              type="button"
+              onClick={() => setPendingClose(null)}
+              className="mt-4 w-full rounded-lg bg-[#4b207f] p-3 font-semibold text-white"
+            >
+              Seguir editando
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                pendingClose();
+                setPendingClose(null);
+                setDirty(false);
+              }}
+              className="mt-2 w-full rounded-lg p-3 text-sm text-red-700"
+            >
+              Descartar cambios y cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Add child modal */}
       {childModalOpen && (
         <Modal
           title={childEditing ? 'Editar niño' : 'Agregar niño al grupo familiar'}
-          onClose={() => setChildModalOpen(false)}
+          onClose={() => closeEditor(() => setChildModalOpen(false))}
         >
+          {error && (
+            <p role="alert" className="mb-4 text-sm text-red-700">
+              {error}
+            </p>
+          )}
           <form onSubmit={handleAddChild} className="space-y-4">
+            <p role="status" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+              {dirty
+                ? 'Tienes cambios sin guardar. Usa el botón Guardar al terminar.'
+                : 'Completa los datos y guárdalos antes de cerrar este formulario.'}
+            </p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <label className={LABEL_CLASS}>Documento del niño *</label>
+                <label htmlFor="enrollment-field-13" className={LABEL_CLASS}>
+                  Documento del niño *
+                </label>
                 <input
+                  id="enrollment-field-13"
                   value={childForm.documentID}
                   onChange={(e) => setChildForm({ ...childForm, documentID: e.target.value })}
                   onBlur={(e) => !childEditing && prefillChild(e.target.value)}
@@ -1452,8 +1654,11 @@ export default function ProgramEnrollmentClient({
                 )}
               </div>
               <div className="sm:col-span-2">
-                <label className={LABEL_CLASS}>Nombre completo *</label>
+                <label htmlFor="enrollment-field-14" className={LABEL_CLASS}>
+                  Nombre completo *
+                </label>
                 <input
+                  id="enrollment-field-14"
                   value={childForm.name}
                   onChange={(e) => setChildForm({ ...childForm, name: e.target.value })}
                   className={INPUT_CLASS}
@@ -1461,8 +1666,11 @@ export default function ProgramEnrollmentClient({
                 />
               </div>
               <div>
-                <label className={LABEL_CLASS}>Género</label>
+                <label htmlFor="enrollment-field-15" className={LABEL_CLASS}>
+                  Género
+                </label>
                 <select
+                  id="enrollment-field-15"
                   value={childForm.gender}
                   onChange={(e) => setChildForm({ ...childForm, gender: e.target.value })}
                   className={INPUT_CLASS}
@@ -1473,8 +1681,11 @@ export default function ProgramEnrollmentClient({
                 </select>
               </div>
               <div>
-                <label className={LABEL_CLASS}>Fecha de nacimiento *</label>
+                <label htmlFor="enrollment-field-16" className={LABEL_CLASS}>
+                  Fecha de nacimiento *
+                </label>
                 <input
+                  id="enrollment-field-16"
                   type="date"
                   value={childForm.birthDate}
                   onChange={(e) => setChildForm({ ...childForm, birthDate: e.target.value })}
@@ -1501,7 +1712,10 @@ export default function ProgramEnrollmentClient({
               file={childPhoto}
               existingUrl={childExisting?.photoUrl}
               viewUrl={ownerFileUrl(childExisting?.photoUrl)}
-              onChange={setChildPhoto}
+              onChange={(file) => {
+                setChildPhoto(file);
+                setDirty(true);
+              }}
             />
             <FileCapture
               label="Copia del documento"
@@ -1509,13 +1723,16 @@ export default function ProgramEnrollmentClient({
               file={childIdDoc}
               existingUrl={childExisting?.idDocumentUrl}
               viewUrl={ownerFileUrl(childExisting?.idDocumentUrl)}
-              onChange={setChildIdDoc}
+              onChange={(file) => {
+                setChildIdDoc(file);
+                setDirty(true);
+              }}
             />
 
             <div className="flex gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => setChildModalOpen(false)}
+                onClick={() => closeEditor(() => setChildModalOpen(false))}
                 className="flex-1 rounded-lg border border-gray-300 py-3 font-semibold text-gray-700"
               >
                 Cancelar
@@ -1526,7 +1743,7 @@ export default function ProgramEnrollmentClient({
                 className="flex-1 rounded-lg py-3 font-semibold text-white shadow-sm"
                 style={primaryStyle(busy)}
               >
-                {busy ? 'Guardando...' : childEditing ? 'Guardar cambios' : 'Inscribir niño'}
+                {busy ? 'Guardando...' : childEditing ? 'Guardar cambios' : 'Guardar niño'}
               </button>
             </div>
           </form>
@@ -1543,19 +1760,32 @@ export default function ProgramEnrollmentClient({
                 ? 'Editar responsable'
                 : 'Agregar responsable al grupo familiar'
           }
-          onClose={() => setAdultModalOpen(false)}
+          onClose={() => closeEditor(() => setAdultModalOpen(false))}
         >
+          {error && (
+            <p role="alert" className="mb-4 text-sm text-red-700">
+              {error}
+            </p>
+          )}
           <form onSubmit={handleSaveResponsible} className="space-y-4">
+            <p role="status" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+              {dirty
+                ? 'Tienes cambios sin guardar. Usa el botón Guardar al terminar.'
+                : 'Completa los datos y guárdalos antes de cerrar este formulario.'}
+            </p>
             {!coAdultEditing && (
               <p className="text-sm text-gray-600">
-                Registra a otro padre, madre o tutor. Completará su información de salud ingresando
-                luego con su propio documento.
+                Registra y guarda los datos del otro padre, madre o tutor. Ambos podrán consultar la
+                familia con su propio documento.
               </p>
             )}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <label className={LABEL_CLASS}>Documento *</label>
+                <label htmlFor="enrollment-field-17" className={LABEL_CLASS}>
+                  Documento *
+                </label>
                 <input
+                  id="enrollment-field-17"
                   value={coAdultForm.documentID}
                   onChange={(e) => setCoAdultForm({ ...coAdultForm, documentID: e.target.value })}
                   onBlur={(e) => !coAdultEditing && prefillCoAdult(e.target.value)}
@@ -1569,28 +1799,35 @@ export default function ProgramEnrollmentClient({
                 </p>
               </div>
               <div className="sm:col-span-2">
-                <label className={LABEL_CLASS}>Nombre completo *</label>
+                <label htmlFor="enrollment-field-18" className={LABEL_CLASS}>
+                  Nombre completo *
+                </label>
                 <input
+                  id="enrollment-field-18"
                   value={coAdultForm.name}
                   onChange={(e) => setCoAdultForm({ ...coAdultForm, name: e.target.value })}
                   className={INPUT_CLASS}
                   required
                 />
               </div>
-              {editingSelf && (
-                <div className="sm:col-span-2">
-                  <label className={LABEL_CLASS}>Correo electrónico</label>
-                  <input
-                    type="email"
-                    value={coAdultForm.email}
-                    onChange={(e) => setCoAdultForm({ ...coAdultForm, email: e.target.value })}
-                    className={INPUT_CLASS}
-                  />
-                </div>
-              )}
-              <div>
-                <label className={LABEL_CLASS}>Teléfono *</label>
+              <div className="sm:col-span-2">
+                <label htmlFor="enrollment-field-19" className={LABEL_CLASS}>
+                  Correo electrónico
+                </label>
                 <input
+                  id="enrollment-field-19"
+                  type="email"
+                  value={coAdultForm.email}
+                  onChange={(e) => setCoAdultForm({ ...coAdultForm, email: e.target.value })}
+                  className={INPUT_CLASS}
+                />
+              </div>
+              <div>
+                <label htmlFor="enrollment-field-20" className={LABEL_CLASS}>
+                  Teléfono *
+                </label>
+                <input
+                  id="enrollment-field-20"
                   value={coAdultForm.phone}
                   onChange={(e) => setCoAdultForm({ ...coAdultForm, phone: e.target.value })}
                   className={INPUT_CLASS}
@@ -1598,8 +1835,11 @@ export default function ProgramEnrollmentClient({
                 />
               </div>
               <div>
-                <label className={LABEL_CLASS}>Fecha de nacimiento *</label>
+                <label htmlFor="enrollment-field-21" className={LABEL_CLASS}>
+                  Fecha de nacimiento *
+                </label>
                 <input
+                  id="enrollment-field-21"
                   type="date"
                   value={coAdultForm.birthDate}
                   onChange={(e) => setCoAdultForm({ ...coAdultForm, birthDate: e.target.value })}
@@ -1608,8 +1848,11 @@ export default function ProgramEnrollmentClient({
                 />
               </div>
               <div>
-                <label className={LABEL_CLASS}>Género {coAdultForm.isTutor ? '' : '*'}</label>
+                <label htmlFor="co-adult-gender" className={LABEL_CLASS}>
+                  Género {coAdultForm.isTutor ? '' : '*'}
+                </label>
                 <select
+                  id="co-adult-gender"
                   value={coAdultForm.gender}
                   onChange={(e) => setCoAdultForm({ ...coAdultForm, gender: e.target.value })}
                   className={INPUT_CLASS}
@@ -1647,7 +1890,10 @@ export default function ProgramEnrollmentClient({
               file={coAdultPhoto}
               existingUrl={coAdultExisting?.photoUrl}
               viewUrl={ownerFileUrl(coAdultExisting?.photoUrl)}
-              onChange={setCoAdultPhoto}
+              onChange={(file) => {
+                setCoAdultPhoto(file);
+                setDirty(true);
+              }}
             />
             <FileCapture
               label="Copia del documento"
@@ -1655,13 +1901,16 @@ export default function ProgramEnrollmentClient({
               file={coAdultIdDoc}
               existingUrl={coAdultExisting?.idDocumentUrl}
               viewUrl={ownerFileUrl(coAdultExisting?.idDocumentUrl)}
-              onChange={setCoAdultIdDoc}
+              onChange={(file) => {
+                setCoAdultIdDoc(file);
+                setDirty(true);
+              }}
             />
 
             <div className="flex gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => setAdultModalOpen(false)}
+                onClick={() => closeEditor(() => setAdultModalOpen(false))}
                 className="flex-1 rounded-lg border border-gray-300 py-3 font-semibold text-gray-700"
               >
                 Cancelar
@@ -1672,11 +1921,7 @@ export default function ProgramEnrollmentClient({
                 className="flex-1 rounded-lg py-3 font-semibold text-white shadow-sm"
                 style={primaryStyle(busy)}
               >
-                {busy
-                  ? 'Guardando...'
-                  : coAdultEditing
-                    ? 'Guardar cambios'
-                    : 'Registrar responsable'}
+                {busy ? 'Guardando...' : coAdultEditing ? 'Guardar cambios' : 'Guardar responsable'}
               </button>
             </div>
           </form>
@@ -1687,9 +1932,19 @@ export default function ProgramEnrollmentClient({
       {emergencyModalOpen && (
         <Modal
           title="Contacto de emergencia de la familia"
-          onClose={() => setEmergencyModalOpen(false)}
+          onClose={() => closeEditor(() => setEmergencyModalOpen(false))}
         >
+          {error && (
+            <p role="alert" className="mb-4 text-sm text-red-700">
+              {error}
+            </p>
+          )}
           <form onSubmit={handleSaveEmergency} className="space-y-4">
+            <p role="status" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+              {dirty
+                ? 'Tienes cambios sin guardar. Usa el botón Guardar al terminar.'
+                : 'Completa los datos y guárdalos antes de cerrar este formulario.'}
+            </p>
             <p className="text-sm text-gray-600">
               A quién llamar en caso de emergencia. Es el mismo para toda la familia.
             </p>
@@ -1697,7 +1952,7 @@ export default function ProgramEnrollmentClient({
             <div className="flex gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => setEmergencyModalOpen(false)}
+                onClick={() => closeEditor(() => setEmergencyModalOpen(false))}
                 className="flex-1 rounded-lg border border-gray-300 py-3 font-semibold text-gray-700"
               >
                 Cancelar

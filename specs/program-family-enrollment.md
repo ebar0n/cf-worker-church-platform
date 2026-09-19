@@ -47,7 +47,8 @@ first-time responsible can start with just basic data and complete the rest
 later; consent timestamps are only set, never cleared), `children` (add/update
 a child; inherits the tutor's relationship; one ChildGuardian row per
 child+member), `adults` (POST add/edit a co-responsible with health + files;
-DELETE remove), `emergency-contact` (PUT, group-level), `pdf/[documentID]`
+DELETE remove), `emergency-contact` (PUT, group-level), `consent` (POST, explicit
+confirmation of both checkboxes for the current adult), `pdf/[documentID]`
 (pre-filled authorization), `file/[...key]` (owner-scoped view of an
 `enrollments/` file — form-pass protected, unguessable-UUID capability URL, so
 the responsible can see their own uploaded photo/ID while editing). Admin
@@ -64,7 +65,9 @@ equivalents under `/api/admin/programs/[id]/`: `roster` (families), `physical-fo
   (including the primary/self) opens a modal — the big form is only the initial
   create. The **Finalizar** section shows the two consent checkboxes (only the
   primary responsible), and the per-person printable PDFs appear only once both
-  are checked. Cards tint subtle green ("completo ✓") when fully filled
+  are checked **and saved** through `consent`. Editing identity/health never
+  grants consent; a returning responsible sees the saved download state. Forms
+  show save guidance and warn before discarding unsaved changes. Cards tint subtle green ("completo ✓") when fully filled
   (identity + gender/tutor + bloodType + eps + photo + ID); optional health
   fields are stored as `n/a` when blank. Photo/ID fields offer live camera
   capture (getUserMedia) or upload, and while editing show the already-uploaded
@@ -75,6 +78,20 @@ equivalents under `/api/admin/programs/[id]/`: `roster` (families), `physical-fo
   shows twice (no father+tutor duplicate). Search by child or parent,
   classification badges, health cards, photo/ID viewing, per-person PDF,
   missing-items checklist, physical-form toggle, CSV export.
+
+## September 2026 audit
+
+Children added after a co-responsible are linked to the existing family adults.
+The child-backed family model requires saving the first child before adding
+another responsible; the UI and API now explain/enforce that order. The lookup
+includes all health answers so editing does not overwrite omitted fields.
+Co-responsible health is optional but must be complete when supplied; attachments
+require blood type and EPS. Both files are validated before either R2 write.
+
+Child PDFs include all enrolled guardians and separate handwritten signature
+blocks. Adult PDFs include phone/email. Long values wrap, overflow creates new
+pages, and signature pages identify the child. See the [local audit and four
+sample PDFs](../docs/audits/program-1-2026-09-19/README.md).
 
 ## Tests
 

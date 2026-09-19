@@ -80,6 +80,23 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           return NextResponse.json({ error: files.error }, { status: 400 });
         }
 
+        // Capture the existing family before adding this child. All enrolled
+        // co-responsibles must also be linked to children added later.
+        const familyAdults = await env.DB.prepare(
+          `
+          SELECT DISTINCT pae.memberId, pae.relationship
+          FROM ProgramAdultEnrollment pae
+          WHERE pae.programId = ? AND (pae.memberId = ? OR pae.memberId IN (
+            SELECT other.memberId FROM ChildGuardian own
+            JOIN ChildGuardian other ON other.childId = own.childId
+            JOIN Enrollment e ON e.childId = own.childId AND e.programId = ?
+            WHERE own.memberId = ?
+          ))
+        `
+        )
+          .bind(programId, tutor.memberId, programId, tutor.memberId)
+          .all<{ memberId: number; relationship: string | null }>();
+
         const childId = await getOrCreateChild(env.DB, { documentID, name, gender, birthDate });
         await upsertHealthProfile(env.DB, { childId }, health.data, files);
 
@@ -98,6 +115,19 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         )
           .bind(childId, tutor.memberId, relationship, now, now)
           .run();
+
+        for (const coAdult of familyAdults.results || []) {
+          if (coAdult.memberId === tutor.memberId) continue;
+          await env.DB.prepare(
+            `
+            INSERT INTO ChildGuardian (childId, memberId, relationship, createdAt, updatedAt)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(childId, relationship) DO NOTHING
+          `
+          )
+            .bind(childId, coAdult.memberId, coAdult.relationship || 'tutor', now, now)
+            .run();
+        }
 
         const enrollment = await env.DB.prepare(
           'SELECT id FROM Enrollment WHERE programId = ? AND childId = ?'
