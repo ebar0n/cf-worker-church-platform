@@ -1719,18 +1719,6 @@ export default function ProgramEnrollmentClient({
             <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
               Datos personales del niño
             </h4>
-            <FileCapture
-              onProcessingChange={onFileProcessing}
-              label="Foto del niño"
-              accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-              file={childPhoto}
-              existingUrl={childExisting?.photoUrl}
-              viewUrl={ownerFileUrl(childExisting?.photoUrl)}
-              onChange={(file) => {
-                setChildPhoto(file);
-                setDirty(true);
-              }}
-            />
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <label htmlFor="enrollment-field-13" className={LABEL_CLASS}>
@@ -1762,6 +1750,20 @@ export default function ProgramEnrollmentClient({
                   onChange={(e) => setChildForm({ ...childForm, name: e.target.value })}
                   className={INPUT_CLASS}
                   required
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <FileCapture
+                  onProcessingChange={onFileProcessing}
+                  label="Foto del niño"
+                  accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                  file={childPhoto}
+                  existingUrl={childExisting?.photoUrl}
+                  viewUrl={ownerFileUrl(childExisting?.photoUrl)}
+                  onChange={(file) => {
+                    setChildPhoto(file);
+                    setDirty(true);
+                  }}
                 />
               </div>
               <div>
