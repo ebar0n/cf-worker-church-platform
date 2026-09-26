@@ -108,6 +108,22 @@ describe('isPersonComplete (green tint rule)', () => {
 });
 
 describe('enrollment upload validation', () => {
+  it('validates the EPS certificate before uploading any companion files', async () => {
+    const put = vi.fn();
+    const form = new FormData();
+    form.append('photo', new File(['photo'], 'photo.png', { type: 'image/png' }));
+    form.append(
+      'epsCertificate',
+      new File(['bad'], 'eps.exe', { type: 'application/octet-stream' })
+    );
+    const result = await uploadEnrollmentFiles({ put } as unknown as R2Bucket, form);
+    expect(result).toMatchObject({
+      success: false,
+      error: expect.stringContaining('Certificado EPS'),
+    });
+    expect(put).not.toHaveBeenCalled();
+  });
+
   it('does not upload a valid photo when the companion document is invalid', async () => {
     const put = vi.fn();
     const form = new FormData();

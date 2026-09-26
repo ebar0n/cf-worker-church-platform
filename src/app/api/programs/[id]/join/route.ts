@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { withTurnstileProtection } from '@/lib/turnstile';
-import { classify, isAdult, MIN_ADULT_AGE } from '@/lib/age-classification';
+import { isAdult, MIN_ADULT_AGE } from '@/lib/age-classification';
 import {
   parseHealthFields,
   uploadEnrollmentFiles,
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           healthData = health.data;
         }
 
-        const hasFiles = ['photo', 'idDocument'].some((key) => {
+        const hasFiles = ['photo', 'idDocument', 'epsCertificate'].some((key) => {
           const file = form.get(key);
           return file instanceof File && file.size > 0;
         });
@@ -212,7 +212,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             success: true,
             memberId: member.id,
             relationship,
-            classification: classify(birthDate),
+            classification: null,
           },
           { status: existing ? 200 : 201 }
         );

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PDFDocument, PDFRawStream, decodePDFRawStream, StandardFonts } from 'pdf-lib';
 import { buildProgramAuthorizationPdf } from '@/lib/program-pdf';
 
@@ -45,7 +45,46 @@ async function pdfContent(bytes: Uint8Array) {
 }
 
 describe('printable enrollment forms', () => {
-  it('includes both guardians, their signature blocks and the actual health data', async () => {
+  afterEach(() => vi.useRealTimers());
+
+  it.each([
+    ['2019-09-26', '2026-09-26T04:59:00Z', 'RC'],
+    ['2019-09-26', '2026-09-26T05:00:00Z', 'TI'],
+    ['2008-09-26', '2026-09-26T04:59:00Z', 'TI'],
+    ['2008-09-26', '2026-09-26T05:00:00Z', 'CC'],
+    [null, '2026-09-26T05:00:00Z', 'Documento de identidad'],
+  ])('prints %s as %s using the Colombian date (%s)', async (birthDate, now, type) => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(now));
+    const { content, encoded } = await pdfContent(
+      await buildProgramAuthorizationPdf({
+        programTitle: 'Club QA',
+        person: { ...person, birthDate },
+        tutor: tutors[0],
+        tutors,
+        isChild: true,
+      })
+    );
+    expect(content).toContain(encoded(`${type}:`));
+    expect(content).toContain(encoded(person.documentID));
+    expect(content).not.toContain(encoded(`${type} ${person.documentID}`));
+    expect(content).toContain(encoded('CC:'));
+  });
+
+  it('prints the production program title with emoji without failing font encoding', async () => {
+    const { content, encoded } = await pdfContent(
+      await buildProgramAuthorizationPdf({
+        programTitle: '🌟 Club de Aventureros Elohe Israel 2026 🌟',
+        person: { ...person, name: 'José Muñoz QA ✅' },
+        tutor: tutors[0],
+        tutors,
+      })
+    );
+    expect(content).toContain(encoded('Club de Aventureros Elohe Israel 2026'));
+    expect(content).toContain(encoded(person.name));
+  });
+
+  it('includes participation consent and signatures for both linked guardians', async () => {
     const { content, encoded } = await pdfContent(
       await buildProgramAuthorizationPdf({
         programTitle: 'Club QA',
@@ -58,18 +97,28 @@ describe('printable enrollment forms', () => {
     for (const text of [
       person.name,
       person.documentID,
-      person.allergies,
-      person.conditions,
-      person.medications,
-      ...tutors.flatMap((t) => [t.name, t.documentID, t.phone]),
-      'Firma del responsable - Padre',
+      ...tutors.flatMap((t) => [t.name, t.documentID]),
       'Firma del responsable - Madre',
+      'Firma del responsable - Padre',
     ]) {
       expect(content).toContain(encoded(text));
     }
+    for (const text of [
+      'Firma del participante',
+      'Información de salud',
+      'Fecha de nacimiento:',
+      'EPS:',
+      'hoja de vida',
+      person.allergies,
+      person.conditions,
+      person.medications,
+    ]) {
+      expect(content).not.toContain(encoded(text));
+    }
+    expect(content).toContain(encoded('Autorización de participación del menor'));
   });
 
-  it('includes each adult own identity, phone and signature', async () => {
+  it('includes each adult identity, data consent and signature without a health record', async () => {
     for (const tutor of tutors) {
       const { content, encoded } = await pdfContent(
         await buildProgramAuthorizationPdf({
@@ -81,35 +130,64 @@ describe('printable enrollment forms', () => {
       for (const text of [
         tutor.name,
         tutor.documentID,
-        tutor.phone,
-        'qa@example.invalid',
-        'Firma del participante',
+        'Autorización de tratamiento de datos personales',
+        'Firma del padre / madre / responsable',
+        'CC:',
       ])
         expect(content).toContain(encoded(text));
+      for (const text of [
+        'Información de salud',
+        'Fecha de nacimiento:',
+        'EPS:',
+        'hoja de vida',
+        tutor.phone,
+        'qa@example.invalid',
+        person.allergies,
+        person.conditions,
+        person.medications,
+        'Igualmente confirmo mi participación',
+      ]) {
+        expect(content).not.toContain(encoded(text));
+      }
     }
   });
 
-  it('paginates long health answers and keeps text inside the printable area', async () => {
+  it('paginates long identification values and keeps text inside the printable area', async () => {
     const { doc, content, encoded } = await pdfContent(
       await buildProgramAuthorizationPdf({
         programTitle: 'Club QA',
         person: {
           ...person,
-          allergies: 'Descripción médica extensa '.repeat(150),
-          medications: 'X'.repeat(200),
+          name: 'Nombre y apellidos extensos '.repeat(75),
+          documentID: 'X'.repeat(200),
         },
         tutor: tutors[0],
         tutors,
       })
     );
     expect(doc.getPageCount()).toBeGreaterThan(1);
-    expect(content).toContain(encoded('Firma del responsable - Madre'));
+    expect(content).toContain(encoded('Firma del responsable - Padre'));
     for (const match of content.matchAll(/1 0 0 1 ([\d.]+) ([\d.]+) Tm/g)) {
-      expect(Number(match[1])).toBeGreaterThanOrEqual(56);
-      expect(Number(match[1])).toBeLessThan(540);
-      expect(Number(match[2])).toBeGreaterThanOrEqual(28);
-      expect(Number(match[2])).toBeLessThanOrEqual(786);
+      expect(Number(match[1])).toBeGreaterThanOrEqual(72);
+      expect(Number(match[1])).toBeLessThan(558);
+      expect(Number(match[2])).toBeGreaterThanOrEqual(54);
+      expect(Number(match[2])).toBeLessThanOrEqual(738);
     }
+  });
+
+  it('uses a single signature and singular consent when there is only one guardian', async () => {
+    const { content, encoded } = await pdfContent(
+      await buildProgramAuthorizationPdf({
+        programTitle: 'Club QA',
+        person,
+        tutor: tutors[0],
+        isChild: true,
+      })
+    );
+    expect(content).toContain(encoded('Firma del responsable - Padre'));
+    expect(content).not.toContain(encoded('Firma del responsable - Madre'));
+    expect(content).not.toContain(encoded('Firmas de los responsables'));
+    expect(content).not.toContain(encoded('Quienes firmamos'));
   });
 
   it('never generates adult self-consent for a child without a guardian', async () => {

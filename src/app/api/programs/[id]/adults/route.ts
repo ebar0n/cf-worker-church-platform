@@ -105,7 +105,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         if (health && !health.success) {
           return NextResponse.json({ error: health.error }, { status: 400 });
         }
-        const hasFiles = ['photo', 'idDocument'].some((key) => {
+        const hasFiles = ['photo', 'idDocument', 'epsCertificate'].some((key) => {
           const file = form.get(key);
           return file instanceof File && file.size > 0;
         });

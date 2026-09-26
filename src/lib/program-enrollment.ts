@@ -106,14 +106,16 @@ export async function uploadEnrollmentFiles(
   bucket: R2Bucket,
   form: FormData
 ): Promise<
-  { success: true; photoUrl?: string; idDocumentUrl?: string } | { success: false; error: string }
+  | { success: true; photoUrl?: string; idDocumentUrl?: string; epsCertificateUrl?: string }
+  | { success: false; error: string }
 > {
-  const result: { photoUrl?: string; idDocumentUrl?: string } = {};
+  const result: { photoUrl?: string; idDocumentUrl?: string; epsCertificateUrl?: string } = {};
 
-  // Validate both files before writing either object to R2.
+  // Validate all files before writing any object to R2.
   for (const [key, types, label] of [
     ['photo', ALLOWED_IMAGE_TYPES, 'Foto'],
     ['idDocument', ALLOWED_DOCUMENT_TYPES, 'Documento'],
+    ['epsCertificate', ALLOWED_DOCUMENT_TYPES, 'Certificado EPS'],
   ] as const) {
     const file = form.get(key);
     if (file instanceof File && file.size > 0) {
@@ -132,6 +134,11 @@ export async function uploadEnrollmentFiles(
     result.idDocumentUrl = `/api/admin/files/${await uploadFileToR2(bucket, idDocument, 'enrollments')}`;
   }
 
+  const epsCertificate = form.get('epsCertificate');
+  if (epsCertificate instanceof File && epsCertificate.size > 0) {
+    result.epsCertificateUrl = `/api/admin/files/${await uploadFileToR2(bucket, epsCertificate, 'enrollments')}`;
+  }
+
   return { success: true, ...result };
 }
 
@@ -140,7 +147,7 @@ export async function upsertHealthProfile(
   db: D1Database,
   ref: { childId?: number; memberId?: number },
   fields: HealthFields,
-  files: { photoUrl?: string; idDocumentUrl?: string }
+  files: { photoUrl?: string; idDocumentUrl?: string; epsCertificateUrl?: string }
 ): Promise<void> {
   const refColumn = ref.childId ? 'childId' : 'memberId';
   const refValue = ref.childId ?? ref.memberId;
@@ -153,7 +160,9 @@ export async function upsertHealthProfile(
 
   if (existing) {
     const fileUpdates =
-      (files.photoUrl ? ', photoUrl = ?' : '') + (files.idDocumentUrl ? ', idDocumentUrl = ?' : '');
+      (files.photoUrl ? ', photoUrl = ?' : '') +
+      (files.idDocumentUrl ? ', idDocumentUrl = ?' : '') +
+      (files.epsCertificateUrl ? ', epsCertificateUrl = ?' : '');
     const bindings: unknown[] = [
       fields.bloodType,
       fields.eps,
@@ -164,6 +173,7 @@ export async function upsertHealthProfile(
     ];
     if (files.photoUrl) bindings.push(files.photoUrl);
     if (files.idDocumentUrl) bindings.push(files.idDocumentUrl);
+    if (files.epsCertificateUrl) bindings.push(files.epsCertificateUrl);
     bindings.push(existing.id);
 
     await db
@@ -179,8 +189,8 @@ export async function upsertHealthProfile(
   await db
     .prepare(
       `INSERT INTO HealthProfile (${refColumn}, bloodType, eps, allergies, conditions,
-       medications, photoUrl, idDocumentUrl, createdAt, updatedAt)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       medications, photoUrl, idDocumentUrl, epsCertificateUrl, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       refValue,
@@ -191,6 +201,7 @@ export async function upsertHealthProfile(
       fields.medications,
       files.photoUrl || null,
       files.idDocumentUrl || null,
+      files.epsCertificateUrl || null,
       now,
       now
     )
@@ -302,7 +313,7 @@ export async function getEnrollmentPdfData(
   if (child) {
     const guardians = await db
       .prepare(
-        `SELECT DISTINCT m.name, m.documentID, m.phone, pae.relationship,
+        `SELECT DISTINCT m.name, m.documentID, m.birthDate, m.phone, pae.relationship,
                 pae.emergencyContactName, pae.emergencyContactPhone, pae.emergencyContactRelation
          FROM Member m
          JOIN ProgramAdultEnrollment pae ON pae.memberId = m.id AND pae.programId = ?

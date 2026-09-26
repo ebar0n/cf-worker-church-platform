@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { BASE_URL, E2E_PREFIX, DOC_IDS } from './config';
-import { getRes, postJson, del, ANY_TOKEN } from './helpers';
+import { getRes, postJson, del, ANY_TOKEN, obtainFormPass } from './helpers';
 
 let programId: number;
+const certificateBytes = readFileSync('docs/audits/program-1-2026-09-19/prueba-padre.pdf');
 
 const health = {
   bloodType: 'O+',
@@ -21,6 +22,10 @@ function adultForm(fields: Record<string, string>, withFiles = false): FormData 
   form.append('token', ANY_TOKEN);
   for (const [key, value] of Object.entries({ ...health, ...fields })) form.append(key, value);
   if (withFiles) {
+    form.append(
+      'epsCertificate',
+      new File([certificateBytes], 'eps.pdf', { type: 'application/pdf' })
+    );
     form.append(
       'photo',
       new File([readFileSync('tests/fixtures/enrollment/foto.png')], 'foto.png', {
@@ -51,6 +56,7 @@ interface LookupResult {
     dataTreatmentAcceptedAt?: string | null;
     participationConfirmedAt?: string | null;
     photoUrl?: string;
+    epsCertificateUrl?: string;
     emergencyContactName?: string | null;
   } | null;
   adults?: Array<{
@@ -78,7 +84,7 @@ const lookup = (documentID: string) =>
 
 beforeAll(async () => {
   const res = await postJson('/api/admin/programs', {
-    title: `${E2E_PREFIX}Aventureros`,
+    title: `${E2E_PREFIX}🌟 Club de Aventureros Elohe Israel 2026 🌟`,
     department: 'club-aventureros',
     content: 'programa de prueba',
     isActive: true,
@@ -165,10 +171,10 @@ describe('adult registration', () => {
     expect(res.status).toBe(201);
     const data = (await res.json()) as {
       relationship: string;
-      classification: { category: string };
+      classification: null;
     };
     expect(data.relationship).toBe('father');
-    expect(data.classification.category).toBe('Guía Mayor');
+    expect(data.classification).toBeNull();
   });
 });
 
@@ -555,6 +561,23 @@ describe('owner-scoped enrollment file view', () => {
     expect(bad.status).toBe(404);
   });
 
+  it('preserves the EPS certificate across edits and serves the exact private PDF', async () => {
+    const group = await lookup(DOC_IDS.clubTutor);
+    const url = group.adult?.epsCertificateUrl;
+    expect(url).toMatch(/^\/api\/admin\/files\/enrollments\/.+\.pdf$/);
+    const cookie = await obtainFormPass();
+    const ownerUrl = url!.replace('/api/admin/files/', `/api/programs/${programId}/file/`);
+    const response = await getRes(ownerUrl, { Cookie: cookie });
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toBe('application/pdf');
+    expect(response.headers.get('cache-control')).toBe('private, no-store');
+    expect(Buffer.from(await response.arrayBuffer())).toEqual(certificateBytes);
+    expect((await getRes(ownerUrl)).status).toBe(400);
+    expect((await getRes(url!.replace('/api/admin/files/', '/api/files/'))).status).toBe(404);
+    const roster = await getRes(`/api/admin/programs/${programId}/roster`);
+    expect(await roster.text()).toContain(url);
+  });
+
   it('requires a token or form-pass', async () => {
     const group = await lookup(DOC_IDS.clubTutor);
     const key = group.adult!.photoUrl!.replace('/api/admin/files/', '');
@@ -633,15 +656,36 @@ describe('admin roster', () => {
 });
 
 describe('authorization PDF', () => {
-  it('generates a pre-filled PDF for a child (public, token-protected)', async () => {
+  it('does not expose printable forms through the public route, even with a token', async () => {
     const res = await fetch(
       `${BASE_URL}/api/programs/${programId}/pdf/${DOC_IDS.clubChild}?token=${ANY_TOKEN}`
     );
-    expect(res.status).toBe(200);
-    expect(res.headers.get('content-type')).toBe('application/pdf');
-    const body = new Uint8Array(await res.arrayBuffer());
-    expect(body.length).toBeGreaterThan(1000);
-    expect(String.fromCharCode(...body.slice(0, 5))).toBe('%PDF-');
+    expect(res.status).toBe(410);
+  });
+
+  it('downloads the whole family as a private PDF, including an incomplete draft', async () => {
+    const roster = (await (await getRes(`/api/admin/programs/${programId}/roster`)).json()) as {
+      families: Array<{ id: string; adults: Array<{ documentID: string }> }>;
+    };
+    for (const documentID of [DOC_IDS.clubTutor, DOC_IDS.clubConsejero]) {
+      const family = roster.families.find((f) =>
+        f.adults.some((a) => a.documentID === documentID)
+      )!;
+      const response = await getRes(`/api/admin/programs/${programId}/families/${family.id}/pdf`);
+      expect(response.status, await response.clone().text()).toBe(200);
+      expect(response.headers.get('content-type')).toBe('application/pdf');
+      expect(response.headers.get('cache-control')).toBe('private, no-store');
+      const { PDFDocument } = await import('pdf-lib');
+      const pdf = await PDFDocument.load(await response.arrayBuffer());
+      expect(pdf.getPageCount()).toBeGreaterThanOrEqual(5);
+    }
+  });
+
+  it('rejects a family that does not belong to the program', async () => {
+    expect((await getRes(`/api/admin/programs/${programId}/families/999999/pdf`)).status).toBe(404);
+    expect((await getRes(`/api/admin/programs/${programId}/families/invalid/pdf`)).status).toBe(
+      400
+    );
   });
 
   it('generates the adult PDF from the admin route', async () => {
@@ -651,9 +695,9 @@ describe('authorization PDF', () => {
     expect(res.headers.get('cache-control')).toBe('private, no-store');
   });
 
-  it('requires a token on the public route', async () => {
+  it('keeps the old public PDF route closed without a token', async () => {
     const res = await fetch(`${BASE_URL}/api/programs/${programId}/pdf/${DOC_IDS.clubChild}`);
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(410);
   });
 
   it('404s for unknown participants', async () => {
