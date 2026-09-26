@@ -115,6 +115,15 @@ const relationshipFrom = (gender: string, isTutor: boolean): string =>
 const relationshipLabel = (relationship?: string): string =>
   RELATIONSHIPS.find((r) => r.value === relationship)?.label || 'Responsable';
 
+function consentDate(value: string): string {
+  const date = new Date(value.length === 10 ? `${value}T12:00:00Z` : value);
+  if (Number.isNaN(date.getTime())) return 'Fecha no disponible';
+  return new Intl.DateTimeFormat('es-CO', {
+    dateStyle: 'long',
+    timeZone: 'America/Bogota',
+  }).format(date);
+}
+
 const safeCategory = (birthDate: string | null): string => {
   if (!birthDate) return 'Niño';
   try {
@@ -1175,9 +1184,11 @@ export default function ProgramEnrollmentClient({
   };
 
   const finalized = Boolean(adult?.dataTreatmentAcceptedAt && adult?.participationConfirmedAt);
+  const dataTreatmentAccepted = Boolean(adult?.dataTreatmentAcceptedAt) || finalizeAccept;
+  const participationConfirmed = Boolean(adult?.participationConfirmedAt) || finalizeConfirm;
 
   const handleFinalize = async () => {
-    if (!finalizeAccept || !finalizeConfirm) return;
+    if (finalized || !dataTreatmentAccepted || !participationConfirmed) return;
     setBusy(true);
     setError(null);
     try {
@@ -1187,8 +1198,8 @@ export default function ProgramEnrollmentClient({
         body: JSON.stringify({
           documentID: documentID.trim(),
           token: turnstileToken,
-          acceptDataTreatment: finalizeAccept,
-          confirmParticipation: finalizeConfirm,
+          acceptDataTreatment: dataTreatmentAccepted,
+          confirmParticipation: participationConfirmed,
         }),
       });
       const data = (await res.json()) as { error?: string };
@@ -1592,12 +1603,15 @@ export default function ProgramEnrollmentClient({
               className="rounded-2xl border p-6"
               style={{ borderColor: `${FORM_COLOR}40`, backgroundColor: `${FORM_COLOR}10` }}
             >
-              <h3 className="text-lg font-semibold text-gray-800">Finalizar la inscripción</h3>
+              <h3 className="text-lg font-semibold text-gray-800">
+                {finalized ? 'Inscripción confirmada' : 'Finalizar la inscripción'}
+              </h3>
               <p className="mt-1 text-sm text-gray-600">
-                Completa los datos y adjuntos de tu grupo familiar y confirma las siguientes
-                casillas. La directiva preparará e imprimirá la carpeta familiar para recoger las
-                firmas. Cada responsable debe ingresar con su documento y guardar su propia
-                aceptación.
+                {finalized
+                  ? 'Estas son las aceptaciones que guardaste para tu inscripción. Puedes seguir consultándolas aquí.'
+                  : 'Completa los datos y adjuntos de tu grupo familiar y confirma las siguientes casillas.'}{' '}
+                La directiva preparará e imprimirá la carpeta familiar para recoger las firmas. Cada
+                responsable debe ingresar con su documento y guardar su propia aceptación.
               </p>
 
               <p className="mt-2 text-sm">
@@ -1612,38 +1626,58 @@ export default function ProgramEnrollmentClient({
                 </a>
               </p>
 
-              {!finalized && (
-                <div className="mt-4 space-y-3">
-                  <label className="flex items-start gap-2 text-sm text-gray-700">
-                    <input
-                      type="checkbox"
-                      checked={finalizeAccept}
-                      onChange={(e) => setFinalizeAccept(e.target.checked)}
-                      className="mt-0.5"
-                    />
+              <div className="mt-4 space-y-3">
+                <label className="flex items-start gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={dataTreatmentAccepted}
+                    disabled={busy || Boolean(adult.dataTreatmentAcceptedAt)}
+                    onChange={(e) => setFinalizeAccept(e.target.checked)}
+                    className="mt-0.5"
+                  />
+                  <span>
                     Autorizo el tratamiento de datos personales (incluidos datos de salud) para la
                     gestión del programa, según la Ley 1581 de 2012.
-                  </label>
-                  <label className="flex items-start gap-2 text-sm text-gray-700">
-                    <input
-                      type="checkbox"
-                      checked={finalizeConfirm}
-                      onChange={(e) => setFinalizeConfirm(e.target.checked)}
-                      className="mt-0.5"
-                    />
+                    {adult.dataTreatmentAcceptedAt && (
+                      <span className="mt-1 block text-xs text-green-800">
+                        Aceptado el{' '}
+                        <time dateTime={adult.dataTreatmentAcceptedAt}>
+                          {consentDate(adult.dataTreatmentAcceptedAt)}
+                        </time>
+                      </span>
+                    )}
+                  </span>
+                </label>
+                <label className="flex items-start gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={participationConfirmed}
+                    disabled={busy || Boolean(adult.participationConfirmedAt)}
+                    onChange={(e) => setFinalizeConfirm(e.target.checked)}
+                    className="mt-0.5"
+                  />
+                  <span>
                     Confirmo la inscripción a {programTitle} y me comprometo a firmar las
                     autorizaciones que entregue la directiva.
-                  </label>
-                </div>
-              )}
+                    {adult.participationConfirmedAt && (
+                      <span className="mt-1 block text-xs text-green-800">
+                        Confirmado el{' '}
+                        <time dateTime={adult.participationConfirmedAt}>
+                          {consentDate(adult.participationConfirmedAt)}
+                        </time>
+                      </span>
+                    )}
+                  </span>
+                </label>
+              </div>
 
               {!finalized && (
                 <button
                   type="button"
                   onClick={handleFinalize}
-                  disabled={busy || !finalizeAccept || !finalizeConfirm}
+                  disabled={busy || !dataTreatmentAccepted || !participationConfirmed}
                   className="mt-4 rounded-lg px-4 py-3 text-sm font-semibold text-white"
-                  style={primaryStyle(busy || !finalizeAccept || !finalizeConfirm)}
+                  style={primaryStyle(busy || !dataTreatmentAccepted || !participationConfirmed)}
                 >
                   {busy ? 'Guardando...' : 'Guardar aceptación y confirmar inscripción'}
                 </button>

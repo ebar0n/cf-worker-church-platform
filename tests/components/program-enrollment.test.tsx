@@ -43,6 +43,7 @@ const mother = {
   isSelf: false,
 };
 let finalized = false;
+let partialConsent = false;
 let requests: Array<{ url: string; init?: RequestInit }>;
 
 beforeEach(() => {
@@ -54,6 +55,7 @@ beforeEach(() => {
     }
   );
   finalized = false;
+  partialConsent = false;
   requests = [];
   window.turnstile = {
     render: (_container, options) => options.callback?.('test-token'),
@@ -71,8 +73,8 @@ beforeEach(() => {
           found: true,
           adult: {
             ...dad,
-            dataTreatmentAcceptedAt: finalized ? '2026-09-19' : null,
-            participationConfirmedAt: finalized ? '2026-09-19' : null,
+            dataTreatmentAcceptedAt: finalized || partialConsent ? '2026-09-19T15:00:00Z' : null,
+            participationConfirmedAt: finalized ? '2026-09-20T15:00:00Z' : null,
           },
           adults: [dad, mother],
           children: [
@@ -113,6 +115,19 @@ async function enter() {
   );
   fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
   await screen.findByRole('heading', { name: 'Tu grupo familiar' });
+}
+
+function expectSavedConsent() {
+  for (const name of [/Autorizo el tratamiento/, /Confirmo la inscripción/]) {
+    const checkbox = screen.getByRole('checkbox', { name }) as HTMLInputElement;
+    expect(checkbox.checked).toBe(true);
+    expect(checkbox.disabled).toBe(true);
+  }
+  expect(screen.getByText('19 de septiembre de 2026')).toBeTruthy();
+  expect(screen.getByText('20 de septiembre de 2026')).toBeTruthy();
+  expect(
+    screen.queryByRole('button', { name: 'Guardar aceptación y confirmar inscripción' })
+  ).toBeNull();
 }
 
 describe('family dashboard saving', () => {
@@ -158,6 +173,7 @@ describe('family dashboard saving', () => {
       screen.getByRole('button', { name: 'Guardar aceptación y confirmar inscripción' })
     );
     await screen.findByText(/Tu aceptación quedó guardada/);
+    expectSavedConsent();
     expect(screen.queryAllByRole('link', { name: /Descargar/ })).toHaveLength(0);
     const consent = JSON.parse(
       requests.find((r) => r.url.endsWith('/consent'))!.init!.body as string
@@ -169,9 +185,36 @@ describe('family dashboard saving', () => {
     });
   });
 
+  it('keeps a saved acceptance locked while allowing the remaining confirmation', async () => {
+    partialConsent = true;
+    await enter();
+    const accepted = screen.getByRole('checkbox', {
+      name: /Autorizo el tratamiento/,
+    }) as HTMLInputElement;
+    const confirmed = screen.getByRole('checkbox', {
+      name: /Confirmo la inscripción/,
+    }) as HTMLInputElement;
+    expect(accepted.checked).toBe(true);
+    expect(accepted.disabled).toBe(true);
+    expect(confirmed.checked).toBe(false);
+    expect(confirmed.disabled).toBe(false);
+    const save = screen.getByRole('button', {
+      name: 'Guardar aceptación y confirmar inscripción',
+    }) as HTMLButtonElement;
+    expect(save.disabled).toBe(true);
+    fireEvent.click(confirmed);
+    expect(save.disabled).toBe(false);
+    fireEvent.click(save);
+    await screen.findByText(/Tu aceptación quedó guardada/);
+    expectSavedConsent();
+    const body = JSON.parse(requests.find((r) => r.url.endsWith('/consent'))!.init!.body as string);
+    expect(body).toMatchObject({ acceptDataTreatment: true, confirmParticipation: true });
+  });
+
   it('restores saved acceptance without public downloads and keeps unsaved changes when closing is cancelled', async () => {
     finalized = true;
     await enter();
+    expectSavedConsent();
     expect(screen.queryAllByRole('link', { name: /Descargar/ })).toHaveLength(0);
     fireEvent.click(
       within(screen.getByText(mother.name, { selector: 'p' }).closest('li')!).getByRole('button', {
