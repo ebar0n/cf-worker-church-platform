@@ -714,8 +714,8 @@ export default function ProgramEnrollmentClient({
   const [emergency, setEmergency] = useState<EmergencyValues>(EMPTY_EMERGENCY);
   // Consent gate on the dashboard: the primary responsible re-affirms before
   // the printable forms are revealed.
-  const [finalizeAccept, setFinalizeAccept] = useState(false);
-  const [finalizeConfirm, setFinalizeConfirm] = useState(false);
+  const [finalizeAccept, setFinalizeAccept] = useState<boolean | null>(null);
+  const [finalizeConfirm, setFinalizeConfirm] = useState<boolean | null>(null);
 
   const [adult, setAdult] = useState<PersonRecord | null>(null);
   const [adults, setAdults] = useState<(PersonRecord & { isSelf?: boolean })[]>([]);
@@ -842,6 +842,8 @@ export default function ProgramEnrollmentClient({
     setError(null);
     try {
       const data = await loadGroup(documentID.trim());
+      setFinalizeAccept(null);
+      setFinalizeConfirm(null);
       if (data.found && data.adult) {
         setAdult(data.adult);
         setAdults(data.adults || []);
@@ -1184,8 +1186,14 @@ export default function ProgramEnrollmentClient({
   };
 
   const finalized = Boolean(adult?.dataTreatmentAcceptedAt && adult?.participationConfirmedAt);
-  const dataTreatmentAccepted = Boolean(adult?.dataTreatmentAcceptedAt) || finalizeAccept;
-  const participationConfirmed = Boolean(adult?.participationConfirmedAt) || finalizeConfirm;
+  const dataTreatmentAccepted = finalizeAccept ?? Boolean(adult?.dataTreatmentAcceptedAt);
+  const participationConfirmed = finalizeConfirm ?? Boolean(adult?.participationConfirmedAt);
+  const consentChanged =
+    dataTreatmentAccepted !== Boolean(adult?.dataTreatmentAcceptedAt) ||
+    participationConfirmed !== Boolean(adult?.participationConfirmedAt);
+  const consentError =
+    (finalizeAccept !== null || finalizeConfirm !== null) &&
+    (!dataTreatmentAccepted || !participationConfirmed);
 
   const handleFinalize = async () => {
     if (finalized || !dataTreatmentAccepted || !participationConfirmed) return;
@@ -1205,6 +1213,8 @@ export default function ProgramEnrollmentClient({
       const data = (await res.json()) as { error?: string };
       if (!res.ok) throw new Error(data.error || 'No se pudo guardar la confirmación');
       await refreshGroup();
+      setFinalizeAccept(null);
+      setFinalizeConfirm(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al finalizar');
     } finally {
@@ -1631,7 +1641,9 @@ export default function ProgramEnrollmentClient({
                   <input
                     type="checkbox"
                     checked={dataTreatmentAccepted}
-                    disabled={busy || Boolean(adult.dataTreatmentAcceptedAt)}
+                    disabled={busy}
+                    aria-invalid={consentError && !dataTreatmentAccepted}
+                    aria-describedby={consentError ? 'enrollment-consent-warning' : undefined}
                     onChange={(e) => setFinalizeAccept(e.target.checked)}
                     className="mt-0.5"
                   />
@@ -1652,7 +1664,9 @@ export default function ProgramEnrollmentClient({
                   <input
                     type="checkbox"
                     checked={participationConfirmed}
-                    disabled={busy || Boolean(adult.participationConfirmedAt)}
+                    disabled={busy}
+                    aria-invalid={consentError && !participationConfirmed}
+                    aria-describedby={consentError ? 'enrollment-consent-warning' : undefined}
                     onChange={(e) => setFinalizeConfirm(e.target.checked)}
                     className="mt-0.5"
                   />
@@ -1671,7 +1685,24 @@ export default function ProgramEnrollmentClient({
                 </label>
               </div>
 
-              {!finalized && (
+              {consentChanged && (
+                <p role="status" className="mt-3 text-sm text-amber-800">
+                  Cambio sin guardar.
+                  {(adult.dataTreatmentAcceptedAt || adult.participationConfirmedAt) &&
+                    ' La aceptación registrada no se ha modificado.'}
+                </p>
+              )}
+              {consentError && (
+                <p
+                  id="enrollment-consent-warning"
+                  role="alert"
+                  className="mt-2 text-sm text-red-700"
+                >
+                  Debes marcar ambas casillas para confirmar la inscripción.
+                </p>
+              )}
+
+              {(!finalized || consentChanged) && (
                 <button
                   type="button"
                   onClick={handleFinalize}
@@ -1682,7 +1713,7 @@ export default function ProgramEnrollmentClient({
                   {busy ? 'Guardando...' : 'Guardar aceptación y confirmar inscripción'}
                 </button>
               )}
-              {finalized && (
+              {finalized && !consentChanged && (
                 <p className="mt-4 text-sm text-green-800">
                   Tu aceptación quedó guardada. La directiva imprimirá la carpeta familiar. Cada
                   adulto firmará su autorización y los padres o tutores firmarán por los menores.

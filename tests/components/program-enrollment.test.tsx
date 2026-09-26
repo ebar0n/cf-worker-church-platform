@@ -121,7 +121,7 @@ function expectSavedConsent() {
   for (const name of [/Autorizo el tratamiento/, /Confirmo la inscripción/]) {
     const checkbox = screen.getByRole('checkbox', { name }) as HTMLInputElement;
     expect(checkbox.checked).toBe(true);
-    expect(checkbox.disabled).toBe(true);
+    expect(checkbox.disabled).toBe(false);
   }
   expect(screen.getByText('19 de septiembre de 2026')).toBeTruthy();
   expect(screen.getByText('20 de septiembre de 2026')).toBeTruthy();
@@ -185,7 +185,7 @@ describe('family dashboard saving', () => {
     });
   });
 
-  it('keeps a saved acceptance locked while allowing the remaining confirmation', async () => {
+  it('restores saved acceptance while allowing the remaining confirmation', async () => {
     partialConsent = true;
     await enter();
     const accepted = screen.getByRole('checkbox', {
@@ -195,7 +195,7 @@ describe('family dashboard saving', () => {
       name: /Confirmo la inscripción/,
     }) as HTMLInputElement;
     expect(accepted.checked).toBe(true);
-    expect(accepted.disabled).toBe(true);
+    expect(accepted.disabled).toBe(false);
     expect(confirmed.checked).toBe(false);
     expect(confirmed.disabled).toBe(false);
     const save = screen.getByRole('button', {
@@ -209,6 +209,31 @@ describe('family dashboard saving', () => {
     expectSavedConsent();
     const body = JSON.parse(requests.find((r) => r.url.endsWith('/consent'))!.init!.body as string);
     expect(body).toMatchObject({ acceptDataTreatment: true, confirmParticipation: true });
+  });
+
+  it('allows unchecking saved consent, flags the unsaved change and never persists rejection', async () => {
+    finalized = true;
+    await enter();
+    for (const name of [/Autorizo el tratamiento/, /Confirmo la inscripción/]) {
+      const checkbox = screen.getByRole('checkbox', { name }) as HTMLInputElement;
+      fireEvent.click(checkbox);
+      expect(checkbox.checked).toBe(false);
+      expect(checkbox.getAttribute('aria-invalid')).toBe('true');
+      expect(screen.getByRole('alert').textContent).toContain('Debes marcar ambas casillas');
+      expect(screen.getByText(/Cambio sin guardar/).textContent).toContain(
+        'La aceptación registrada no se ha modificado'
+      );
+      const save = screen.getByRole('button', {
+        name: 'Guardar aceptación y confirmar inscripción',
+      }) as HTMLButtonElement;
+      expect(save.disabled).toBe(true);
+      fireEvent.click(save);
+      expect(requests.some((r) => r.url.endsWith('/consent'))).toBe(false);
+      fireEvent.click(checkbox);
+      expect(screen.queryByText(/Cambio sin guardar/)).toBeNull();
+      expect(screen.queryByRole('alert')).toBeNull();
+      expectSavedConsent();
+    }
   });
 
   it('restores saved acceptance without public downloads and keeps unsaved changes when closing is cancelled', async () => {

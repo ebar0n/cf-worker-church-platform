@@ -71,7 +71,9 @@ equivalents under `/api/admin/programs/[id]/`: `roster` (families), `physical-fo
   (including the primary/self) opens a modal — the big form is only the initial
   create. The **Finalizar** section saves the current responsible's acceptance and participation
   confirmation; each adult accepts for themselves. Saved checkboxes remain visible,
-  checked and disabled with their individual acceptance dates in Colombia time. Families no longer download or
+  checked and editable with their individual acceptance dates in Colombia time.
+  Unchecking shows a red validation message and an unsaved-change notice, disables
+  confirmation and leaves the stored acceptance untouched. Families no longer download or
   print forms. The legacy public PDF endpoint returns 410. The directiva prints a
   single packet per family from the administrative roster. Identity/health edits
   never imply consent; partial saves remain allowed. Forms
