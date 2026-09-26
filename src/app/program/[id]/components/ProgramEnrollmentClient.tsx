@@ -1917,6 +1917,20 @@ export default function ProgramEnrollmentClient({
                 />
               </div>
               <div className="sm:col-span-2">
+                <FileCapture
+                  onProcessingChange={onFileProcessing}
+                  label="Foto del responsable"
+                  accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                  file={coAdultPhoto}
+                  existingUrl={coAdultExisting?.photoUrl}
+                  viewUrl={ownerFileUrl(coAdultExisting?.photoUrl)}
+                  onChange={(file) => {
+                    setCoAdultPhoto(file);
+                    setDirty(true);
+                  }}
+                />
+              </div>
+              <div className="sm:col-span-2">
                 <label htmlFor="enrollment-field-19" className={LABEL_CLASS}>
                   Correo electrónico
                 </label>
@@ -2004,18 +2018,6 @@ export default function ProgramEnrollmentClient({
             <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
               Documentos
             </h4>
-            <FileCapture
-              onProcessingChange={onFileProcessing}
-              label="Foto del responsable"
-              accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-              file={coAdultPhoto}
-              existingUrl={coAdultExisting?.photoUrl}
-              viewUrl={ownerFileUrl(coAdultExisting?.photoUrl)}
-              onChange={(file) => {
-                setCoAdultPhoto(file);
-                setDirty(true);
-              }}
-            />
             <FileCapture
               onProcessingChange={onFileProcessing}
               label="Documento de identidad"
