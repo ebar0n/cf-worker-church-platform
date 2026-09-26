@@ -416,6 +416,92 @@ describe('co-responsible adults', () => {
   });
 });
 
+describe('responsibles with the same role', () => {
+  it('keeps both tutors and both children together after edits and lookups from either adult', async () => {
+    const adults = [
+      { documentID: DOC_IDS.clubTutor, name: 'E2E Padre', gender: 'M', relationship: 'father' },
+      { documentID: DOC_IDS.clubPrefill, name: 'E2E Madre', gender: 'F', relationship: 'mother' },
+    ];
+    const identity = { phone: '3090001111', birthDate: '1990-01-01' };
+    try {
+      for (const adult of adults) {
+        const res = await join(adultForm({ ...identity, ...adult, relationship: 'tutor' }));
+        expect(res.status).toBe(200);
+      }
+      // Saving either tutor from the other tutor's form used to replace
+      // ChildGuardian.memberId, leaving one enrolled adult without children.
+      for (const [index, adult] of adults.entries()) {
+        const res = await fetch(`${BASE_URL}/api/programs/${programId}/adults`, {
+          method: 'POST',
+          body: adultForm({
+            ...identity,
+            ...adult,
+            relationship: 'tutor',
+            tutorDocumentID: adults[1 - index].documentID,
+          }),
+        });
+        expect(res.status).toBe(201);
+      }
+      const added = await addChild(
+        adultForm({
+          tutorDocumentID: DOC_IDS.clubTutor,
+          documentID: DOC_IDS.clubSecondChild,
+          name: 'E2E Hermana',
+          gender: 'F',
+          birthDate: '2021-03-05',
+        })
+      );
+      expect(added.status).toBe(201);
+      // Re-saving the same child must not replace or duplicate a guardian.
+      const edited = await addChild(
+        adultForm({
+          tutorDocumentID: DOC_IDS.clubPrefill,
+          documentID: DOC_IDS.clubSecondChild,
+          name: 'E2E Hermana',
+          gender: 'F',
+          birthDate: '2021-03-05',
+        })
+      );
+      expect(edited.status).toBe(200);
+      const before = await (await getRes(`/api/admin/programs/${programId}/roster`)).json();
+      for (const adult of [...adults, ...adults]) {
+        const group = await lookup(adult.documentID);
+        expect(group.adults?.map((a) => a.documentID).sort()).toEqual(
+          adults.map((a) => a.documentID).sort()
+        );
+        expect(group.children.map((c) => c.documentID).sort()).toEqual(
+          [DOC_IDS.clubChild, DOC_IDS.clubSecondChild].sort()
+        );
+      }
+      const after = (await (await getRes(`/api/admin/programs/${programId}/roster`)).json()) as {
+        families: Array<{
+          adults: Array<{ documentID: string }>;
+          children: Array<{ guardianMemberIds: number[] }>;
+        }>;
+      };
+      expect(after).toEqual(before);
+      const family = after.families.find((f: { adults: { documentID: string }[] }) =>
+        f.adults.some((a) => a.documentID === DOC_IDS.clubTutor)
+      );
+      if (!family) throw new Error('Missing family after editing both tutors');
+      expect(family.adults).toHaveLength(2);
+      expect(family.children).toHaveLength(2);
+      for (const child of family.children) expect(child.guardianMemberIds).toHaveLength(2);
+    } finally {
+      await fetch(`${BASE_URL}/api/programs/${programId}/children`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tutorDocumentID: DOC_IDS.clubTutor,
+          documentID: DOC_IDS.clubSecondChild,
+          token: ANY_TOKEN,
+        }),
+      });
+      for (const adult of adults) await join(adultForm({ ...identity, ...adult }));
+    }
+  });
+});
+
 describe('a second child added after both parents', () => {
   it('links both parents so either can retrieve and print both children', async () => {
     const res = await addChild(

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withTurnstileProtection } from '@/lib/turnstile';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { upsertChildGuardian } from '@/lib/program-enrollment';
 
 // POST /api/enrollments/create - Create new enrollment with Turnstile protection
 export async function POST(request: NextRequest) {
@@ -180,71 +181,12 @@ export async function POST(request: NextRequest) {
         memberIds.push(motherId);
       }
 
-      // Create or update child-guardian relationships
+      // Preserve other guardians even when they have the same role.
       if (useGuardian) {
-        // Guardian mode - check if guardian relationship exists
-        const existingGuardianRel = await env.DB.prepare(
-          'SELECT id, memberId FROM ChildGuardian WHERE childId = ? AND relationship = ?'
-        )
-          .bind(childId, 'guardian')
-          .first();
-
-        if (existingGuardianRel) {
-          // Update existing guardian relationship
-          await env.DB.prepare('UPDATE ChildGuardian SET memberId = ?, updatedAt = ? WHERE id = ?')
-            .bind(memberIds[0], now, existingGuardianRel.id)
-            .run();
-        } else {
-          // Create new guardian relationship
-          await env.DB.prepare(
-            'INSERT INTO ChildGuardian (childId, memberId, relationship, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)'
-          )
-            .bind(childId, memberIds[0], 'guardian', now, now)
-            .run();
-        }
+        await upsertChildGuardian(env.DB, childId, memberIds[0], 'guardian', now);
       } else {
-        // Parent mode - handle father and mother separately
-        // Handle father relationship
-        const existingFatherRel = await env.DB.prepare(
-          'SELECT id, memberId FROM ChildGuardian WHERE childId = ? AND relationship = ?'
-        )
-          .bind(childId, 'father')
-          .first();
-
-        if (existingFatherRel) {
-          // Update existing father relationship
-          await env.DB.prepare('UPDATE ChildGuardian SET memberId = ?, updatedAt = ? WHERE id = ?')
-            .bind(memberIds[0], now, existingFatherRel.id)
-            .run();
-        } else {
-          // Create new father relationship
-          await env.DB.prepare(
-            'INSERT INTO ChildGuardian (childId, memberId, relationship, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)'
-          )
-            .bind(childId, memberIds[0], 'father', now, now)
-            .run();
-        }
-
-        // Handle mother relationship
-        const existingMotherRel = await env.DB.prepare(
-          'SELECT id, memberId FROM ChildGuardian WHERE childId = ? AND relationship = ?'
-        )
-          .bind(childId, 'mother')
-          .first();
-
-        if (existingMotherRel) {
-          // Update existing mother relationship
-          await env.DB.prepare('UPDATE ChildGuardian SET memberId = ?, updatedAt = ? WHERE id = ?')
-            .bind(memberIds[1], now, existingMotherRel.id)
-            .run();
-        } else {
-          // Create new mother relationship
-          await env.DB.prepare(
-            'INSERT INTO ChildGuardian (childId, memberId, relationship, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)'
-          )
-            .bind(childId, memberIds[1], 'mother', now, now)
-            .run();
-        }
+        await upsertChildGuardian(env.DB, childId, memberIds[0], 'father', now);
+        await upsertChildGuardian(env.DB, childId, memberIds[1], 'mother', now);
       }
 
       // Try to create new enrollment, if it fails due to unique constraint, update existing one
