@@ -148,6 +148,38 @@ describe('family print packet', () => {
     expect(load).toHaveBeenCalledTimes(9);
   });
 
+  it.each([1, 2])(
+    'includes all %i family responsibles for every child, including older incomplete guardian links',
+    async (adultCount) => {
+      const olderFamily: ProgramFamily = {
+        ...family,
+        adults: family.adults.slice(0, adultCount),
+        children: [
+          family.children[0],
+          { ...family.children[0], childId: 2, name: 'Hermano QA', guardianMemberIds: [1] },
+        ],
+      };
+      const pdf = await PDFDocument.load(
+        await buildFamilyPdf({
+          programTitle: 'Club QA',
+          family: olderFamily,
+          loadAttachment: async () => null,
+        })
+      );
+      const pages = await pageTexts(pdf);
+      // Cover, then four pages per person: profile, EPS, identity, authorization.
+      expect(pdf.getPageCount()).toBe(1 + (2 + adultCount) * 4);
+      for (const profileIndex of [1, 5]) {
+        expect(pages[profileIndex](adultCount === 2 ? 'Padre QA / Madre QA' : 'Padre QA')).toBe(
+          true
+        );
+        const authorization = pages[profileIndex + 3];
+        expect(authorization('Firma del responsable - Padre')).toBe(true);
+        expect(authorization('Firma del responsable - Madre')).toBe(adultCount === 2);
+      }
+    }
+  );
+
   it('identifies missing attachments without marking the packet as a draft', async () => {
     const incomplete = {
       ...family,

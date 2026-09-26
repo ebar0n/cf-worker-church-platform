@@ -86,10 +86,9 @@ export async function buildFamilyPdf(options: {
       sheet.field('Teléfono', person.phone);
       sheet.field('Correo electrónico', person.email);
     } else {
-      const guardians = family.adults.filter((a) =>
-        person.guardianMemberIds?.includes(a.memberId!)
-      );
-      sheet.field('Responsables', guardians.map((a) => a.name).join(' / '));
+      // Older enrollments may only link one parent to a sibling. The packet
+      // includes every responsible already registered in this family group.
+      sheet.field('Responsables', family.adults.map((a) => a.name).join(' / '));
     }
     sheet.heading('Información de salud');
     sheet.field('Tipo de sangre', person.bloodType);
@@ -181,9 +180,7 @@ export async function buildFamilyPdf(options: {
     await appendAttachment(person, 'epsCertificateUrl', 'Certificado de afiliación a la EPS');
     await appendAttachment(person, 'idDocumentUrl', 'Documento de identidad');
     const isChild = !person.memberId;
-    const tutors = isChild
-      ? family.adults.filter((a) => person.guardianMemberIds?.includes(a.memberId!))
-      : [];
+    const tutors = isChild ? family.adults : [];
     if (isChild && !tutors.length)
       throw new FamilyPdfError(
         `${person.name}: falta vincular un padre o tutor para la autorización.`

@@ -8,6 +8,7 @@ import {
   upsertHealthProfile,
   getOrCreateChild,
   formString,
+  upsertChildGuardian,
 } from '@/lib/program-enrollment';
 
 // POST /api/programs/[id]/children - Register a child into the program.
@@ -101,32 +102,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         await upsertHealthProfile(env.DB, { childId }, health.data, files);
 
         const now = new Date().toISOString();
-        // A member has exactly one relationship to a child. Clear any prior
-        // relationship rows for this (child, member) pair first, otherwise a
-        // changed relationship (e.g. father → tutor) would leave a stale row
-        // and the child would show duplicated in the family group.
-        await env.DB.prepare('DELETE FROM ChildGuardian WHERE childId = ? AND memberId = ?')
-          .bind(childId, tutor.memberId)
-          .run();
-        await env.DB.prepare(
-          `INSERT INTO ChildGuardian (childId, memberId, relationship, createdAt, updatedAt)
-           VALUES (?, ?, ?, ?, ?)
-           ON CONFLICT(childId, relationship) DO UPDATE SET memberId = excluded.memberId, updatedAt = excluded.updatedAt`
-        )
-          .bind(childId, tutor.memberId, relationship, now, now)
-          .run();
-
+        await upsertChildGuardian(env.DB, childId, tutor.memberId, relationship, now);
         for (const coAdult of familyAdults.results || []) {
           if (coAdult.memberId === tutor.memberId) continue;
-          await env.DB.prepare(
-            `
-            INSERT INTO ChildGuardian (childId, memberId, relationship, createdAt, updatedAt)
-            VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT(childId, relationship) DO NOTHING
-          `
-          )
-            .bind(childId, coAdult.memberId, coAdult.relationship || 'tutor', now, now)
-            .run();
+          await upsertChildGuardian(
+            env.DB,
+            childId,
+            coAdult.memberId,
+            coAdult.relationship || 'tutor',
+            now
+          );
         }
 
         const enrollment = await env.DB.prepare(

@@ -363,3 +363,22 @@ export async function getEnrollmentPdfData(
   if (!adult) return null;
   return { programTitle: program.title, person: adult, tutor: null, tutors: [], isChild: false };
 }
+
+// A relationship describes the person; it must never select another person to replace.
+export async function upsertChildGuardian(
+  db: D1Database,
+  childId: number,
+  memberId: number,
+  relationship: string,
+  now: string
+): Promise<void> {
+  await db
+    .prepare(
+      `INSERT INTO ChildGuardian (childId, memberId, relationship, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?)
+     ON CONFLICT(childId, memberId) DO UPDATE SET
+       relationship = excluded.relationship, updatedAt = excluded.updatedAt`
+    )
+    .bind(childId, memberId, relationship, now, now)
+    .run();
+}

@@ -26,6 +26,18 @@ ranks** — what matters is each adult's **relationship** to the children.
 
 ## Data (migrations 0019–0021, reusing the existing backbone)
 
+Migration `0025_guardian_identity.sql` changes guardian uniqueness to
+`(childId, memberId)`. Multiple adults may share the same relationship (including
+`tutor`); saving one must never replace another person's link. All enrollment
+entry points upsert by child and member, and looking up either adult is read-only.
+The migration preserves each distinct child/member pair and keeps the most recently
+updated role when older data has duplicate rows for one person.
+
+Deployment: apply `0025` together with this Worker release; the new upsert requires
+the new unique key. Previously overwritten links cannot be inferred by this
+migration and must be restored separately from verified records. Do not infer or
+rewrite family relationships from matching names or roles.
+
 `Program`, `Child`, `ChildGuardian` (guardian = `Member`) and `Enrollment`
 already model the family. Added:
 

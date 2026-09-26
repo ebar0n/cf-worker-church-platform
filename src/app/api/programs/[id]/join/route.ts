@@ -172,40 +172,15 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             .run();
         }
 
-        // Apply the adult's relationship to the children they already guard.
-        // First collapse any duplicate guardian rows for this member down to
-        // one per child (stale data could hold e.g. both father and tutor for
-        // the same child); otherwise the relationship update below would create
-        // two rows with the same (childId, relationship) and hit the UNIQUE
-        // constraint. Guarded so a genuine cross-parent clash (two adults both
-        // picking the same relationship for a shared child) can't 500 the
-        // registration — the adult's own pae.relationship is the source of
-        // truth for display.
-        try {
-          await env.DB.prepare(
-            `DELETE FROM ChildGuardian
-             WHERE memberId = ?
-               AND childId IN (SELECT childId FROM Enrollment WHERE programId = ?)
-               AND id NOT IN (
-                 SELECT MIN(id) FROM ChildGuardian
-                 WHERE memberId = ?
-                   AND childId IN (SELECT childId FROM Enrollment WHERE programId = ?)
-                 GROUP BY childId
-               )`
-          )
-            .bind(member.id, programId, member.id, programId)
-            .run();
-
-          await env.DB.prepare(
-            `UPDATE ChildGuardian SET relationship = ?, updatedAt = ?
-             WHERE memberId = ?
-               AND childId IN (SELECT childId FROM Enrollment WHERE programId = ?)`
-          )
-            .bind(relationship, now, member.id, programId)
-            .run();
-        } catch (guardianError) {
-          console.error('Could not propagate relationship to ChildGuardian:', guardianError);
-        }
+        // Changing a role updates this person's links only. Other guardians
+        // can have the same role and must remain linked to the child.
+        await env.DB.prepare(
+          `UPDATE ChildGuardian SET relationship = ?, updatedAt = ?
+           WHERE memberId = ?
+             AND childId IN (SELECT childId FROM Enrollment WHERE programId = ?)`
+        )
+          .bind(relationship, now, member.id, programId)
+          .run();
 
         return NextResponse.json(
           {

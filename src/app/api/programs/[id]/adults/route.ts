@@ -8,6 +8,7 @@ import {
   upsertHealthProfile,
   getOrCreateMember,
   formString,
+  upsertChildGuardian,
   GUARDIAN_RELATIONSHIPS,
 } from '@/lib/program-enrollment';
 
@@ -191,18 +192,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           .all<{ id: number }>();
 
         for (const child of children.results || []) {
-          // Drop this member's prior link to the child so a changed
-          // relationship (e.g. father -> mother) doesn't leave a stale row
-          await env.DB.prepare('DELETE FROM ChildGuardian WHERE childId = ? AND memberId = ?')
-            .bind(child.id, member.id)
-            .run();
-          await env.DB.prepare(
-            `INSERT INTO ChildGuardian (childId, memberId, relationship, createdAt, updatedAt)
-             VALUES (?, ?, ?, ?, ?)
-             ON CONFLICT(childId, relationship) DO UPDATE SET memberId = excluded.memberId, updatedAt = excluded.updatedAt`
-          )
-            .bind(child.id, member.id, relationship, now, now)
-            .run();
+          await upsertChildGuardian(env.DB, child.id, member.id, relationship, now);
         }
 
         return NextResponse.json(
