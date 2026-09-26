@@ -79,31 +79,6 @@ function Badge({ classification }: { classification: Classification | null }) {
   );
 }
 
-function MissingChips({ person }: { person: Person }) {
-  const missing: string[] = [];
-  if (!person.photoUrl) missing.push('Sin foto');
-  if (!person.idDocumentUrl) missing.push('Sin documento');
-  if (!person.epsCertificateUrl) missing.push('Sin certificado EPS');
-  if (!person.bloodType) missing.push('Sin datos de salud');
-  if (!person.physicalFormReceivedAt) missing.push('Formato pendiente');
-  if (missing.length === 0) {
-    return (
-      <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800">
-        Carpeta completa ✓
-      </span>
-    );
-  }
-  return (
-    <>
-      {missing.map((item) => (
-        <span key={item} className="rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-700">
-          {item}
-        </span>
-      ))}
-    </>
-  );
-}
-
 export default function ProgramRosterAdmin({
   programId,
   adminEmail,
@@ -303,7 +278,6 @@ export default function ProgramRosterAdmin({
         </p>
         <div className="mt-0.5 flex flex-wrap gap-1">
           <Badge classification={person.classification} />
-          <MissingChips person={person} />
         </div>
       </div>
     </div>
@@ -352,7 +326,6 @@ export default function ProgramRosterAdmin({
             </p>
             <div className="mt-0.5 flex flex-wrap gap-1">
               <Badge classification={person.classification} />
-              <MissingChips person={person} />
             </div>
           </div>
           <span className="text-xs text-gray-400">{expanded === key ? '▲' : '▼'}</span>
