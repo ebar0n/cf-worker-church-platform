@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import { Pencil, Trash2, FileDown } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { classify } from '@/lib/age-classification';
+import PdfFilePreview from '@/app/components/PdfFilePreview';
+import { printableImage } from '@/lib/printable-image';
 
 interface Props {
   programId: number;
@@ -54,6 +56,7 @@ interface PersonRecord extends Partial<HealthValues> {
   emergencyContactRelation?: string | null;
   photoUrl?: string | null;
   idDocumentUrl?: string | null;
+  epsCertificateUrl?: string | null;
   physicalFormReceivedAt?: string | null;
   dataTreatmentAcceptedAt?: string | null;
   participationConfirmedAt?: string | null;
@@ -84,7 +87,7 @@ const appendHealth = (form: FormData, health: HealthValues) => {
 };
 
 // A person is "completamente diligenciado" when identity, required health and
-// both documents are present. Tutors don't need a gender (relationship is set
+// photo, identity document and EPS certificate are present. Tutors don't need a gender (relationship is set
 // by the checkbox). Used to tint the card a subtle green.
 const isPersonComplete = (p: PersonRecord): boolean =>
   Boolean(
@@ -93,7 +96,8 @@ const isPersonComplete = (p: PersonRecord): boolean =>
       p.bloodType &&
       p.eps &&
       p.photoUrl &&
-      p.idDocumentUrl
+      p.idDocumentUrl &&
+      p.epsCertificateUrl
   );
 
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -250,27 +254,34 @@ function CameraModal({
 // Photo/document field: capture live from the camera or upload a file.
 // `viewUrl` (when editing) points to the owner-scoped file route so the
 // already-uploaded file can be viewed/previewed.
-function FileCapture({
+export function FileCapture({
   label,
+  description,
   accept,
   file,
   existingUrl,
   viewUrl,
   onChange,
+  onProcessingChange,
 }: {
   label: string;
+  description?: string;
   accept: string;
   file: File | null;
   existingUrl?: string | null;
   viewUrl?: string | null;
   onChange: (file: File | null) => void;
+  onProcessingChange?: (processing: boolean) => void;
 }) {
   const fileId = React.useId();
   const [preview, setPreview] = useState<string | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [showPdf, setShowPdf] = useState(false);
+  const [preparingFile, setPreparingFile] = useState(false);
 
   useEffect(() => {
-    if (file && file.type.startsWith('image/')) {
+    if (file) {
       const url = URL.createObjectURL(file);
       setPreview(url);
       return () => URL.revokeObjectURL(url);
@@ -284,23 +295,55 @@ function FileCapture({
       ? 'Archivo cargado ✓ — reemplazar'
       : 'Ningún archivo seleccionado';
 
-  // Existing image files (photo, or an image ID copy) preview inline; PDFs
-  // fall back to a "Ver documento" link.
-  const isImageOnly = !accept.includes('pdf');
-  const existingThumb = !file && viewUrl && isImageOnly ? viewUrl : null;
+  const source = file ? preview : viewUrl;
+  const isPdf = file ? file.type === 'application/pdf' : /\.pdf(?:\?|$)/i.test(existingUrl || '');
+  const isImage = file
+    ? /^image\/(jpeg|png|webp|gif)$/.test(file.type)
+    : /\.(jpe?g|png|webp|gif)(?:\?|$)/i.test(existingUrl || '');
+
+  const selectFile = async (selected: File | null) => {
+    if (!selected) return;
+    if (selected.size > 10 * 1024 * 1024 || !accept.split(',').includes(selected.type)) {
+      setFileError('Selecciona un archivo del tipo indicado de máximo 10 MB.');
+      return;
+    }
+    setFileError(null);
+    if (
+      !selected.type.startsWith('image/') ||
+      ['image/jpeg', 'image/png'].includes(selected.type)
+    ) {
+      onChange(selected);
+      return;
+    }
+    setPreparingFile(true);
+    onProcessingChange?.(true);
+    try {
+      onChange(await printableImage(selected));
+    } catch (error) {
+      setFileError(error instanceof Error ? error.message : 'No se pudo preparar la imagen');
+    } finally {
+      setPreparingFile(false);
+      onProcessingChange?.(false);
+    }
+  };
 
   return (
     <div>
       <label htmlFor={fileId} className={LABEL_CLASS}>
         {label}
       </label>
+      {description && (
+        <p id={`${fileId}-help`} className="mb-2 text-sm text-gray-600">
+          {description}
+        </p>
+      )}
       <div className="flex flex-wrap items-center gap-3 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-3">
-        {preview || existingThumb ? (
+        {source && isImage ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
-            src={preview || existingThumb || ''}
-            alt="Vista previa"
-            className="h-14 w-14 rounded-lg object-cover"
+            src={source}
+            alt={`Vista previa: ${label}`}
+            className="h-16 w-16 rounded-lg object-contain"
           />
         ) : (
           <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-gray-200 text-gray-400">
@@ -309,16 +352,6 @@ function FileCapture({
         )}
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm text-gray-600">{status}</p>
-          {!file && viewUrl && (
-            <a
-              href={viewUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-0.5 inline-block text-xs font-semibold text-[#4b207f] underline"
-            >
-              Ver documento cargado ↗
-            </a>
-          )}
           <div className="mt-1 flex flex-wrap gap-2">
             <button
               type="button"
@@ -332,16 +365,24 @@ function FileCapture({
               <input
                 id={fileId}
                 aria-label={label}
+                aria-describedby={description ? `${fileId}-help` : undefined}
                 type="file"
+                disabled={preparingFile}
                 accept={accept}
                 className="hidden"
-                onChange={(e) => onChange(e.target.files?.[0] || null)}
+                onChange={(e) => {
+                  selectFile(e.target.files?.[0] || null);
+                  e.target.value = '';
+                }}
               />
             </label>
             {file && (
               <button
                 type="button"
-                onClick={() => onChange(null)}
+                onClick={() => {
+                  onChange(null);
+                  setFileError(null);
+                }}
                 className="rounded-md px-2 py-1 text-xs font-semibold text-red-600"
               >
                 Quitar
@@ -350,10 +391,46 @@ function FileCapture({
           </div>
         </div>
       </div>
+      {preparingFile && (
+        <p role="status" className="mt-2 text-sm text-gray-600">
+          Preparando imagen para impresión...
+        </p>
+      )}
+      {fileError && (
+        <p role="alert" className="mt-2 text-sm text-red-700">
+          {fileError}
+        </p>
+      )}
+      {source && (isImage || isPdf) && (
+        <details
+          key={source}
+          className="mt-2 rounded-lg border border-gray-200 p-3"
+          onToggle={(event) => setShowPdf(event.currentTarget.open)}
+        >
+          <summary className="cursor-pointer text-sm font-semibold text-[#4b207f]">
+            Vista previa de {label.toLowerCase()}
+          </summary>
+          {isPdf ? (
+            showPdf && <PdfFilePreview key={source} source={source} label={label} />
+          ) : (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={source}
+              alt={`Documento completo: ${label}`}
+              className="mt-3 max-h-96 w-full object-contain"
+            />
+          )}
+        </details>
+      )}
+      {source && !isImage && !isPdf && (
+        <p className="mt-2 text-xs text-gray-600">
+          No se puede mostrar la vista previa de este formato. Sube una copia en JPG, PNG o PDF.
+        </p>
+      )}
       {cameraOpen && (
         <CameraModal
           onCapture={(f) => {
-            onChange(f);
+            selectFile(f);
             setCameraOpen(false);
           }}
           onClose={() => setCameraOpen(false)}
@@ -366,10 +443,13 @@ function FileCapture({
 function HealthFields({
   values,
   onChange,
+  children,
 }: {
   values: HealthValues;
   onChange: (values: HealthValues) => void;
+  children: React.ReactNode;
 }) {
+  const epsSuggestionsId = React.useId();
   const set = (key: keyof HealthValues) => (e: React.ChangeEvent<any>) =>
     onChange({ ...values, [key]: e.target.value });
 
@@ -401,18 +481,6 @@ function HealthFields({
         </select>
       </div>
       <div>
-        <label htmlFor="enrollment-field-2" className={LABEL_CLASS}>
-          EPS *
-        </label>
-        <input
-          id="enrollment-field-2"
-          value={values.eps}
-          onChange={set('eps')}
-          className={INPUT_CLASS}
-          required
-        />
-      </div>
-      <div>
         <label htmlFor="enrollment-field-3" className={LABEL_CLASS}>
           Alergias
         </label>
@@ -438,7 +506,7 @@ function HealthFields({
           placeholder="n/a"
         />
       </div>
-      <div className="sm:col-span-2">
+      <div>
         <label htmlFor="enrollment-field-5" className={LABEL_CLASS}>
           Medicamentos (si utiliza)
         </label>
@@ -451,6 +519,31 @@ function HealthFields({
           placeholder="n/a"
         />
       </div>
+      <div className="sm:col-span-2">
+        <label htmlFor="enrollment-field-2" className={LABEL_CLASS}>
+          EPS *
+        </label>
+        <input
+          id="enrollment-field-2"
+          list={epsSuggestionsId}
+          aria-describedby={`${epsSuggestionsId}-help`}
+          value={values.eps}
+          onChange={set('eps')}
+          className={INPUT_CLASS}
+          placeholder="Escribe el nombre de tu EPS"
+          autoComplete="off"
+          required
+        />
+        <datalist id={epsSuggestionsId}>
+          {['Compensar', 'Nueva EPS', 'Salud Total', 'Sura', 'Sanitas'].map((eps) => (
+            <option key={eps} value={eps} />
+          ))}
+        </datalist>
+        <p id={`${epsSuggestionsId}-help`} className="mt-1 text-xs text-gray-500">
+          Selecciona una sugerencia o escribe el nombre de otra EPS o régimen especial.
+        </p>
+      </div>
+      <div className="min-w-0 sm:col-span-2">{children}</div>
     </div>
   );
 }
@@ -565,6 +658,10 @@ export default function ProgramEnrollmentClient({
   const [step, setStep] = useState<'identify' | 'adult' | 'dashboard'>('identify');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [processingFiles, setProcessingFiles] = useState(0);
+  const onFileProcessing = useCallback((processing: boolean) => {
+    setProcessingFiles((count) => Math.max(0, count + (processing ? 1 : -1)));
+  }, []);
   const [dirty, setDirty] = useState(false);
   const [savedMessage, setSavedMessage] = useState('');
   const [pendingClose, setPendingClose] = useState<(() => void) | null>(null);
@@ -580,7 +677,7 @@ export default function ProgramEnrollmentClient({
   }, [dirty]);
 
   const closeEditor = (close: () => void) => {
-    if (busy) return;
+    if (busy || processingFiles > 0) return;
     if (dirty) {
       setPendingClose(() => close);
       return;
@@ -633,6 +730,7 @@ export default function ProgramEnrollmentClient({
   const [childHealth, setChildHealth] = useState<HealthValues>(EMPTY_HEALTH);
   const [childPhoto, setChildPhoto] = useState<File | null>(null);
   const [childIdDoc, setChildIdDoc] = useState<File | null>(null);
+  const [childEpsCertificate, setChildEpsCertificate] = useState<File | null>(null);
 
   const emptyCoAdult = {
     documentID: '',
@@ -648,6 +746,7 @@ export default function ProgramEnrollmentClient({
   const [coAdultHealth, setCoAdultHealth] = useState<HealthValues>(EMPTY_HEALTH);
   const [coAdultPhoto, setCoAdultPhoto] = useState<File | null>(null);
   const [coAdultIdDoc, setCoAdultIdDoc] = useState<File | null>(null);
+  const [coAdultEpsCertificate, setCoAdultEpsCertificate] = useState<File | null>(null);
   const [coAdultExisting, setCoAdultExisting] = useState<PersonRecord | null>(null);
 
   useEffect(() => {
@@ -724,7 +823,7 @@ export default function ProgramEnrollmentClient({
     setChildren(group.children);
     setDirty(false);
     setSavedMessage(
-      'Información guardada. Puedes volver con tu documento para continuar o descargar los formatos.'
+      'Información guardada. Puedes volver con tu documento para continuar o completar tu inscripción.'
     );
   };
 
@@ -852,6 +951,7 @@ export default function ProgramEnrollmentClient({
     setChildHealth(EMPTY_HEALTH);
     setChildPhoto(null);
     setChildIdDoc(null);
+    setChildEpsCertificate(null);
     setChildExisting(null);
     setChildEditing(false);
     setError(null);
@@ -870,6 +970,7 @@ export default function ProgramEnrollmentClient({
     setChildHealth(pickHealth(child));
     setChildPhoto(null);
     setChildIdDoc(null);
+    setChildEpsCertificate(null);
     setChildExisting(child);
     setChildEditing(true);
     setError(null);
@@ -892,6 +993,7 @@ export default function ProgramEnrollmentClient({
       appendHealth(form, childHealth);
       if (childPhoto) form.append('photo', childPhoto);
       if (childIdDoc) form.append('idDocument', childIdDoc);
+      if (childEpsCertificate) form.append('epsCertificate', childEpsCertificate);
 
       const res = await fetch(`/api/programs/${programId}/children`, {
         method: 'POST',
@@ -938,6 +1040,7 @@ export default function ProgramEnrollmentClient({
     setCoAdultHealth(EMPTY_HEALTH);
     setCoAdultPhoto(null);
     setCoAdultIdDoc(null);
+    setCoAdultEpsCertificate(null);
     setCoAdultExisting(null);
     setCoAdultEditing(false);
     setEditingSelf(false);
@@ -961,6 +1064,7 @@ export default function ProgramEnrollmentClient({
     setCoAdultHealth(pickHealth(person));
     setCoAdultPhoto(null);
     setCoAdultIdDoc(null);
+    setCoAdultEpsCertificate(null);
     setCoAdultExisting(person);
     setCoAdultEditing(true);
     setEditingSelf(Boolean(person.isSelf) || person.documentID === documentID.trim());
@@ -986,6 +1090,7 @@ export default function ProgramEnrollmentClient({
       appendHealth(form, coAdultHealth);
       if (coAdultPhoto) form.append('photo', coAdultPhoto);
       if (coAdultIdDoc) form.append('idDocument', coAdultIdDoc);
+      if (coAdultEpsCertificate) form.append('epsCertificate', coAdultEpsCertificate);
 
       let endpoint = `/api/programs/${programId}/adults`;
       if (coAdultForm.email) form.append('email', coAdultForm.email);
@@ -1095,9 +1200,6 @@ export default function ProgramEnrollmentClient({
       setBusy(false);
     }
   };
-
-  const pdfUrl = (doc: string) =>
-    `/api/programs/${programId}/pdf/${doc}${turnstileToken ? `?token=${turnstileToken}` : ''}`;
 
   const primaryStyle = (disabled: boolean) => ({
     backgroundColor: disabled ? '#d1d5db' : FORM_COLOR,
@@ -1242,11 +1344,6 @@ export default function ProgramEnrollmentClient({
                   className={INPUT_CLASS}
                   required
                 />
-                {adultForm.birthDate && (
-                  <div className="mt-1">
-                    <ClassificationBadge birthDate={adultForm.birthDate} />
-                  </div>
-                )}
               </div>
               <div>
                 <label htmlFor="enrollment-field-12" className={LABEL_CLASS}>
@@ -1304,7 +1401,7 @@ export default function ProgramEnrollmentClient({
               </button>
               <button
                 type="submit"
-                disabled={busy}
+                disabled={busy || processingFiles > 0}
                 className="flex-1 rounded-lg py-3 font-semibold text-white shadow-sm transition-colors"
                 style={primaryStyle(busy)}
               >
@@ -1321,7 +1418,7 @@ export default function ProgramEnrollmentClient({
               <h2 className="text-2xl font-bold text-gray-900">Tu grupo familiar</h2>
               <p className="text-sm text-gray-600">
                 Guarda cada formulario antes de cerrarlo. Los datos guardados se conservan: puedes
-                volver con tu documento para continuar y descargar los formatos.
+                volver con tu documento para continuar y completar tu inscripción.
               </p>
             </div>
 
@@ -1376,7 +1473,7 @@ export default function ProgramEnrollmentClient({
                         </button>
                         <button
                           onClick={() => handleRemoveChild(child.documentID, child.name)}
-                          disabled={busy}
+                          disabled={busy || processingFiles > 0}
                           title="Quitar"
                           aria-label="Quitar"
                           className="rounded-lg p-2 text-red-500 hover:bg-red-50 hover:text-red-700"
@@ -1450,7 +1547,7 @@ export default function ProgramEnrollmentClient({
                       {!a.isSelf && (
                         <button
                           onClick={() => handleRemoveCoAdult(a.documentID, a.name)}
-                          disabled={busy}
+                          disabled={busy || processingFiles > 0}
                           title="Quitar"
                           aria-label="Quitar"
                           className="rounded-lg p-2 text-red-500 hover:bg-red-50 hover:text-red-700"
@@ -1490,17 +1587,29 @@ export default function ProgramEnrollmentClient({
               )}
             </div>
 
-            {/* Finalize: the primary responsible re-affirms consent, which
-                reveals the printable forms for the whole family group. */}
+            {/* Each responsible saves their own consent. Printing is handled by the directiva. */}
             <div
               className="rounded-2xl border p-6"
               style={{ borderColor: `${FORM_COLOR}40`, backgroundColor: `${FORM_COLOR}10` }}
             >
               <h3 className="text-lg font-semibold text-gray-800">Finalizar la inscripción</h3>
               <p className="mt-1 text-sm text-gray-600">
-                Como responsable, confirma las siguientes casillas para habilitar la descarga de los
-                formatos de cada integrante. Imprímelos, fírmalos y entrégalos a la directiva del
-                programa: ese documento firmado es la confirmación física de la inscripción.
+                Completa los datos y adjuntos de tu grupo familiar y confirma las siguientes
+                casillas. La directiva preparará e imprimirá la carpeta familiar para recoger las
+                firmas. Cada responsable debe ingresar con su documento y guardar su propia
+                aceptación.
+              </p>
+
+              <p className="mt-2 text-sm">
+                <a
+                  href="/privacy"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-medium underline"
+                  style={{ color: FORM_COLOR }}
+                >
+                  Consultar la política de tratamiento de datos personales
+                </a>
               </p>
 
               {!finalized && (
@@ -1522,8 +1631,8 @@ export default function ProgramEnrollmentClient({
                       onChange={(e) => setFinalizeConfirm(e.target.checked)}
                       className="mt-0.5"
                     />
-                    Confirmo la inscripción a {programTitle} y me comprometo a entregar el formato
-                    impreso y firmado.
+                    Confirmo la inscripción a {programTitle} y me comprometo a firmar las
+                    autorizaciones que entregue la directiva.
                   </label>
                 </div>
               )}
@@ -1536,44 +1645,19 @@ export default function ProgramEnrollmentClient({
                   className="mt-4 rounded-lg px-4 py-3 text-sm font-semibold text-white"
                   style={primaryStyle(busy || !finalizeAccept || !finalizeConfirm)}
                 >
-                  {busy ? 'Guardando...' : 'Confirmar y habilitar descargas'}
+                  {busy ? 'Guardando...' : 'Guardar aceptación y confirmar inscripción'}
                 </button>
               )}
               {finalized && (
                 <p className="mt-4 text-sm text-green-800">
-                  Confirmación guardada. Cada adulto debe firmar su formato; los padres o tutores
-                  incluidos deben firmar la autorización del menor.
+                  Tu aceptación quedó guardada. La directiva imprimirá la carpeta familiar. Cada
+                  adulto firmará su autorización y los padres o tutores firmarán por los menores.
                 </p>
               )}
-              {finalized ? (
-                <div className="mt-5 space-y-2">
-                  {[...adults, ...children].map((person) => (
-                    <a
-                      key={`pdf-${person.documentID}`}
-                      href={pdfUrl(person.documentID)}
-                      className="flex items-center justify-between rounded-lg border bg-white px-4 py-3 text-sm font-medium text-gray-800 shadow-sm hover:shadow"
-                      style={{ borderColor: `${FORM_COLOR}30` }}
-                    >
-                      <span>
-                        {person.name}
-                        <span className="ml-2 text-xs font-normal text-gray-500">
-                          {'isSelf' in person
-                            ? relationshipLabel(person.relationship)
-                            : safeCategory(person.birthDate)}
-                        </span>
-                      </span>
-                      <span
-                        className="inline-flex items-center gap-1 font-semibold"
-                        style={{ color: FORM_COLOR }}
-                      >
-                        <FileDown className="h-4 w-4" /> Descargar
-                      </span>
-                    </a>
-                  ))}
-                </div>
-              ) : (
+              {!finalized && (
                 <p className="mt-4 text-sm text-gray-500">
-                  Marca ambas casillas y guarda la confirmación para descargar los formatos.
+                  Marca ambas casillas y guarda tu aceptación. No necesitas descargar ni imprimir
+                  documentos.
                 </p>
               )}
             </div>
@@ -1643,7 +1727,7 @@ export default function ProgramEnrollmentClient({
                   onChange={(e) => setChildForm({ ...childForm, documentID: e.target.value })}
                   onBlur={(e) => !childEditing && prefillChild(e.target.value)}
                   className={INPUT_CLASS}
-                  placeholder="Registro civil o tarjeta de identidad"
+                  placeholder="Número del registro civil de nacimiento"
                   required
                   readOnly={childEditing}
                 />
@@ -1701,12 +1785,27 @@ export default function ProgramEnrollmentClient({
             <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
               Información de salud del niño
             </h4>
-            <HealthFields values={childHealth} onChange={setChildHealth} />
+            <HealthFields values={childHealth} onChange={setChildHealth}>
+              <FileCapture
+                onProcessingChange={onFileProcessing}
+                label="Certificado de afiliación a la EPS"
+                description="Adjunta el certificado de esta persona en PDF o imagen (máximo 10 MB). Puedes agregarlo ahora o más adelante."
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
+                file={childEpsCertificate}
+                existingUrl={childExisting?.epsCertificateUrl}
+                viewUrl={ownerFileUrl(childExisting?.epsCertificateUrl)}
+                onChange={(file) => {
+                  setChildEpsCertificate(file);
+                  setDirty(true);
+                }}
+              />
+            </HealthFields>
 
             <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
               Documentos del niño
             </h4>
             <FileCapture
+              onProcessingChange={onFileProcessing}
               label="Foto del niño"
               accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
               file={childPhoto}
@@ -1718,7 +1817,9 @@ export default function ProgramEnrollmentClient({
               }}
             />
             <FileCapture
-              label="Copia del documento"
+              onProcessingChange={onFileProcessing}
+              label="Documento de identidad"
+              description="Para el niño o niña, adjunta el registro civil de nacimiento."
               accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
               file={childIdDoc}
               existingUrl={childExisting?.idDocumentUrl}
@@ -1739,7 +1840,7 @@ export default function ProgramEnrollmentClient({
               </button>
               <button
                 type="submit"
-                disabled={busy}
+                disabled={busy || processingFiles > 0}
                 className="flex-1 rounded-lg py-3 font-semibold text-white shadow-sm"
                 style={primaryStyle(busy)}
               >
@@ -1879,12 +1980,27 @@ export default function ProgramEnrollmentClient({
             <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
               Información de salud
             </h4>
-            <HealthFields values={coAdultHealth} onChange={setCoAdultHealth} />
+            <HealthFields values={coAdultHealth} onChange={setCoAdultHealth}>
+              <FileCapture
+                onProcessingChange={onFileProcessing}
+                label="Certificado de afiliación a la EPS"
+                description="Adjunta el certificado de esta persona en PDF o imagen (máximo 10 MB). Puedes agregarlo ahora o más adelante."
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
+                file={coAdultEpsCertificate}
+                existingUrl={coAdultExisting?.epsCertificateUrl}
+                viewUrl={ownerFileUrl(coAdultExisting?.epsCertificateUrl)}
+                onChange={(file) => {
+                  setCoAdultEpsCertificate(file);
+                  setDirty(true);
+                }}
+              />
+            </HealthFields>
 
             <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
               Documentos
             </h4>
             <FileCapture
+              onProcessingChange={onFileProcessing}
               label="Foto del responsable"
               accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
               file={coAdultPhoto}
@@ -1896,7 +2012,9 @@ export default function ProgramEnrollmentClient({
               }}
             />
             <FileCapture
-              label="Copia del documento"
+              onProcessingChange={onFileProcessing}
+              label="Documento de identidad"
+              description="Para el padre, madre o acudiente, adjunta la cédula de ciudadanía por ambas caras en un solo PDF o imagen."
               accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
               file={coAdultIdDoc}
               existingUrl={coAdultExisting?.idDocumentUrl}
@@ -1917,7 +2035,7 @@ export default function ProgramEnrollmentClient({
               </button>
               <button
                 type="submit"
-                disabled={busy}
+                disabled={busy || processingFiles > 0}
                 className="flex-1 rounded-lg py-3 font-semibold text-white shadow-sm"
                 style={primaryStyle(busy)}
               >
@@ -1959,7 +2077,7 @@ export default function ProgramEnrollmentClient({
               </button>
               <button
                 type="submit"
-                disabled={busy}
+                disabled={busy || processingFiles > 0}
                 className="flex-1 rounded-lg py-3 font-semibold text-white shadow-sm"
                 style={primaryStyle(busy)}
               >

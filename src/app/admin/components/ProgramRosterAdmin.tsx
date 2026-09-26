@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '@/app/admin/components/AdminLayout';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
+import { familyPendingItems, familyPdfFilename } from '@/lib/program-family';
 
 interface Classification {
   age: number;
@@ -27,12 +28,15 @@ interface Person {
   emergencyContactPhone: string | null;
   photoUrl: string | null;
   idDocumentUrl: string | null;
+  epsCertificateUrl: string | null;
   physicalFormReceivedAt: string | null;
   classification: Classification | null;
 }
 
 interface Adult extends Person {
   memberId: number;
+  dataTreatmentAcceptedAt?: string | null;
+  participationConfirmedAt?: string | null;
 }
 
 interface Family {
@@ -79,6 +83,7 @@ function MissingChips({ person }: { person: Person }) {
   const missing: string[] = [];
   if (!person.photoUrl) missing.push('Sin foto');
   if (!person.idDocumentUrl) missing.push('Sin documento');
+  if (!person.epsCertificateUrl) missing.push('Sin certificado EPS');
   if (!person.bloodType) missing.push('Sin datos de salud');
   if (!person.physicalFormReceivedAt) missing.push('Formato pendiente');
   if (missing.length === 0) {
@@ -111,7 +116,6 @@ export default function ProgramRosterAdmin({
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
-
   const load = useCallback(async () => {
     try {
       const res = await fetch(`/api/admin/programs/${programId}/roster`);
@@ -169,6 +173,7 @@ export default function ProgramRosterAdmin({
       'Tel. emergencia',
       'Foto',
       'Documento ID',
+      'Certificado EPS',
       'Formato físico',
     ];
     const rows: string[][] = [];
@@ -190,6 +195,7 @@ export default function ProgramRosterAdmin({
       p.emergencyContactPhone || '',
       p.photoUrl ? 'Sí' : 'No',
       p.idDocumentUrl ? 'Sí' : 'No',
+      p.epsCertificateUrl ? 'Sí' : 'No',
       p.physicalFormReceivedAt ? 'Recibido' : 'Pendiente',
     ];
     for (const family of roster.families) {
@@ -249,12 +255,16 @@ export default function ProgramRosterAdmin({
             Ver documento de identidad
           </a>
         )}
-        <a
-          href={`/api/admin/programs/${programId}/pdf/${person.documentID}`}
-          className="text-xs font-semibold text-[#4b207f] underline"
-        >
-          Descargar PDF
-        </a>
+        {person.epsCertificateUrl && (
+          <a
+            href={person.epsCertificateUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-xs font-semibold text-[#4b207f] underline"
+          >
+            Ver certificado EPS
+          </a>
+        )}
         <label className="ml-auto flex items-center gap-1 text-xs text-gray-700">
           <input
             type="checkbox"
@@ -397,6 +407,7 @@ export default function ProgramRosterAdmin({
         <div className="space-y-4">
           {filteredFamilies.map((family) => {
             const open = expanded === family.id;
+            const pending = familyPendingItems(family);
             return (
               <div key={family.id} className="rounded-xl bg-white p-4 shadow">
                 <div className="mb-1 flex items-center justify-between gap-2">
@@ -411,6 +422,32 @@ export default function ProgramRosterAdmin({
                     {open ? 'Ocultar detalles ▲' : 'Ver detalles ▼'}
                   </button>
                 </div>
+
+                <div className="my-3 flex flex-wrap items-center gap-3">
+                  <Button asChild className="bg-[#4b207f] text-white">
+                    <a
+                      href={`/api/admin/programs/${programId}/families/${family.id}/pdf`}
+                      download={familyPdfFilename(family)}
+                    >
+                      Descargar PDF familiar
+                    </a>
+                  </Button>
+                  <span className="text-xs text-gray-600">
+                    Portada, hojas de vida, anexos y autorizaciones para firma.
+                  </span>
+                </div>
+                {pending.length > 0 && (
+                  <details className="mb-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+                    <summary className="cursor-pointer font-medium">
+                      Información pendiente ({pending.length})
+                    </summary>
+                    <ul className="mt-2 list-disc space-y-1 pl-5">
+                      {pending.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
 
                 {family.adults.map((adult) => (
                   <MemberSummary

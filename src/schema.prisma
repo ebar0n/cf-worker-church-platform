@@ -186,8 +186,9 @@ model HealthProfile {
   conditions  String?
   medications String?
 
-  photoUrl      String?
-  idDocumentUrl String?
+  photoUrl          String?
+  idDocumentUrl     String?
+  epsCertificateUrl String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

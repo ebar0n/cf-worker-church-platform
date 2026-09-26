@@ -31,7 +31,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
                   pae.physicalFormReceivedAt,
                   pae.emergencyContactName, pae.emergencyContactPhone, pae.emergencyContactRelation,
                   hp.bloodType, hp.eps, hp.allergies, hp.conditions, hp.medications,
-                  hp.photoUrl, hp.idDocumentUrl
+                  hp.photoUrl, hp.idDocumentUrl, hp.epsCertificateUrl
            FROM Member m
            JOIN ProgramAdultEnrollment pae ON pae.memberId = m.id AND pae.programId = ?
            LEFT JOIN HealthProfile hp ON hp.memberId = m.id
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           const member = await env.DB.prepare(
             `SELECT m.name, m.phone, m.birthDate, m.email, m.gender,
                     hp.bloodType, hp.eps, hp.allergies, hp.conditions, hp.medications,
-                    hp.photoUrl, hp.idDocumentUrl
+                    hp.photoUrl, hp.idDocumentUrl, hp.epsCertificateUrl
              FROM Member m
              LEFT JOIN HealthProfile hp ON hp.memberId = m.id
              WHERE m.documentID = ?`
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
                    WHERE cg.childId = c.id AND cg.memberId = ? LIMIT 1) as relationship,
                   e.physicalFormReceivedAt,
                   hp.bloodType, hp.eps, hp.allergies, hp.conditions, hp.medications,
-                  hp.photoUrl, hp.idDocumentUrl
+                  hp.photoUrl, hp.idDocumentUrl, hp.epsCertificateUrl
            FROM Child c
            JOIN Enrollment e ON e.childId = c.id AND e.programId = ?
            LEFT JOIN HealthProfile hp ON hp.childId = c.id
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           `SELECT DISTINCT m.id as memberId, m.name, m.documentID, m.phone, m.birthDate, m.email, m.gender,
                   pae.relationship, pae.physicalFormReceivedAt,
                   hp.bloodType, hp.eps, hp.allergies, hp.conditions, hp.medications,
-                  hp.photoUrl, hp.idDocumentUrl
+                  hp.photoUrl, hp.idDocumentUrl, hp.epsCertificateUrl
            FROM ProgramAdultEnrollment pae
            JOIN Member m ON m.id = pae.memberId
            LEFT JOIN HealthProfile hp ON hp.memberId = m.id
@@ -106,12 +106,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           found: true,
           adult: {
             ...adult,
-            classification: adult.birthDate ? classify(adult.birthDate) : null,
+            classification: null,
           },
           adults: (adults.results || []).map((a: any) => ({
             ...a,
             isSelf: a.memberId === adult.memberId,
-            classification: a.birthDate ? classify(a.birthDate) : null,
+            classification: null,
           })),
           children: (children.results || []).map((child: any) => ({
             ...child,
