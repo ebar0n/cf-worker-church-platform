@@ -265,8 +265,9 @@ export class PdfWriter {
         this.y = top - height - 48;
       }
     };
-    drawGroup(adults, 2, true);
+    // Adults are the base of the tree: children above, responsibles below.
     drawGroup(children, 3, false);
+    drawGroup(adults, 2, true);
     if (!adults.length || !children.length) return;
     // A shared family branch, not a claim of biological parentage. For larger
     // groups the branch runs beside the cards; never through their text.
@@ -275,8 +276,8 @@ export class PdfWriter {
       const trunk = rows.length === 2 ? treeLeft + treeWidth / 2 : PRINT_PAGE.left;
       const branchYs: number[] = [];
       for (const row of pageRows) {
-        const edge = row.adult ? row.bottom : row.top;
-        const branchY = edge + (row.adult ? -20 : 20);
+        const edge = row.adult ? row.top : row.bottom;
+        const branchY = edge + (row.adult ? 20 : -20);
         branchYs.push(branchY);
         const line = (x1: number, y1: number, x2: number, y2: number) =>
           page.drawLine({
@@ -400,19 +401,18 @@ export class PdfWriter {
       });
       this.y -= height;
     };
-    row(adults, dense ? 26 : 40);
+    // Children sit in the canopy; adults are the base of the tree.
+    for (let i = 0; i < children.length; i += 3) {
+      row(children.slice(i, i + 3), dense ? 30 : 46);
+      this.y -= dense ? 8 : 12;
+    }
     if (adults.length && children.length) {
       // Retain the breathing room between the two generations.
-      const gap = dense ? 66 : 108;
+      const gap = dense ? 40 : 76;
       this.space(gap);
       this.y -= gap;
-    } else {
-      this.y -= 20;
     }
-    for (let i = 0; i < children.length; i += 3) {
-      row(children.slice(i, i + 3), dense ? 24 : 38);
-      this.y -= dense ? 10 : 16;
-    }
+    row(adults, dense ? 32 : 50);
   }
 
   familyContacts(
