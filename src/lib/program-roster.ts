@@ -22,7 +22,7 @@ export async function getProgramRoster(db: D1Database, programId: number) {
        JOIN Member m ON m.id = pae.memberId
        LEFT JOIN HealthProfile hp ON hp.memberId = m.id
        WHERE pae.programId = ?
-       ORDER BY m.name`
+       ORDER BY m.birthDate DESC, m.name`
     )
     .bind(programId)
     .all();
@@ -120,7 +120,7 @@ export async function getProgramRoster(db: D1Database, programId: number) {
     for (let i = 1; i < memberIds.length; i++) union(memberIds[0], memberIds[i]);
   }
 
-  // Group adults and children by family root. Children keep the query order
+  // Group adults and children by family root. Both keep the query order
   // (youngest first), which the family PDF tree and sheets follow.
   const families = new Map<number, { adults: any[]; children: any[] }>();
   const familyOf = (memberId: number) => {
