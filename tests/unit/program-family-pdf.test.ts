@@ -203,6 +203,21 @@ describe('family print packet', () => {
     expect(pages[3]('ANEXO FALTANTE')).toBe(true);
   });
 
+  it('rejects oversized PNG attachments instead of exhausting the Worker CPU', async () => {
+    // Signature + IHDR declaring 3000x3000; rejected before any pixel decoding.
+    const header = new Uint8Array(24);
+    header.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    new DataView(header.buffer).setUint32(16, 3000);
+    new DataView(header.buffer).setUint32(20, 3000);
+    await expect(
+      buildFamilyPdf({
+        programTitle: 'Club QA',
+        family,
+        loadAttachment: async () => ({ bytes: header, contentType: 'image/png' }),
+      })
+    ).rejects.toThrow('Menor QA - foto: la imagen PNG es demasiado grande');
+  });
+
   it('identifies unreadable attachments so administrators can fix them', async () => {
     await expect(
       buildFamilyPdf({

@@ -48,6 +48,11 @@
 		"traces": {
 			"enabled": true,
 			"head_sampling_rate": 1
+		},
+		// Groups production failures (5xx, exceptions, CPU limit). Must stay in
+		// this file: a Wrangler deploy without it turns Issues off.
+		"issues": {
+			"enabled": true
 		}
 	},
 	/**
@@ -74,5 +79,13 @@
 			"binding": "UPLOADS",
 			"remote": false
 		}
-	]
+	],
+	/**
+	 * Images: converts attachments to JPEG (and crops profile photos around the
+	 * face) when building family PDFs, outside the Worker CPU budget.
+	 * https://developers.cloudflare.com/images/optimization/binding/
+	 */
+	"images": {
+		"binding": "IMAGES"
+	}
 }

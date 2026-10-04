@@ -1,6 +1,6 @@
 # Family cover illustration
 
-`family-tree.png` is a cartoon-style replacement of the original watercolor, edited with the built-in image generation tool. Names, photos and contacts are drawn separately by the PDF generator; no personal data was sent for image generation. This is a decorative illustration, not an official club emblem.
+`family-tree.jpg` (JPEG, so the Worker embeds it without decoding pixels) is a cartoon-style replacement of the original watercolor, edited with the built-in image generation tool. Names, photos and contacts are drawn separately by the PDF generator; no personal data was sent for image generation. This is a decorative illustration, not an official club emblem.
 
 ## Final edit prompt
 

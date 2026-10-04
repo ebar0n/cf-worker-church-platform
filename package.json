@@ -69,7 +69,7 @@
     "tailwindcss": "4.3.2",
     "typescript": "5.9.3",
     "vitest": "4.1.10",
-    "wrangler": "4.110.0"
+    "wrangler": "4.147.0"
   },
   "packageManager": "yarn@3.6.4"
 }

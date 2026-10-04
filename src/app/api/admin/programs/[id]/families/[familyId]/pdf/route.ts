@@ -1,8 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getProgramRoster } from '@/lib/program-roster';
-import { buildFamilyPdf, FamilyPdfError } from '@/lib/program-family-pdf';
+import {
+  buildFamilyPdf,
+  FamilyPdfError,
+  type AttachmentKind,
+  type FamilyAttachment,
+} from '@/lib/program-family-pdf';
 import { familyPdfFilename } from '@/lib/program-family';
+
+// pdf-lib embeds JPEG bytes as-is but decodes PNG pixels in JS, which can
+// exceed the Worker CPU limit; Cloudflare Images converts images to JPEG
+// outside that budget. Profile photos are also cropped to the 4:5 photo box
+// around the face; documents are only resized. On failure the original bytes
+// are kept and buildFamilyPdf reports the attachment it cannot embed.
+async function printableJpeg(
+  images: ImagesBinding | undefined,
+  buffer: ArrayBuffer,
+  contentType: string,
+  kind: AttachmentKind
+): Promise<FamilyAttachment> {
+  const original = { bytes: new Uint8Array(buffer), contentType };
+  if (!images) return original;
+  try {
+    const result = await images
+      .input(new Blob([buffer]).stream())
+      .transform(
+        kind === 'photo'
+          ? { width: 800, height: 1000, fit: 'cover', gravity: 'face' }
+          : { width: 2000, height: 2000, fit: 'scale-down' }
+      )
+      .output({ format: 'image/jpeg', quality: 85 });
+    return {
+      bytes: new Uint8Array(await result.response().arrayBuffer()),
+      contentType: 'image/jpeg',
+    };
+  } catch (error) {
+    console.error('Error converting attachment to JPEG:', error);
+    return original;
+  }
+}
 
 // Administrative route: protected by the same Cloudflare Access policy as the roster.
 export async function GET(
@@ -28,11 +65,11 @@ export async function GET(
     if (process.env.NODE_ENV === 'development') {
       const { readFile } = await import('node:fs/promises');
       treeIllustration = new Uint8Array(
-        await readFile(`${process.cwd()}/public/pdf/family-tree.png`)
+        await readFile(`${process.cwd()}/public/pdf/family-tree.jpg`)
       );
     } else {
       if (!env.ASSETS) throw new Error('Missing static assets binding');
-      const asset = await env.ASSETS.fetch('https://assets.local/pdf/family-tree.png');
+      const asset = await env.ASSETS.fetch('https://assets.local/pdf/family-tree.jpg');
       if (!asset.ok) throw new Error('Missing family tree illustration');
       treeIllustration = new Uint8Array(await asset.arrayBuffer());
     }
@@ -41,7 +78,7 @@ export async function GET(
       programTitle: String(roster.program.title),
       family,
       treeIllustration,
-      loadAttachment: async (url, label) => {
+      loadAttachment: async (url, label, kind) => {
         const prefix = '/api/admin/files/';
         if (
           !url.startsWith(`${prefix}enrollments/`) ||
@@ -59,10 +96,13 @@ export async function GET(
             'Los anexos de la familia superan 40 MB en total o un archivo supera 10 MB. Reduce su tamaño antes de imprimir.'
           );
         }
-        return {
-          bytes: new Uint8Array(await object.arrayBuffer()),
-          contentType: object.httpMetadata?.contentType || '',
-        };
+        const buffer = await object.arrayBuffer();
+        const contentType = object.httpMetadata?.contentType || '';
+        const bytes = new Uint8Array(buffer);
+        const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8;
+        return contentType.startsWith('image/') && (kind === 'photo' || !isJpeg)
+          ? printableJpeg(env.IMAGES, buffer, contentType, kind)
+          : { bytes, contentType };
       },
     });
     return new NextResponse(Buffer.from(pdf), {
