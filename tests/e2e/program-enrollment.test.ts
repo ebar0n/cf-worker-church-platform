@@ -544,7 +544,7 @@ describe('responsibles with the same role', () => {
       const after = (await (await getRes(`/api/admin/programs/${programId}/roster`)).json()) as {
         families: Array<{
           adults: Array<{ documentID: string }>;
-          children: Array<{ guardianMemberIds: number[] }>;
+          children: Array<{ documentID: string; guardianMemberIds: number[] }>;
         }>;
       };
       expect(after).toEqual(before);
@@ -554,6 +554,11 @@ describe('responsibles with the same role', () => {
       if (!family) throw new Error('Missing family after editing both tutors');
       expect(family.adults).toHaveLength(2);
       expect(family.children).toHaveLength(2);
+      // Youngest first: the PDF family tree and sheets follow this order.
+      expect(family.children.map((child) => child.documentID)).toEqual([
+        DOC_IDS.clubSecondChild,
+        DOC_IDS.clubChild,
+      ]);
       for (const child of family.children) expect(child.guardianMemberIds).toHaveLength(2);
     } finally {
       await fetch(`${BASE_URL}/api/programs/${programId}/children`, {
@@ -765,6 +770,11 @@ describe('admin roster', () => {
       f.adults.some((a) => a.documentID === DOC_IDS.clubTutor)
     )!;
     expect(family.adults).toHaveLength(2);
+    // Man first (left of the PDF tree), regardless of name order.
+    expect(family.adults.map((a) => a.documentID)).toEqual([
+      DOC_IDS.clubTutor,
+      DOC_IDS.clubPrefill,
+    ]);
     expect(family.adults.find((a) => a.documentID === DOC_IDS.clubTutor)!.relationship).toBe(
       'father'
     );
