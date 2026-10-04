@@ -10,14 +10,15 @@ import {
   formString,
   upsertChildGuardian,
   GUARDIAN_RELATIONSHIPS,
+  ANCHORED_FAMILY_ADULTS_SQL,
 } from '@/lib/program-enrollment';
 
 // POST /api/programs/[id]/adults - Register a co-responsible adult
 // (e.g. the other parent) from an enrolled adult's dashboard. Health data is
 // optional here: the co-adult completes it later entering with their own
-// document; the admin checklist flags what is missing. The new adult is
-// linked as guardian (with the given relationship) to every child of the
-// registrant's group.
+// document; the admin checklist flags what is missing. The new adult joins
+// the registrant's family anchor (so a family can exist before any child) and
+// is linked as guardian to every child of the registrant's group.
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: programIdParam } = await params;
 
@@ -69,32 +70,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }
 
         const registrant = await env.DB.prepare(
-          `SELECT m.id as memberId FROM Member m
+          `SELECT m.id as memberId, COALESCE(pae.familyMemberId, m.id) as anchorId FROM Member m
            JOIN ProgramAdultEnrollment pae ON pae.memberId = m.id AND pae.programId = ?
            WHERE m.documentID = ?`
         )
           .bind(programId, registrantDocumentID)
-          .first<{ memberId: number }>();
+          .first<{ memberId: number; anchorId: number }>();
 
         if (!registrant) {
           return NextResponse.json(
             { error: 'El registrante no está inscrito en el programa' },
             { status: 403 }
-          );
-        }
-
-        const familyChild = await env.DB.prepare(
-          `
-          SELECT e.id FROM Enrollment e JOIN ChildGuardian cg ON cg.childId = e.childId
-          WHERE e.programId = ? AND cg.memberId = ? LIMIT 1
-        `
-        )
-          .bind(programId, registrant.memberId)
-          .first();
-        if (!familyChild) {
-          return NextResponse.json(
-            { error: 'Agrega primero un niño para vincular otro responsable a la familia' },
-            { status: 400 }
           );
         }
 
@@ -164,15 +150,19 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         const now = new Date().toISOString();
         await env.DB.prepare(
           `INSERT INTO ProgramAdultEnrollment
-           (programId, memberId, relationship, emergencyContactName, emergencyContactPhone,
-            emergencyContactRelation, createdAt, updatedAt)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-           ON CONFLICT(programId, memberId) DO UPDATE SET relationship = excluded.relationship, updatedAt = excluded.updatedAt`
+           (programId, memberId, relationship, familyMemberId, emergencyContactName,
+            emergencyContactPhone, emergencyContactRelation, createdAt, updatedAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(programId, memberId) DO UPDATE SET
+             relationship = excluded.relationship,
+             familyMemberId = COALESCE(ProgramAdultEnrollment.familyMemberId, excluded.familyMemberId),
+             updatedAt = excluded.updatedAt`
         )
           .bind(
             programId,
             member.id,
             relationship,
+            member.id === registrant.anchorId ? null : registrant.anchorId,
             groupContact?.emergencyContactName ?? null,
             groupContact?.emergencyContactPhone ?? null,
             groupContact?.emergencyContactRelation ?? null,
@@ -270,7 +260,8 @@ export async function DELETE(
           return NextResponse.json({ error: 'Responsable no encontrado' }, { status: 404 });
         }
 
-        // Only allow removing an adult who shares a child with the requester
+        // Only allow removing an adult who shares a child or the family anchor
+        // with the requester
         const removal = await env.DB.prepare(
           `DELETE FROM ProgramAdultEnrollment
            WHERE programId = ? AND memberId = ?
@@ -278,9 +269,10 @@ export async function DELETE(
                SELECT cg2.memberId FROM ChildGuardian cg2
                JOIN ChildGuardian cg3 ON cg3.childId = cg2.childId
                WHERE cg3.memberId = ?
+               UNION ${ANCHORED_FAMILY_ADULTS_SQL}
              )`
         )
-          .bind(programId, target.id, requester.id)
+          .bind(programId, target.id, requester.id, programId, requester.id)
           .run();
 
         if (removal.meta.changes === 0) {
@@ -288,6 +280,21 @@ export async function DELETE(
             { error: 'Responsable no pertenece a tu núcleo' },
             { status: 404 }
           );
+        }
+
+        // Keep the remaining adults anchored together when the anchor leaves
+        const nextAnchor = await env.DB.prepare(
+          'SELECT MIN(memberId) as id FROM ProgramAdultEnrollment WHERE programId = ? AND familyMemberId = ?'
+        )
+          .bind(programId, target.id)
+          .first<{ id: number | null }>();
+        if (nextAnchor?.id) {
+          await env.DB.prepare(
+            `UPDATE ProgramAdultEnrollment SET familyMemberId = NULLIF(?, memberId)
+             WHERE programId = ? AND familyMemberId = ?`
+          )
+            .bind(nextAnchor.id, programId, target.id)
+            .run();
         }
 
         // Drop the target's guardian links to this program's children
