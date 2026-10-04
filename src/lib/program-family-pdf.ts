@@ -13,8 +13,27 @@ export interface FamilyAttachment {
   bytes: Uint8Array;
   contentType: string;
 }
-type LoadAttachment = (url: string, label: string) => Promise<FamilyAttachment | null>;
+// 'photo' is a profile picture (may be cropped around the face); 'document'
+// attachments must keep their full content.
+export type AttachmentKind = 'photo' | 'document';
+type LoadAttachment = (
+  url: string,
+  label: string,
+  kind: AttachmentKind
+) => Promise<FamilyAttachment | null>;
 const CONTENT_WIDTH = PRINT_PAGE.width - PRINT_PAGE.left - PRINT_PAGE.right;
+// pdf-lib embeds JPEG bytes as-is but decodes and re-deflates PNG pixels in JS,
+// which can exceed the Worker CPU limit. Larger PNGs must be re-uploaded (the
+// form converts them to JPEG).
+const MAX_PNG_PIXELS = 2_000_000;
+
+const isJpeg = (bytes: Uint8Array) => bytes[0] === 0xff && bytes[1] === 0xd8;
+const isPng = (bytes: Uint8Array) => bytes[0] === 0x89 && bytes[1] === 0x50;
+// Width and height live in the IHDR chunk, right after the 8-byte signature.
+const pngPixels = (bytes: Uint8Array) => {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  return bytes.byteLength < 24 ? 0 : view.getUint32(16) * view.getUint32(20);
+};
 const roles: Record<string, string> = {
   father: 'Padre',
   mother: 'Madre',
@@ -48,15 +67,23 @@ export async function buildFamilyPdf(options: {
     new PdfWriter(doc, font, bold, layout);
   const people = [...family.children, ...family.adults];
   const photos = new Map<FamilyPerson, PDFImage | null>();
-  const load = async (url: string | null | undefined, label: string) =>
-    url ? loadAttachment(url, label) : null;
+  const load = async (
+    url: string | null | undefined,
+    label: string,
+    kind: AttachmentKind = 'document'
+  ) => (url ? loadAttachment(url, label, kind) : null);
   const embedImage = async (file: FamilyAttachment, label: string) => {
     try {
-      if (file.bytes[0] === 0xff && file.bytes[1] === 0xd8) return await doc.embedJpg(file.bytes);
-      if (file.bytes[0] === 0x89 && file.bytes[1] === 0x50) return await doc.embedPng(file.bytes);
+      if (isJpeg(file.bytes)) return await doc.embedJpg(file.bytes);
+      if (isPng(file.bytes) && pngPixels(file.bytes) <= MAX_PNG_PIXELS)
+        return await doc.embedPng(file.bytes);
     } catch {
       throw new FamilyPdfError(`${label}: la imagen está dañada. Vuelve a cargarla.`);
     }
+    if (isPng(file.bytes))
+      throw new FamilyPdfError(
+        `${label}: la imagen PNG es demasiado grande para la carpeta. Vuelve a cargarla desde el formulario (se convertirá a JPG) o conviértela a JPG.`
+      );
     throw new FamilyPdfError(
       `${label}: convierte la imagen a JPG o PNG y vuelve a cargarla para incluirla en la carpeta.`
     );
@@ -67,7 +94,7 @@ export async function buildFamilyPdf(options: {
 
   const appendProfile = async (person: FamilyPerson) => {
     const label = `${person.name} - foto`;
-    const photo = await load(person.photoUrl, label);
+    const photo = await load(person.photoUrl, label, 'photo');
     const image = photo ? await embedImage(photo, label) : null;
     photos.set(person, image);
     const sheet = writer('profile');
@@ -213,7 +240,11 @@ export async function buildFamilyPdf(options: {
       detail: ageAndClass(person),
       photo: photos.get(person),
     })),
-    options.treeIllustration ? await doc.embedPng(options.treeIllustration) : undefined
+    options.treeIllustration
+      ? isJpeg(options.treeIllustration)
+        ? await doc.embedJpg(options.treeIllustration)
+        : await doc.embedPng(options.treeIllustration)
+      : undefined
   );
   cover.y -= 30;
   cover.familyContacts(family.adults, {
