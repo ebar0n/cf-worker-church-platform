@@ -9,6 +9,7 @@ import {
   getOrCreateChild,
   formString,
   upsertChildGuardian,
+  ANCHORED_FAMILY_ADULTS_SQL,
 } from '@/lib/program-enrollment';
 
 // POST /api/programs/[id]/children - Register a child into the program.
@@ -92,10 +93,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             JOIN ChildGuardian other ON other.childId = own.childId
             JOIN Enrollment e ON e.childId = own.childId AND e.programId = ?
             WHERE own.memberId = ?
-          ))
+          ) OR pae.memberId IN (${ANCHORED_FAMILY_ADULTS_SQL}))
         `
         )
-          .bind(programId, tutor.memberId, programId, tutor.memberId)
+          .bind(programId, tutor.memberId, programId, tutor.memberId, programId, tutor.memberId)
           .all<{ memberId: number; relationship: string | null }>();
 
         const childId = await getOrCreateChild(env.DB, { documentID, name, gender, birthDate });

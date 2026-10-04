@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { withTurnstileProtection } from '@/lib/turnstile';
 import { classify } from '@/lib/age-classification';
+import { ANCHORED_FAMILY_ADULTS_SQL } from '@/lib/program-enrollment';
 
 // POST /api/programs/[id]/lookup - "My family group" view for a tutor:
 // their adult enrollment, health record, and the children they are guardian
@@ -77,8 +78,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           .bind(adult.memberId, programId, adult.memberId, adult.memberId)
           .all();
 
-        // Every enrolled adult that shares a child with the looked-up adult
-        // (the whole núcleo), plus the looked-up adult itself. relationship is
+        // Every enrolled adult that shares a child or the family anchor with
+        // the looked-up adult (the whole núcleo), plus the looked-up adult itself. relationship is
         // taken against any of the group's children.
         const adults = await env.DB.prepare(
           `SELECT DISTINCT m.id as memberId, m.name, m.documentID, m.phone, m.birthDate, m.email, m.gender,
@@ -96,10 +97,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
                  JOIN ChildGuardian cg3 ON cg3.childId = cg2.childId
                  WHERE cg3.memberId = ?
                )
+               OR m.id IN (${ANCHORED_FAMILY_ADULTS_SQL})
              )
            ORDER BY m.name`
         )
-          .bind(programId, adult.memberId, adult.memberId)
+          .bind(programId, adult.memberId, adult.memberId, programId, adult.memberId)
           .all();
 
         return NextResponse.json({

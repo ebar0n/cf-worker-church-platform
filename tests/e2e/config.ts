@@ -21,4 +21,8 @@ export const DOC_IDS = {
   clubSecondChild: '9900110033',
   clubConsejero: '9900110031',
   clubPrefill: '9900110032',
+  adultOnlyAnchor: '9900110034',
+  adultOnlyPartner: '9900110035',
+  adultOnlyThird: '9900110036',
+  adultOnlyChild: '9900110037',
 };

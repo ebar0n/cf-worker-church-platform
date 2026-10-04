@@ -64,8 +64,16 @@ export function parseEmergencyContact(
   return { success: true, data: parse.data };
 }
 
+// Enrolled adults sharing the family anchor of (programId, memberId). Covers
+// families formed before any child is enrolled; binds programId, memberId.
+export const ANCHORED_FAMILY_ADULTS_SQL = `
+  SELECT linked.memberId FROM ProgramAdultEnrollment linked
+  JOIN ProgramAdultEnrollment self ON self.programId = linked.programId
+   AND COALESCE(self.familyMemberId, self.memberId) = COALESCE(linked.familyMemberId, linked.memberId)
+  WHERE self.programId = ? AND self.memberId = ?`;
+
 // The núcleo emergency contact is denormalized onto every adult of the group.
-// Propagate a change from one adult to all adults who share a child with them.
+// Propagate a change from one adult to all adults of their family.
 export async function propagateEmergencyContact(
   db: D1Database,
   programId: number,
@@ -85,6 +93,7 @@ export async function propagateEmergencyContact(
            JOIN ChildGuardian cg2 ON cg2.childId = cg1.childId
            WHERE cg1.memberId = ?
            UNION SELECT ?
+           UNION ${ANCHORED_FAMILY_ADULTS_SQL}
          )`
     )
     .bind(
@@ -94,6 +103,8 @@ export async function propagateEmergencyContact(
       now,
       programId,
       fromMemberId,
+      fromMemberId,
+      programId,
       fromMemberId
     )
     .run();

@@ -13,7 +13,7 @@ export async function getProgramRoster(db: D1Database, programId: number) {
   const adults = await db
     .prepare(
       `SELECT m.id as memberId, m.name, m.documentID, m.phone, m.birthDate, m.email, m.gender,
-              pae.relationship, pae.dataTreatmentAcceptedAt, pae.participationConfirmedAt,
+              pae.relationship, pae.familyMemberId, pae.dataTreatmentAcceptedAt, pae.participationConfirmedAt,
               pae.physicalFormReceivedAt,
               pae.emergencyContactName, pae.emergencyContactPhone, pae.emergencyContactRelation,
               hp.bloodType, hp.eps, hp.allergies, hp.conditions, hp.medications,
@@ -69,7 +69,8 @@ export async function getProgramRoster(db: D1Database, programId: number) {
   const adultMemberIds = new Set(adultRows.map((a) => a.memberId));
 
   // Union-find over adults: two adults are in the same family if they share a
-  // child (via ChildGuardian, or the registering adult as a fallback).
+  // child (via ChildGuardian, or the registering adult as a fallback) or the
+  // family anchor (adults linked before any child was enrolled).
   const parent = new Map<number, number>();
   const find = (x: number): number => {
     let root = x;
@@ -83,6 +84,10 @@ export async function getProgramRoster(db: D1Database, programId: number) {
   };
   const union = (a: number, b: number) => parent.set(find(a), find(b));
   for (const a of adultRows) parent.set(a.memberId, a.memberId);
+  for (const a of adultRows) {
+    if (a.familyMemberId && adultMemberIds.has(a.familyMemberId))
+      union(a.memberId, a.familyMemberId);
+  }
 
   // Resolve each child's enrolled guardian adults (deduped by memberId).
   const childGuardianMembers = new Map<number, number[]>();

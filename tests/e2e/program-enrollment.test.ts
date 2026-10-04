@@ -416,6 +416,74 @@ describe('co-responsible adults', () => {
   });
 });
 
+describe('adults-only family', () => {
+  const anchor = { documentID: DOC_IDS.adultOnlyAnchor, name: 'E2E Esposo', gender: 'M' };
+  const partner = { documentID: DOC_IDS.adultOnlyPartner, name: 'E2E Esposa', gender: 'F' };
+  const third = { documentID: DOC_IDS.adultOnlyThird, name: 'E2E Abuela', gender: 'F' };
+  const identity = { phone: '3050004444', birthDate: '1988-02-10', relationship: 'tutor' };
+  const addAdult = (adult: Record<string, string>, tutorDocumentID: string) =>
+    fetch(`${BASE_URL}/api/programs/${programId}/adults`, {
+      method: 'POST',
+      body: adultForm({ ...identity, ...adult, tutorDocumentID }),
+    });
+  const adultDocs = async (documentID: string) =>
+    ((await lookup(documentID)).adults || []).map((a) => a.documentID).sort();
+
+  it('links other adults before any child is enrolled', async () => {
+    expect((await join(adultForm({ ...identity, ...anchor }))).status).toBe(201);
+    const added = await addAdult(partner, anchor.documentID);
+    expect(added.status).toBe(201);
+    expect(((await added.json()) as { linkedChildren: number }).linkedChildren).toBe(0);
+    // Added from a co-responsible, still the same family.
+    expect((await addAdult(third, partner.documentID)).status).toBe(201);
+
+    const all = [anchor, partner, third].map((a) => a.documentID).sort();
+    for (const documentID of all) expect(await adultDocs(documentID)).toEqual(all);
+  });
+
+  it('keeps the rest together when the anchor adult is removed', async () => {
+    const res = await fetch(`${BASE_URL}/api/programs/${programId}/adults`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tutorDocumentID: partner.documentID,
+        documentID: anchor.documentID,
+        token: ANY_TOKEN,
+      }),
+    });
+    expect(res.status).toBe(200);
+    const rest = [partner, third].map((a) => a.documentID).sort();
+    expect(await adultDocs(third.documentID)).toEqual(rest);
+  });
+
+  it('shares a later child with every adult and groups them in the roster', async () => {
+    const child = await addChild(
+      adultForm({
+        tutorDocumentID: partner.documentID,
+        documentID: DOC_IDS.adultOnlyChild,
+        name: 'E2E Hijo Pareja',
+        gender: 'M',
+        birthDate: '2020-05-05',
+      })
+    );
+    expect(child.status).toBe(201);
+    expect((await lookup(third.documentID)).children.map((c) => c.documentID)).toEqual([
+      DOC_IDS.adultOnlyChild,
+    ]);
+
+    const roster = (await (await getRes(`/api/admin/programs/${programId}/roster`)).json()) as {
+      families: Array<{ adults: Array<{ documentID: string }>; children: unknown[] }>;
+    };
+    const family = roster.families.find((f) =>
+      f.adults.some((a) => a.documentID === partner.documentID)
+    )!;
+    expect(family.adults.map((a) => a.documentID).sort()).toEqual(
+      [partner, third].map((a) => a.documentID).sort()
+    );
+    expect(family.children).toHaveLength(1);
+  });
+});
+
 describe('responsibles with the same role', () => {
   it('keeps both tutors and both children together after edits and lookups from either adult', async () => {
     const adults = [

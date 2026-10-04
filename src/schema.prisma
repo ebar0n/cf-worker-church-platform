@@ -205,6 +205,7 @@ model ProgramAdultEnrollment {
   memberId     Int
   role         String  @default("tutor") // legacy, unused (relationship replaced it)
   relationship String? // father | mother | tutor (the adult's relation to the children)
+  familyMemberId Int? // anchor adult of the family; NULL = own anchor (links adults without children)
 
   dataTreatmentAcceptedAt  DateTime?
   participationConfirmedAt DateTime?
@@ -224,6 +225,7 @@ model ProgramAdultEnrollment {
   @@unique([programId, memberId])
   @@index([programId])
   @@index([memberId])
+  @@index([familyMemberId])
 }
 
 // Volunteer Event information

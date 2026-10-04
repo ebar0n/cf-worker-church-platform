@@ -1516,12 +1516,7 @@ export default function ProgramEnrollmentClient({
                 </h3>
                 <button
                   onClick={openAdultModal}
-                  disabled={children.length === 0 || busy}
-                  title={
-                    children.length === 0
-                      ? 'Agrega primero un niño para vincular otro responsable a la familia'
-                      : undefined
-                  }
+                  disabled={busy}
                   className="rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm"
                   style={{ backgroundColor: FORM_COLOR }}
                 >
