@@ -770,6 +770,11 @@ describe('admin roster', () => {
       f.adults.some((a) => a.documentID === DOC_IDS.clubTutor)
     )!;
     expect(family.adults).toHaveLength(2);
+    // Man first (left of the PDF tree), regardless of name order.
+    expect(family.adults.map((a) => a.documentID)).toEqual([
+      DOC_IDS.clubTutor,
+      DOC_IDS.clubPrefill,
+    ]);
     expect(family.adults.find((a) => a.documentID === DOC_IDS.clubTutor)!.relationship).toBe(
       'father'
     );
