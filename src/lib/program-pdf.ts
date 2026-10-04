@@ -406,7 +406,15 @@ export class PdfWriter {
       row(children.slice(i, i + 3), dense ? 30 : 46);
       this.y -= dense ? 8 : 12;
     }
-    if (adults.length && children.length) {
+    if (!children.length) {
+      // Reserve the canopy row so adults still sit on the trunk.
+      const radius = dense ? 30 : 46;
+      const nameAndDetail = 16 + 13;
+      const reserved = radius * 2 + 23 + nameAndDetail + (dense ? 8 : 12);
+      this.space(reserved);
+      this.y -= reserved;
+    }
+    if (adults.length) {
       // Retain the breathing room between the two generations.
       const gap = dense ? 40 : 76;
       this.space(gap);
