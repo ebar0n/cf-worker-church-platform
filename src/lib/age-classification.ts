@@ -2,10 +2,14 @@
 // Inter-American Division scheme used in Colombia (mundoja.org).
 // Computed from birthDate on read — never stored — so every participant
 // moves up automatically each year. (specs/program-family-enrollment.md)
+// Like Colombian calendar-A schools, the class follows the age completed by
+// March 31 of the current year, so it stays fixed for the whole club year;
+// the displayed age is the real one.
 
 export type AgeCategory = 'Principiante' | 'Aventurero' | 'Conquistador' | 'Guía Mayor';
 
 export interface AgeClassification {
+  /** Real age today */
   age: number;
   category: AgeCategory;
   /** Age-specific class inside the program; null for Principiante / Guía Mayor */
@@ -38,25 +42,35 @@ export function calculateAge(birthDate: Date, referenceDate: Date): number {
   return age;
 }
 
+// Date-only values ("2019-03-05", or D1's "2019-03-05T00:00:00.000Z") are
+// calendar dates: read them as local components so a UTC-5 browser does not
+// move the birthday to the previous day.
+function parseBirthDate(birthDate: Date | string): Date {
+  if (typeof birthDate !== 'string') return birthDate;
+  const match = /^(\d{4})-(\d{2})-(\d{2})(?:T00:00(?::00(?:\.0+)?)?Z?)?$/.exec(birthDate);
+  return match ? new Date(+match[1], +match[2] - 1, +match[3]) : new Date(birthDate);
+}
+
 export function classify(
   birthDate: Date | string,
   referenceDate: Date = new Date()
 ): AgeClassification {
-  const birth = typeof birthDate === 'string' ? new Date(birthDate) : birthDate;
+  const birth = parseBirthDate(birthDate);
   if (Number.isNaN(birth.getTime())) {
     throw new Error('Invalid birthDate');
   }
 
   const age = calculateAge(birth, referenceDate);
+  const classAge = calculateAge(birth, new Date(referenceDate.getFullYear(), 2, 31));
 
-  if (age < 4) {
+  if (classAge < 4) {
     return { age, category: 'Principiante', className: null };
   }
-  if (age <= 9) {
-    return { age, category: 'Aventurero', className: ADVENTURER_CLASSES[age - 4] };
+  if (classAge <= 9) {
+    return { age, category: 'Aventurero', className: ADVENTURER_CLASSES[classAge - 4] };
   }
-  if (age <= 15) {
-    return { age, category: 'Conquistador', className: PATHFINDER_CLASSES[age - 10] };
+  if (classAge <= 15) {
+    return { age, category: 'Conquistador', className: PATHFINDER_CLASSES[classAge - 10] };
   }
   return { age, category: 'Guía Mayor', className: null };
 }
