@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import AccessLogoutButton from '@/app/admin/components/AccessLogoutButton';
 
@@ -31,7 +32,13 @@ export default function AdminLayout({
       <header className="border-line sticky top-0 z-40 border-b bg-white">
         <div className="mx-auto flex h-16 w-full max-w-[75rem] items-center justify-between gap-4 px-5 md:px-8 xl:px-0">
           <Link href="/admin" className="text-ink flex items-center gap-2.5 no-underline">
-            <img src="/church-logo.png" alt="" className="h-9 w-9 rounded-full object-cover" />
+            <Image
+              src="/church-logo.png"
+              alt=""
+              width={96}
+              height={96}
+              className="h-9 w-9 rounded-full object-cover"
+            />
             <span className="font-heading text-2xl font-bold tracking-[-0.01em]">El Jordán</span>
             <span className="text-ink-soft rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium">
               Admin

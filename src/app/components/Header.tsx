@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { ClipboardList, LogIn, Menu } from 'lucide-react';
 import ReloadInAppButton from './ReloadInAppButton';
@@ -37,9 +38,11 @@ export default function Header({
         className={`mx-auto flex w-full max-w-[75rem] items-center justify-between px-5 md:px-8 xl:px-0 ${overlay ? 'h-[68px] lg:h-[88px]' : 'h-16 lg:h-20'}`}
       >
         <Link href="/" className="flex items-center gap-2.5 text-inherit no-underline lg:gap-3">
-          <img
+          <Image
             src="/church-logo.png"
             alt=""
+            width={96}
+            height={96}
             className={`h-[38px] w-[38px] rounded-full object-cover lg:h-10 lg:w-10 ${overlay ? 'border-paper/90 border-2 lg:h-11 lg:w-11' : ''}`}
           />
           <span className="font-heading text-2xl font-bold tracking-[-0.01em] lg:text-[26px]">

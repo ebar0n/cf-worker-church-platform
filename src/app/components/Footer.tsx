@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { Github, Instagram, Phone } from 'lucide-react';
 import { CHURCH_CONTACT } from '@/lib/constants';
@@ -18,9 +19,11 @@ export default function Footer() {
         <div className="grid grid-cols-2 gap-6 text-[15px] lg:grid-cols-12">
           <div className="col-span-2 flex flex-col gap-5 lg:col-span-5">
             <div className="flex items-center gap-3">
-              <img
+              <Image
                 src="/church-logo.png"
                 alt=""
+                width={96}
+                height={96}
                 className="h-9 w-9 rounded-full object-cover lg:h-12 lg:w-12"
               />
               <span className="font-heading text-[22px] font-bold lg:text-[26px]">El Jordán</span>
