@@ -324,7 +324,9 @@ export default function MemberFormClient() {
             ...Object.fromEntries(
               Object.entries(data).map(([k, v]) => {
                 if (k === 'birthDate') {
-                  return [k, new Date(v).toISOString().split('T')[0]];
+                  // Date part only: '' or null birthDates must stay empty
+                  // (new Date('') throws, new Date(null) is 1970-01-01).
+                  return [k, v ? String(v).slice(0, 10) : ''];
                 }
                 if (k === 'willingToLead') {
                   return [k, Boolean(v)];
@@ -360,12 +362,13 @@ export default function MemberFormClient() {
     setLoading(false);
   };
 
-  // Submit
+  // Submit; resolves to whether the data was saved
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
     setSuccess(null);
+    let saved = false;
     try {
       const method = isExisting ? 'PUT' : 'POST';
       const res = await fetch('/api/member', {
@@ -376,6 +379,7 @@ export default function MemberFormClient() {
 
       if (res.ok) {
         const data = (await res.json()) as MemberResponse;
+        saved = true;
         setSuccess(isExisting ? '¡Información actualizada!' : '¡Registro completo!');
         // Actualizar la información de registro
         if (data.createdAt && data.updatedAt) {
@@ -392,6 +396,7 @@ export default function MemberFormClient() {
       setError('Error de red. Intenta de nuevo.');
     }
     setSubmitting(false);
+    return saved;
   };
 
   // Step renderers
@@ -458,8 +463,8 @@ export default function MemberFormClient() {
             formData={formData}
             onChange={handleChange}
             onSubmit={async (e: React.FormEvent) => {
-              await handleSubmit(e);
-              setStep(6);
+              // Stay on this step (which shows the error) unless the save worked
+              if (await handleSubmit(e)) setStep(6);
             }}
             onPrev={prevStep}
             onBlur={handleBlur}

@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '@/app/admin/components/AdminLayout';
+import { genderLabel } from '@/lib/utils';
 
 interface Child {
   id: number;
@@ -71,10 +72,10 @@ export default function ChildrenPage() {
     return `${day}/${month}/${year}`;
   };
 
-  const getGenderLabel = (gender?: string) => {
-    if (!gender) return 'No especificado';
-    return gender === 'male' ? 'Masculino' : 'Femenino';
-  };
+  // createdAt/updatedAt are UTC timestamps, not calendar dates: show the
+  // Bogotá day (a 9 p.m. registration is not tomorrow's).
+  const formatTimestamp = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' });
 
   const exportToCSV = () => {
     const headers = [
@@ -115,12 +116,12 @@ export default function ChildrenPage() {
           child.id,
           `"${child.name}"`,
           child.documentID,
-          getGenderLabel(child.gender),
+          genderLabel(child.gender),
           child.birthDate || 'No especificada',
           `"${guardians}"`,
           `"${phones}"`,
-          formatDate(child.createdAt),
-          formatDate(child.updatedAt),
+          formatTimestamp(child.createdAt),
+          formatTimestamp(child.updatedAt),
         ].join(',');
       }),
     ].join('\n');
@@ -244,14 +245,14 @@ export default function ChildrenPage() {
                         <td className="whitespace-nowrap px-6 py-4">
                           <span
                             className={`inline-flex rounded-full px-2 text-xs font-semibold ${
-                              child.gender === 'male'
+                              genderLabel(child.gender) === 'Masculino'
                                 ? 'bg-blue-100 text-blue-800'
-                                : child.gender === 'female'
+                                : genderLabel(child.gender) === 'Femenino'
                                   ? 'bg-pink-100 text-pink-800'
                                   : 'bg-gray-100 text-gray-800'
                             }`}
                           >
-                            {getGenderLabel(child.gender)}
+                            {genderLabel(child.gender)}
                           </span>
                         </td>
                         <td className="whitespace-nowrap px-6 py-4">
@@ -282,7 +283,8 @@ export default function ChildrenPage() {
                                           ? 'Padre'
                                           : guardian.relationship === 'mother'
                                             ? 'Madre'
-                                            : guardian.relationship === 'guardian'
+                                            : guardian.relationship === 'guardian' ||
+                                                guardian.relationship === 'tutor'
                                               ? 'Tutor'
                                               : 'Responsable'}
                                       </span>
@@ -323,7 +325,8 @@ export default function ChildrenPage() {
                                           ? 'Padre'
                                           : guardian.relationship === 'mother'
                                             ? 'Madre'
-                                            : guardian.relationship === 'guardian'
+                                            : guardian.relationship === 'guardian' ||
+                                                guardian.relationship === 'tutor'
                                               ? 'Tutor'
                                               : 'Responsable'}
                                       </span>
@@ -340,7 +343,9 @@ export default function ChildrenPage() {
                           </div>
                         </td>
                         <td className="whitespace-nowrap px-6 py-4">
-                          <div className="text-sm text-gray-900">{formatDate(child.createdAt)}</div>
+                          <div className="text-sm text-gray-900">
+                            {formatTimestamp(child.createdAt)}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -362,14 +367,14 @@ export default function ChildrenPage() {
                       <h3 className="text-lg font-semibold text-gray-900">{child.name}</h3>
                       <span
                         className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                          child.gender === 'male'
+                          genderLabel(child.gender) === 'Masculino'
                             ? 'bg-blue-100 text-blue-800'
-                            : child.gender === 'female'
+                            : genderLabel(child.gender) === 'Femenino'
                               ? 'bg-pink-100 text-pink-800'
                               : 'bg-gray-100 text-gray-800'
                         }`}
                       >
-                        {getGenderLabel(child.gender)}
+                        {genderLabel(child.gender)}
                       </span>
                     </div>
 
@@ -411,7 +416,8 @@ export default function ChildrenPage() {
                                     ? 'Padre'
                                     : guardian.relationship === 'mother'
                                       ? 'Madre'
-                                      : guardian.relationship === 'guardian'
+                                      : guardian.relationship === 'guardian' ||
+                                          guardian.relationship === 'tutor'
                                         ? 'Tutor'
                                         : 'Responsable'}
                                 </span>
@@ -431,7 +437,7 @@ export default function ChildrenPage() {
                     {/* Registration date */}
                     <div className="border-t border-gray-100 pt-2">
                       <span className="text-xs text-gray-500">
-                        Registrado: {formatDate(child.createdAt)}
+                        Registrado: {formatTimestamp(child.createdAt)}
                       </span>
                     </div>
                   </div>

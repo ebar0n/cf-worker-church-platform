@@ -7,6 +7,7 @@ import { Input } from '@/app/components/ui/input';
 import { Checkbox } from '@/app/components/ui/checkbox';
 import { Course, CourseEnrollment, CourseEnrollmentStatus } from '@/app/types';
 import { calculateAge as calculateAgeAt, parseDateOnly } from '@/lib/age-classification';
+import { downloadCsv } from '@/lib/csv';
 
 interface CoursesAdminProps {
   adminEmail: string;
@@ -46,6 +47,7 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
   const [editingCourse, setEditingCourse] = useState<CourseWithCounts | null>(null);
   const [loadingEnrollments, setLoadingEnrollments] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState<number | null>(null);
+  const [savingCourse, setSavingCourse] = useState(false);
 
   const [courseFormData, setCourseFormData] = useState({
     title: '',
@@ -105,8 +107,9 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
     setFilteredCourses(filtered);
   }, [courses, searchTerm, statusFilter]);
 
+  // `loading` starts true and is only cleared here: refreshes after a mutation
+  // stay silent so the full-page loader doesn't unmount an open modal.
   const fetchData = async () => {
-    setLoading(true);
     try {
       const coursesResponse = await fetch('/api/admin/courses');
       if (coursesResponse.ok) {
@@ -122,6 +125,10 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
 
   const handleCourseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Submitting mid-upload would save without the image, and a second submit
+    // while the first is in flight would create a duplicate course.
+    if (savingCourse || uploadingImage) return;
+    setSavingCourse(true);
 
     try {
       const url = editingCourse ? `/api/admin/courses/${editingCourse.id}` : '/api/admin/courses';
@@ -152,6 +159,8 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
     } catch (error) {
       console.error('Error saving course:', error);
       alert('Error al guardar el curso');
+    } finally {
+      setSavingCourse(false);
     }
   };
 
@@ -454,27 +463,7 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
         formatDate(enrollment.createdAt),
       ]);
 
-      const escapeCSV = (value: string) => {
-        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-          return `"${value.replace(/"/g, '""')}"`;
-        }
-        return value;
-      };
-
-      const csvContent = [
-        csvHeaders.map(escapeCSV).join(','),
-        ...csvData.map((row) => row.map(escapeCSV).join(',')),
-      ].join('\n');
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `${course.title}_inscritos.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      downloadCsv(`${course.title}_inscritos.csv`, [csvHeaders, ...csvData]);
     } catch (error) {
       console.error('Error downloading CSV:', error);
       alert('Error al descargar el archivo CSV');
@@ -871,7 +860,7 @@ Templo de la Iglesia El Jordán
                         }))
                       }
                       min="0"
-                      step="1000"
+                      step="any"
                       placeholder="0 para cursos gratuitos"
                     />
                     <p className="mt-1 text-xs text-gray-500">
@@ -1047,8 +1036,12 @@ Templo de la Iglesia El Jordán
                     >
                       Cancelar
                     </Button>
-                    <Button type="submit" className="bg-[#4b207f] text-white hover:bg-[#4b207f]/90">
-                      {editingCourse ? 'Actualizar' : 'Crear'}
+                    <Button
+                      type="submit"
+                      disabled={savingCourse || uploadingImage}
+                      className="bg-[#4b207f] text-white hover:bg-[#4b207f]/90"
+                    >
+                      {savingCourse ? 'Guardando...' : editingCourse ? 'Actualizar' : 'Crear'}
                     </Button>
                   </div>
                 </form>

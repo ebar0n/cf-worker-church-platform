@@ -84,12 +84,17 @@ export default function AnnouncementsAdmin({ adminEmail }: { adminEmail: string 
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) throw new Error('Failed to save announcement');
+      if (!response.ok) {
+        const error = (await response.json()) as { error?: string };
+        alert(error.error || 'Error al guardar el anuncio');
+        return;
+      }
 
       await fetchAnnouncements();
       resetForm();
     } catch (error) {
       console.error('Error saving announcement:', error);
+      alert('Error al guardar el anuncio');
     } finally {
       setIsSubmitting(false);
     }
@@ -115,11 +120,16 @@ export default function AnnouncementsAdmin({ adminEmail }: { adminEmail: string 
         method: 'DELETE',
       });
 
-      if (!response.ok) throw new Error('Failed to delete announcement');
+      if (!response.ok) {
+        const error = (await response.json()) as { error?: string };
+        alert(error.error || 'Error al eliminar el anuncio');
+        return;
+      }
 
       await fetchAnnouncements();
     } catch (error) {
       console.error('Error deleting announcement:', error);
+      alert('Error al eliminar el anuncio');
     }
   };
 

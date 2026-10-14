@@ -19,6 +19,7 @@ import {
   type SurveyQuestion,
   type SurveySummary,
 } from '@/lib/health-survey';
+import { downloadCsv } from '@/lib/csv';
 import SurveyBarChart from '@/app/admin/components/SurveyBarChart';
 import { useSurveyOutbox } from '@/app/admin/components/useSurveyOutbox';
 import AccessLogoutButton from '@/app/admin/components/AccessLogoutButton';
@@ -308,6 +309,16 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
       return;
     }
 
+    // The server answered and refused it (e.g. the jornada was deleted): signal
+    // will not fix that, so do not promise it. It stays in the pending panel.
+    if (outcome.reason === 'server') {
+      setError(
+        `El servidor no aceptó la encuesta de ${name} (${outcome.message}). Quedó guardada en este dispositivo, sin enviar: avisa al coordinador.`
+      );
+      finishSave(startAnother);
+      return;
+    }
+
     // Offline or an expired session: the survey is safely on the device, so the
     // form can close. The pending panel is what tells the volunteer it is there.
     setStatusMessage(
@@ -423,15 +434,7 @@ export default function HealthSurveysAdmin({ eventId, volunteerEmail }: Props) {
   const pageRows = sorted.slice(pageStart, pageStart + PAGE_SIZE);
 
   const exportCsv = () => {
-    const csv = surveysToCsv(visible)
-      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-    const blob = new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `${eventTitle || 'evento'}_encuestas.csv`;
-    link.click();
-    URL.revokeObjectURL(link.href);
+    downloadCsv(`${eventTitle || 'evento'}_encuestas.csv`, surveysToCsv(visible));
   };
 
   // Asked on arrival, not at save time: the typed name is the only record of who

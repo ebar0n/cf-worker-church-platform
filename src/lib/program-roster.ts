@@ -1,4 +1,5 @@
 import { classify } from './age-classification';
+import { familyEmergencyContact } from './program-family';
 
 // Shared grouping for the admin roster and its printable family packet.
 export async function getProgramRoster(db: D1Database, programId: number) {
@@ -136,14 +137,23 @@ export async function getProgramRoster(db: D1Database, programId: number) {
   }
 
   // Stable, self-describing families: id + the members' names for a header.
-  const familyList = Array.from(families.values()).map((fam) => ({
-    id: fam.adults
-      .map((a) => a.memberId)
-      .sort((x, y) => x - y)
-      .join('-'),
-    adults: fam.adults,
-    children: fam.children,
-  }));
+  const familyList = Array.from(families.values()).map((fam) => {
+    // Children have no contact of their own: the núcleo's lives on its adults.
+    const contact = familyEmergencyContact(fam.adults);
+    return {
+      id: fam.adults
+        .map((a) => a.memberId)
+        .sort((x, y) => x - y)
+        .join('-'),
+      adults: fam.adults,
+      children: fam.children.map((child) => ({
+        ...child,
+        emergencyContactName: contact?.emergencyContactName ?? null,
+        emergencyContactPhone: contact?.emergencyContactPhone ?? null,
+        emergencyContactRelation: contact?.emergencyContactRelation ?? null,
+      })),
+    };
+  });
 
   return { program, families: familyList, unassignedChildren };
 }

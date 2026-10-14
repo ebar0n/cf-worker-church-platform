@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/app/admin/components/AdminLayout';
 import TableWithPagination from '@/app/admin/components/TableWithPagination';
+import { downloadCsv } from '@/lib/csv';
 
 interface FriendsListProps {
   adminEmail: string;
@@ -13,7 +14,7 @@ type ReadStatus = 'todos' | 'leido' | 'no-leido';
 export default function FriendsList({ adminEmail }: FriendsListProps) {
   const [friends, setFriends] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [page, setPage] = useState(1);
   const [requestType, setRequestType] = useState<RequestType>('todos');
   const [readStatus, setReadStatus] = useState<ReadStatus>('todos');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -30,15 +31,17 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
     const friend = friends.find((f) => f.id === id);
     if (!friend) return;
 
-    await fetch(`/api/admin/friends/${id}/read`, {
+    const res = await fetch(`/api/admin/friends/${id}/read`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ isRead: !friend.isRead }),
     });
+    if (!res.ok) return;
 
-    setFriends((prev) => prev.map((f) => (f.id === id ? { ...f, isRead: !f.isRead } : f)));
+    const { friend: updated } = (await res.json()) as { friend: { isRead: boolean } };
+    setFriends((prev) => prev.map((f) => (f.id === id ? { ...f, isRead: updated.isRead } : f)));
   };
 
   const filteredFriends = friends.filter((f) => {
@@ -57,6 +60,8 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
   });
 
   const totalPages = Math.ceil(filteredFriends.length / pageSize);
+  // Marking as read can empty the last page of a filtered view
+  const currentPage = Math.min(page, Math.max(1, totalPages));
   const paginatedFriends = filteredFriends.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
@@ -64,15 +69,15 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    setCurrentPage(1);
+    setPage(1);
   };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    setPage(page);
   };
 
   const handleFilterChange = () => {
-    setCurrentPage(1);
+    setPage(1);
   };
 
   const exportToCSV = () => {
@@ -87,44 +92,36 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
       'Fecha de creación',
       'Última actualización',
     ];
-    const csvContent = [
-      headers.join(','),
-      ...filteredFriends.map((f) =>
-        [
-          f.id,
-          f.name,
-          f.phone,
-          f.address || '',
-          f.reason,
-          f.note || '',
-          f.isRead ? 'Leído' : 'No leído',
-          new Date(f.createdAt).toLocaleString('es-ES', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true,
-          }),
-          new Date(f.updatedAt).toLocaleString('es-ES', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true,
-          }),
-        ].join(',')
-      ),
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'solicitudes.csv';
-    link.click();
+    downloadCsv('solicitudes.csv', [
+      headers,
+      ...filteredFriends.map((f) => [
+        f.id,
+        f.name,
+        f.phone,
+        f.address || '',
+        f.reason,
+        f.note || '',
+        f.isRead ? 'Leído' : 'No leído',
+        new Date(f.createdAt).toLocaleString('es-ES', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        }),
+        new Date(f.updatedAt).toLocaleString('es-ES', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        }),
+      ]),
+    ]);
   };
 
   const handleOpenDetails = (friend: any) => {
@@ -513,7 +510,7 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
                 </div>
                 <div>
                   <span className="font-semibold">Mensaje:</span>{' '}
-                  {selectedFriend.message || 'No especificado'}
+                  {selectedFriend.note || 'No especificado'}
                 </div>
                 <div>
                   <span className="font-semibold">Estado:</span>{' '}

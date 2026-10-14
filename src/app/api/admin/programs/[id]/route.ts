@@ -68,22 +68,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// DELETE /api/admin/programs/[id] - Delete program
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const programId = parseInt(id);
-
-    if (isNaN(programId)) {
-      return NextResponse.json({ error: 'Invalid program ID' }, { status: 400 });
-    }
-
-    return NextResponse.json({ message: 'Program deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting program:', error);
-    return NextResponse.json({ error: 'Failed to delete program' }, { status: 500 });
-  }
+// DELETE /api/admin/programs/[id] - Not supported: enrollments and family
+// records hang off the program, so deactivating it is the way to close it.
+export async function DELETE() {
+  return NextResponse.json(
+    { error: 'Eliminar programas no está disponible; desactívalo en su lugar.' },
+    { status: 405, headers: { Allow: 'PUT' } }
+  );
 }

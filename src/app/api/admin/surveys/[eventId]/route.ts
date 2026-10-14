@@ -100,12 +100,12 @@ export async function POST(
         'SELECT name FROM HealthSurvey WHERE volunteerEventId = ? AND phone = ?'
       )
         .bind(eventId, values.phone)
-        .first<{ name: string }>();
+        .first<{ name: string | null }>();
 
       if (twin) {
         return NextResponse.json(
           {
-            error: `Ya hay una encuesta con ese teléfono en este evento (${twin.name}).`,
+            error: `Ya hay una encuesta con ese teléfono en este evento (${twin.name || 'sin nombre'}).`,
             duplicate: true,
           },
           { status: 409 }

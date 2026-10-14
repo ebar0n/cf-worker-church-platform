@@ -705,6 +705,9 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                     onChange={(e) => {
                       setFormData({ ...formData, documentID: e.target.value });
                       setMemberFound(null);
+                      // A new document is not known to be registered: without
+                      // this, a corrected document would be sent as an update
+                      setAlreadyRegistered(false);
                     }}
                     onBlur={handleDocumentBlur}
                     className="w-full rounded-lg border border-gray-300 px-4 py-3 pr-12 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
@@ -842,11 +845,12 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                           value={formData.birthDate}
                           onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
                           className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
-                          max={
-                            new Date(new Date().setFullYear(new Date().getFullYear() - 16))
-                              .toISOString()
-                              .split('T')[0]
-                          }
+                          max={(() => {
+                            // Local date parts: toISOString() is UTC, a day
+                            // ahead from 7 p.m. in Bogotá
+                            const d = new Date();
+                            return `${d.getFullYear() - 16}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                          })()}
                         />
                         <p className="mt-1 text-xs text-gray-500">Debes tener al menos 16 años</p>
                       </div>

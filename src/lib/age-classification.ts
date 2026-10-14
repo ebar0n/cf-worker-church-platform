@@ -51,9 +51,19 @@ export function parseDateOnly(value: Date | string): Date {
   return match ? new Date(+match[1], +match[2] - 1, +match[3]) : new Date(value);
 }
 
+// The Worker runs in UTC: from 7 p.m. in Bogotá new Date() is already
+// tomorrow. Ages and classes follow the church's calendar day.
+export function todayInBogota(now: Date = new Date()): Date {
+  const [year, month, day] = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' })
+    .format(now)
+    .split('-')
+    .map(Number);
+  return new Date(year, month - 1, day);
+}
+
 export function classify(
   birthDate: Date | string,
-  referenceDate: Date = new Date()
+  referenceDate: Date = todayInBogota()
 ): AgeClassification {
   const birth = parseDateOnly(birthDate);
   if (Number.isNaN(birth.getTime())) {
@@ -75,6 +85,6 @@ export function classify(
   return { age, category: 'Guía Mayor', className: null };
 }
 
-export function isAdult(birthDate: Date | string, referenceDate: Date = new Date()): boolean {
+export function isAdult(birthDate: Date | string, referenceDate: Date = todayInBogota()): boolean {
   return classify(birthDate, referenceDate).age >= MIN_ADULT_AGE;
 }
