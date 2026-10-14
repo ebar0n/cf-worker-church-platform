@@ -5,6 +5,7 @@ import {
   isAdult,
   MIN_ADULT_AGE,
   parseDateOnly,
+  todayInBogota,
 } from '@/lib/age-classification';
 
 // Fixed reference date so tests never depend on the clock
@@ -122,5 +123,21 @@ describe('parseDateOnly', () => {
     expect(parseDateOnly('2026-10-14T02:16:30.514Z').toISOString()).toBe(
       '2026-10-14T02:16:30.514Z'
     );
+  });
+});
+
+describe('todayInBogota', () => {
+  const ymd = (d: Date) => [d.getFullYear(), d.getMonth() + 1, d.getDate()];
+
+  it('is still the previous day in Bogotá after 7 p.m. (UTC midnight)', () => {
+    expect(ymd(todayInBogota(new Date('2026-10-14T02:00:00Z')))).toEqual([2026, 10, 13]);
+  });
+
+  it('turns over at Bogotá midnight (05:00 UTC)', () => {
+    expect(ymd(todayInBogota(new Date('2026-10-14T05:00:00Z')))).toEqual([2026, 10, 14]);
+  });
+
+  it('keeps the old year on December 31 evening, so classes do not jump early', () => {
+    expect(ymd(todayInBogota(new Date('2027-01-01T03:00:00Z')))).toEqual([2026, 12, 31]);
   });
 });

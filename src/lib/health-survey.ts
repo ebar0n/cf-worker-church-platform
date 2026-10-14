@@ -562,12 +562,21 @@ export function surveysToCsv(rows: Record<string, unknown>[]): string[][] {
   const columns = [...contact, ...SURVEY_QUESTIONS.filter((q) => !contact.includes(q))];
 
   const text = (value: unknown) => (typeof value === 'string' && value.trim() ? value : '');
+  // Timestamps are stored in UTC, but the sheet is read in Bogotá, where an
+  // 8 p.m. survey would show up dated the next day. sv-SE formats as
+  // "YYYY-MM-DD HH:mm:ss", which no spreadsheet reads as month/day.
+  const bogotaTime = (iso: string) => {
+    const date = new Date(iso);
+    return Number.isNaN(date.getTime())
+      ? iso
+      : date.toLocaleString('sv-SE', { timeZone: 'America/Bogota' }).slice(0, 16);
+  };
 
   const header = [...columns.map((q) => q.label), 'Registrada', 'Encuestada por', 'Entregada por'];
   const body = rows.map((row) => [
     ...columns.map((q) => csvAnswer(row[q.field], q.type)),
     // The device's capture time is the real moment; createdAt is the insert.
-    text(row.capturedAt) || text(row.createdAt),
+    bogotaTime(text(row.capturedAt) || text(row.createdAt)),
     // Who ran the interview. capturedBy alone would credit whoever synced the
     // queue, which after a shift change is a different volunteer.
     text(row.interviewerName) || text(row.capturedBy),

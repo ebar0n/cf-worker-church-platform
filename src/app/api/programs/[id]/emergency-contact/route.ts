@@ -20,6 +20,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           return NextResponse.json({ error: 'Programa inválido' }, { status: 400 });
         }
 
+        const program = await env.DB.prepare('SELECT id FROM Program WHERE id = ? AND isActive = 1')
+          .bind(programId)
+          .first();
+        if (!program) {
+          return NextResponse.json({ error: 'Programa no encontrado' }, { status: 404 });
+        }
+
         const body = (await req.json()) as {
           tutorDocumentID?: string;
           emergencyContactName?: string;

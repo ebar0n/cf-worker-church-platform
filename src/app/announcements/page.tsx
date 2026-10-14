@@ -32,7 +32,7 @@ export default function AnnouncementsPage() {
   useEffect(() => {
     const fetchAnnouncements = async () => {
       try {
-        const response = await fetch('/api/announcements/latest');
+        const response = await fetch('/api/announcements/latest?all=1');
         if (!response.ok) {
           throw new Error('Failed to fetch announcements');
         }

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { downloadCsv } from '@/lib/csv';
 
 interface TableWithPaginationProps<T> {
   columns: { key: keyof T | string; label: string; className?: string }[];
@@ -7,30 +8,6 @@ interface TableWithPaginationProps<T> {
   searchPlaceholder?: string;
   searchKeys?: (keyof T)[];
   renderRow?: (row: T, openDetails: (row: T) => void) => React.ReactNode;
-}
-
-function exportToCSV<T>(
-  data: T[],
-  columns: { key: keyof T | string; label: string }[],
-  filename = 'export.csv'
-) {
-  const header = columns.map((col) => col.label).join(',');
-  const rows = data.map((row) =>
-    columns
-      .map((col) => {
-        const value = row[col.key as keyof T];
-        return `"${String(value ?? '').replace(/"/g, '""')}"`;
-      })
-      .join(',')
-  );
-  const csv = [header, ...rows].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
 }
 
 export default function TableWithPagination<T>({
@@ -74,7 +51,12 @@ export default function TableWithPagination<T>({
         <div className="flex items-center gap-2">
           <button
             className="rounded-lg bg-[#4b207f] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#3a1762]"
-            onClick={() => exportToCSV(filtered, columns)}
+            onClick={() =>
+              downloadCsv('export.csv', [
+                columns.map((col) => col.label),
+                ...filtered.map((row) => columns.map((col) => row[col.key as keyof T])),
+              ])
+            }
           >
             Descargar CSV
           </button>

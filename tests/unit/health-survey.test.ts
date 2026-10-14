@@ -324,7 +324,12 @@ describe('surveysToCsv', () => {
   });
 
   it('reports the moment of capture, not the moment it reached the server', () => {
-    expect(cell('Registrada')).toBe('2026-08-22T10:00:00.000Z');
+    expect(cell('Registrada')).toBe('2026-08-22 05:00');
+  });
+
+  it('dates the capture on the Bogotá calendar, not the UTC one', () => {
+    const [head, evening] = surveysToCsv([{ capturedAt: '2026-08-23T01:30:00.000Z' }]);
+    expect(evening[head.indexOf('Registrada')]).toBe('2026-08-22 20:30');
   });
 
   it('separates who ran the interview from who delivered it', () => {

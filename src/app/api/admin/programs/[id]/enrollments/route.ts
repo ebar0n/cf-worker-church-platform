@@ -72,12 +72,47 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             birthDate: enrollment.child_birth_date,
             guardians: guardians,
           },
-          member: null, // Programs are only for children
+          member: null,
         };
       })
     );
 
-    return NextResponse.json(transformedEnrollments);
+    // Family-enrollment programs also enroll the responsible adults; the
+    // admin list renders them through `member`.
+    const adults = await env.DB.prepare(
+      `
+      SELECT pae.id, pae.programId, pae.memberId, pae.createdAt, pae.updatedAt,
+             m.name, m.documentID, m.phone, m.email
+      FROM ProgramAdultEnrollment pae
+      JOIN Member m ON m.id = pae.memberId
+      WHERE pae.programId = ?
+    `
+    )
+      .bind(programId)
+      .all();
+
+    const adultEnrollments = adults.results.map((adult: any) => ({
+      id: adult.id,
+      programId: adult.programId,
+      memberId: adult.memberId,
+      createdAt: adult.createdAt,
+      updatedAt: adult.updatedAt,
+      child: null,
+      member: {
+        id: adult.memberId,
+        name: adult.name,
+        documentID: adult.documentID,
+        phone: adult.phone,
+        email: adult.email,
+      },
+    }));
+
+    // Newest first across children and adults
+    const allEnrollments = [...transformedEnrollments, ...adultEnrollments].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    return NextResponse.json(allEnrollments);
   } catch (error) {
     console.error('Error fetching program enrollments:', error);
     return NextResponse.json({ error: 'Error fetching program enrollments' }, { status: 500 });

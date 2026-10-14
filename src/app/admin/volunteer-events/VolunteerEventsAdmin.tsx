@@ -95,12 +95,17 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to save volunteer event');
+      if (!response.ok) {
+        const data = (await response.json().catch(() => ({}))) as { error?: string };
+        alert(data.error || 'Error al guardar el evento');
+        return;
+      }
 
       await fetchEvents();
       resetForm();
     } catch (error) {
       console.error('Error saving volunteer event:', error);
+      alert('Error al guardar el evento');
     } finally {
       setIsSubmitting(false);
     }
@@ -130,11 +135,16 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
         method: 'DELETE',
       });
 
-      if (!response.ok) throw new Error('Failed to delete volunteer event');
+      if (!response.ok) {
+        const data = (await response.json().catch(() => ({}))) as { error?: string };
+        alert(data.error || 'Error al eliminar el evento');
+        return;
+      }
 
       await fetchEvents();
     } catch (error) {
       console.error('Error deleting volunteer event:', error);
+      alert('Error al eliminar el evento');
     }
   };
 

@@ -28,6 +28,7 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
   const [editingProgram, setEditingProgram] = useState<Program | null>(null);
   const [loadingEnrollments, setLoadingEnrollments] = useState(false);
+  const [savingProgram, setSavingProgram] = useState(false);
   const [programFormData, setProgramFormData] = useState({
     title: '',
     department: '',
@@ -91,6 +92,9 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
 
   const handleProgramSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Disables the submit button meanwhile, so a double click can't create
+    // two identical programs.
+    setSavingProgram(true);
 
     try {
       const url = editingProgram
@@ -111,12 +115,14 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
         setProgramFormData({ title: '', department: '', content: '', isActive: true });
         fetchData();
       } else {
-        const error = (await response.json()) as { message?: string };
-        alert(error.message || 'Error al guardar el programa');
+        const error = (await response.json()) as { error?: string; message?: string };
+        alert(error.error ?? error.message ?? 'Error al guardar el programa');
       }
     } catch (error) {
       console.error('Error saving program:', error);
       alert('Error al guardar el programa');
+    } finally {
+      setSavingProgram(false);
     }
   };
 
@@ -148,8 +154,8 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
       if (response.ok) {
         fetchData();
       } else {
-        const error = (await response.json()) as { message?: string };
-        alert(error.message || 'Error al eliminar el programa');
+        const error = (await response.json()) as { error?: string; message?: string };
+        alert(error.error ?? error.message ?? 'Error al eliminar el programa');
       }
     } catch (error) {
       console.error('Error deleting program:', error);
@@ -168,8 +174,8 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
       if (response.ok) {
         fetchData();
       } else {
-        const error = (await response.json()) as { message?: string };
-        alert(error.message || 'Error al cambiar el estado del programa');
+        const error = (await response.json()) as { error?: string; message?: string };
+        alert(error.error ?? error.message ?? 'Error al cambiar el estado del programa');
       }
     } catch (error) {
       console.error('Error toggling program status:', error);
@@ -695,7 +701,11 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                     >
                       Cancelar
                     </Button>
-                    <Button type="submit" className="bg-[#4b207f] text-white hover:bg-[#4b207f]/90">
+                    <Button
+                      type="submit"
+                      disabled={savingProgram}
+                      className="bg-[#4b207f] text-white hover:bg-[#4b207f]/90"
+                    >
                       {editingProgram ? 'Actualizar' : 'Crear'}
                     </Button>
                   </div>
@@ -837,7 +847,10 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                           {filteredEnrollments.map((enrollment: any) => {
                             const participant = enrollment.child || enrollment.member;
                             return (
-                              <tr key={enrollment.id} className="hover:bg-gray-50">
+                              <tr
+                                key={`${enrollment.child ? 'child' : 'adult'}-${enrollment.id}`}
+                                className="hover:bg-gray-50"
+                              >
                                 <td className="whitespace-nowrap px-6 py-4">
                                   <div>
                                     <div className="text-sm font-medium text-gray-900">
@@ -925,7 +938,7 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                         const participant = enrollment.child || enrollment.member;
                         return (
                           <div
-                            key={enrollment.id}
+                            key={`${enrollment.child ? 'child' : 'adult'}-${enrollment.id}`}
                             className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
                           >
                             <div className="mb-3 flex items-start justify-between">

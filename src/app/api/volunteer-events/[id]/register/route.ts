@@ -1,6 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { verifyTurnstileToken } from '@/lib/turnstile';
+import { calculateAge, parseDateOnly, todayInBogota } from '@/lib/age-classification';
+
+// Max volunteers for the chosen service: undefined when the event does not
+// offer it, null when it has no limit.
+function serviceCapacity(event: any, selectedService: string): number | null | undefined {
+  const services: string[] = event.services ? JSON.parse(event.services) : [];
+  const maxCapacities: unknown[] = event.maxCapacities ? JSON.parse(event.maxCapacities) : [];
+  const index = services.indexOf(selectedService);
+  return index === -1 ? undefined : Number(maxCapacities[index]) || null;
+}
+
+function serviceFullResponse(selectedService: string, maxCapacity: number | null) {
+  return NextResponse.json(
+    {
+      error: `El servicio "${selectedService}" ya está completado con ${maxCapacity} voluntarios. ¡Gracias a Dios! Por favor selecciona otro servicio disponible.`,
+    },
+    { status: 400 }
+  );
+}
+
+function unknownServiceResponse() {
+  return NextResponse.json(
+    { error: 'El servicio seleccionado no existe en este evento' },
+    { status: 400 }
+  );
+}
+
+function registrationNotFoundResponse() {
+  return NextResponse.json(
+    { error: 'No encontramos un registro con este documento para este evento' },
+    { status: 404 }
+  );
+}
 
 // POST - Register as a volunteer for an event
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -55,15 +88,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       );
     }
 
-    // Validate age (must be 16 or older)
-    const birthDate = new Date(memberBirthDate);
-    const today = new Date();
-    const age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    const dayDiff = today.getDate() - birthDate.getDate();
-    const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
-
-    if (actualAge < 16) {
+    // Validate age (must be 16 or older) on Bogotá's calendar day
+    if (calculateAge(parseDateOnly(memberBirthDate), todayInBogota()) < 16) {
       return NextResponse.json(
         { error: 'Volunteer must be at least 16 years old' },
         { status: 400 }
@@ -79,34 +105,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Event not found or inactive' }, { status: 404 });
     }
 
-    // Check capacity limits for the selected service
-    const eventData = event as any;
-    if (eventData.services && eventData.maxCapacities) {
-      const services = JSON.parse(eventData.services);
-      const maxCapacities = JSON.parse(eventData.maxCapacities);
-      const serviceIndex = services.indexOf(selectedService);
-
-      if (serviceIndex !== -1 && maxCapacities[serviceIndex]) {
-        const maxCapacity = maxCapacities[serviceIndex];
-
-        // Count current registrations for this service
-        const registrationCount = await env.DB.prepare(
-          'SELECT COUNT(*) as count FROM VolunteerRegistration WHERE volunteerEventId = ? AND selectedService = ?'
-        )
-          .bind(eventId, selectedService)
-          .first();
-
-        const currentCount = registrationCount ? (registrationCount as any).count : 0;
-
-        if (currentCount >= maxCapacity) {
-          return NextResponse.json(
-            {
-              error: `El servicio "${selectedService}" ya está completado con ${maxCapacity} voluntarios. ¡Gracias a Dios! Por favor selecciona otro servicio disponible.`,
-            },
-            { status: 400 }
-          );
-        }
-      }
+    const maxCapacity = serviceCapacity(event, selectedService);
+    if (maxCapacity === undefined) {
+      return unknownServiceResponse();
     }
 
     const now = new Date().toISOString();
@@ -156,12 +157,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Ya estás registrado para este evento' }, { status: 400 });
     }
 
-    // Create volunteer registration
+    // Create volunteer registration. The capacity check lives in the same
+    // statement: a separate COUNT then INSERT let parallel requests oversell
+    // the service.
     const registration = await env.DB.prepare(
       `
       INSERT INTO VolunteerRegistration
       (volunteerEventId, memberDocumentID, memberId, selectedService, hasTransport, transportSlots, dietType, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?
+      WHERE ? IS NULL
+        OR (SELECT COUNT(*) FROM VolunteerRegistration WHERE volunteerEventId = ? AND selectedService = ?) < ?
     `
     )
       .bind(
@@ -173,9 +178,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         transportSlots || null,
         dietType,
         now,
-        now
+        now,
+        maxCapacity,
+        eventId,
+        selectedService,
+        maxCapacity
       )
       .run();
+
+    if (registration.meta.changes === 0) {
+      return serviceFullResponse(selectedService, maxCapacity);
+    }
 
     return NextResponse.json(
       { message: 'Registration successful', id: registration.meta.last_row_id },
@@ -240,15 +253,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    // Validate age (must be 16 or older)
-    const birthDate = new Date(memberBirthDate);
-    const today = new Date();
-    const age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    const dayDiff = today.getDate() - birthDate.getDate();
-    const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
-
-    if (actualAge < 16) {
+    // Validate age (must be 16 or older) on Bogotá's calendar day
+    if (calculateAge(parseDateOnly(memberBirthDate), todayInBogota()) < 16) {
       return NextResponse.json(
         { error: 'Volunteer must be at least 16 years old' },
         { status: 400 }
@@ -264,44 +270,20 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Event not found or inactive' }, { status: 404 });
     }
 
-    // Get current registration to check if service is changing
+    // Only an existing registration can be updated
     const currentRegistration = await env.DB.prepare(
-      'SELECT selectedService FROM VolunteerRegistration WHERE volunteerEventId = ? AND memberDocumentID = ?'
+      'SELECT 1 FROM VolunteerRegistration WHERE volunteerEventId = ? AND memberDocumentID = ?'
     )
       .bind(eventId, memberDocumentID)
       .first();
 
-    // Check capacity limits for the selected service (only if changing service)
-    const eventData = event as any;
-    const isChangingService =
-      !currentRegistration || (currentRegistration as any).selectedService !== selectedService;
+    if (!currentRegistration) {
+      return registrationNotFoundResponse();
+    }
 
-    if (isChangingService && eventData.services && eventData.maxCapacities) {
-      const services = JSON.parse(eventData.services);
-      const maxCapacities = JSON.parse(eventData.maxCapacities);
-      const serviceIndex = services.indexOf(selectedService);
-
-      if (serviceIndex !== -1 && maxCapacities[serviceIndex]) {
-        const maxCapacity = maxCapacities[serviceIndex];
-
-        // Count current registrations for this service
-        const registrationCount = await env.DB.prepare(
-          'SELECT COUNT(*) as count FROM VolunteerRegistration WHERE volunteerEventId = ? AND selectedService = ?'
-        )
-          .bind(eventId, selectedService)
-          .first();
-
-        const currentCount = registrationCount ? (registrationCount as any).count : 0;
-
-        if (currentCount >= maxCapacity) {
-          return NextResponse.json(
-            {
-              error: `El servicio "${selectedService}" ya está completado con ${maxCapacity} voluntarios. ¡Gracias a Dios! Por favor selecciona otro servicio disponible.`,
-            },
-            { status: 400 }
-          );
-        }
-      }
+    const maxCapacity = serviceCapacity(event, selectedService);
+    if (maxCapacity === undefined) {
+      return unknownServiceResponse();
     }
 
     const now = new Date().toISOString();
@@ -323,12 +305,15 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         .run();
     }
 
-    // Update volunteer registration
-    await env.DB.prepare(
+    // Update volunteer registration. Moving to another service checks its
+    // capacity in the same statement so parallel changes cannot oversell it.
+    const update = await env.DB.prepare(
       `
       UPDATE VolunteerRegistration
       SET selectedService = ?, hasTransport = ?, transportSlots = ?, dietType = ?, updatedAt = ?
       WHERE volunteerEventId = ? AND memberDocumentID = ?
+        AND (selectedService = ? OR ? IS NULL
+          OR (SELECT COUNT(*) FROM VolunteerRegistration WHERE volunteerEventId = ? AND selectedService = ?) < ?)
     `
     )
       .bind(
@@ -338,9 +323,22 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         dietType,
         now,
         eventId,
-        memberDocumentID
+        memberDocumentID,
+        selectedService,
+        maxCapacity,
+        eventId,
+        selectedService,
+        maxCapacity
       )
       .run();
+
+    if (update.meta.changes === 0) {
+      // The registration existed a moment ago, so the capacity guard is what
+      // failed; an unlimited service has no guard, so it was deleted meanwhile
+      return maxCapacity === null
+        ? registrationNotFoundResponse()
+        : serviceFullResponse(selectedService, maxCapacity);
+    }
 
     return NextResponse.json({ message: 'Registration updated successfully' }, { status: 200 });
   } catch (error) {

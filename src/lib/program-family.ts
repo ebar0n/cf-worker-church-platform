@@ -44,6 +44,15 @@ export function familyPdfFilename(family: Pick<ProgramFamily, 'adults'>): string
   return names ? `familia-${names}.pdf` : 'familia.pdf';
 }
 
+// The núcleo has one emergency contact, denormalized across its adults;
+// prefer an adult whose copy is complete.
+export function familyEmergencyContact(adults: FamilyPerson[]): FamilyPerson | undefined {
+  return (
+    adults.find((adult) => adult.emergencyContactName && adult.emergencyContactPhone) ??
+    adults.find((adult) => adult.emergencyContactName || adult.emergencyContactPhone)
+  );
+}
+
 export function familyPendingItems(family: ProgramFamily): string[] {
   const pending: string[] = [];
   for (const [people, isAdult] of [

@@ -1,6 +1,8 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/app/admin/components/AdminLayout';
+import { downloadCsv } from '@/lib/csv';
+import { genderLabel } from '@/lib/utils';
 
 interface MembersListProps {
   adminEmail: string;
@@ -112,54 +114,46 @@ export default function MembersList({ adminEmail }: MembersListProps) {
       'Fecha de registro',
       'Última actualización',
     ];
-    const csvContent = [
-      headers.join(','),
-      ...filteredMembers.map((m) =>
-        [
-          m.id,
-          m.name,
-          m.documentID,
-          m.gender || '',
-          formatDate(m.birthDate),
-          m.maritalStatus || '',
-          m.address,
-          m.phone,
-          m.email || '',
-          m.preferredContactMethod || '',
-          m.baptismYear || '',
-          m.ministry || '',
-          m.areasToServe || '',
-          m.willingToLead ? 'Sí' : 'No',
-          m.suggestions || '',
-          m.pastoralNotes || '',
-          m.currentAcceptanceYear || '',
-          m.currentAcceptanceMethod || '',
-          m.currentMembershipChurch || '',
-          m.transferAuthorization ? 'Sí' : 'No',
-          m.currentOccupation || '',
-          m.workOrStudyPlace || '',
-          m.professionalArea || '',
-          m.educationLevel || '',
-          m.profession || '',
-          m.workExperience || '',
-          m.technicalSkills || '',
-          m.softSkills || '',
-          m.languages || '',
-          m.volunteeringAvailability || '',
-          m.medicalConditions || '',
-          m.specialNeeds || '',
-          m.interestsHobbies || '',
-          new Date(m.createdAt).toLocaleString(),
-          new Date(m.updatedAt).toLocaleString(),
-        ].join(',')
-      ),
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'miembros.csv';
-    link.click();
+    downloadCsv('miembros.csv', [
+      headers,
+      ...filteredMembers.map((m) => [
+        m.id,
+        m.name,
+        m.documentID,
+        genderLabel(m.gender),
+        formatDate(m.birthDate),
+        m.maritalStatus || '',
+        m.address,
+        m.phone,
+        m.email || '',
+        m.preferredContactMethod || '',
+        m.baptismYear || '',
+        m.ministry || '',
+        m.areasToServe || '',
+        m.willingToLead ? 'Sí' : 'No',
+        m.suggestions || '',
+        m.pastoralNotes || '',
+        m.currentAcceptanceYear || '',
+        m.currentAcceptanceMethod || '',
+        m.currentMembershipChurch || '',
+        m.transferAuthorization ? 'Sí' : 'No',
+        m.currentOccupation || '',
+        m.workOrStudyPlace || '',
+        m.professionalArea || '',
+        m.educationLevel || '',
+        m.profession || '',
+        m.workExperience || '',
+        m.technicalSkills || '',
+        m.softSkills || '',
+        m.languages || '',
+        m.volunteeringAvailability || '',
+        m.medicalConditions || '',
+        m.specialNeeds || '',
+        m.interestsHobbies || '',
+        new Date(m.createdAt).toLocaleString(),
+        new Date(m.updatedAt).toLocaleString(),
+      ]),
+    ]);
   };
 
   const handleOpenDetails = async (member: any) => {
@@ -488,7 +482,7 @@ export default function MembersList({ adminEmail }: MembersListProps) {
                   </div>
                   <div>
                     <span className="font-semibold">Género:</span>{' '}
-                    {selectedMember.gender || 'No especificado'}
+                    {genderLabel(selectedMember.gender)}
                   </div>
                   <div>
                     <span className="font-semibold">Fecha de nacimiento:</span>{' '}
@@ -651,7 +645,8 @@ export default function MembersList({ adminEmail }: MembersListProps) {
                                 ? 'Padre'
                                 : child.relationship === 'mother'
                                   ? 'Madre'
-                                  : child.relationship === 'guardian'
+                                  : child.relationship === 'guardian' ||
+                                      child.relationship === 'tutor'
                                     ? 'Tutor'
                                     : 'Responsable'}
                             </span>
@@ -663,13 +658,7 @@ export default function MembersList({ adminEmail }: MembersListProps) {
                             </div>
                             <div>
                               <span className="font-medium text-gray-500">Género:</span>
-                              <div className="text-gray-900">
-                                {child.gender === 'male'
-                                  ? 'Masculino'
-                                  : child.gender === 'female'
-                                    ? 'Femenino'
-                                    : 'No especificado'}
-                              </div>
+                              <div className="text-gray-900">{genderLabel(child.gender)}</div>
                             </div>
                             <div>
                               <span className="font-medium text-gray-500">

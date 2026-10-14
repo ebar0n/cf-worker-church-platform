@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { calculateAge, parseDateOnly, todayInBogota } from '@/lib/age-classification';
+import { genderLabel } from '@/lib/utils';
 
 export async function GET() {
   const { env } = await getCloudflareContext({ async: true });
@@ -13,8 +15,9 @@ export async function GET() {
   // Get children
   const children = await env.DB.prepare('SELECT * FROM Child').all();
 
-  // Current date for birthday calculations
-  const currentDate = new Date();
+  // Current date for birthday calculations, on Bogotá's calendar like the
+  // dashboard labels (the Worker runs in UTC)
+  const currentDate = todayInBogota();
   const currentMonth = currentDate.getMonth() + 1; // 1-12
   const currentYear = currentDate.getFullYear();
 
@@ -120,14 +123,14 @@ export async function GET() {
 
   // Análisis demográfico - género de miembros
   const memberGenderDistribution = members.results.reduce((acc: any, m: any) => {
-    const gender = m.gender || 'No especificado';
+    const gender = genderLabel(m.gender);
     acc[gender] = (acc[gender] || 0) + 1;
     return acc;
   }, {});
 
   // Análisis demográfico - género de niños
   const childGenderDistribution = children.results.reduce((acc: any, c: any) => {
-    const gender = c.gender || 'No especificado';
+    const gender = genderLabel(c.gender);
     acc[gender] = (acc[gender] || 0) + 1;
     return acc;
   }, {});
@@ -149,9 +152,7 @@ export async function GET() {
       return;
     }
 
-    // Extract year directly from date string to avoid timezone issues
-    const birthYear = parseInt(m.birthDate.split('T')[0].split('-')[0]);
-    const age = currentDate.getFullYear() - birthYear;
+    const age = calculateAge(parseDateOnly(m.birthDate), currentDate);
 
     if (age < 18) memberAgeRanges['0-17']++;
     else if (age <= 25) memberAgeRanges['18-25']++;
@@ -178,9 +179,7 @@ export async function GET() {
       return;
     }
 
-    // Extract year directly from date string to avoid timezone issues
-    const birthYear = parseInt(c.birthDate.split('T')[0].split('-')[0]);
-    const age = currentDate.getFullYear() - birthYear;
+    const age = calculateAge(parseDateOnly(c.birthDate), currentDate);
 
     if (age <= 2) childAgeRanges['0-2']++;
     else if (age <= 5) childAgeRanges['3-5']++;
