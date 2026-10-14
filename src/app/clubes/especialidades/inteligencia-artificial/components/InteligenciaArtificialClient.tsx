@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 import Header from '@/app/components/Header';
 import Footer from '@/app/components/Footer';
 import Image from 'next/image';
+import { BadgeCheck, CircleHelp, Download, Info, Printer } from 'lucide-react';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { Textarea } from '@/app/components/ui/textarea';
 
 interface Question {
   id: number;
@@ -1359,7 +1363,6 @@ La inteligencia humana, creada a imagen de Dios, incluye capacidades espirituale
         .no-print { display: none !important; }
         .print-only { display: block !important; }
         body { font-size: 12pt; }
-        .container { max-width: 100%; margin: 0; padding: 0; }
         .page-break { page-break-before: always; }
         .question-block { break-inside: avoid; margin-bottom: 1.5rem; }
         h1 { font-size: 18pt; margin-bottom: 1rem; }
@@ -1380,14 +1383,15 @@ La inteligencia humana, creada a imagen de Dios, incluye capacidades espirituale
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="no-print">
+    <div className="min-h-screen">
+      {/* contents keeps the sticky header's containing block the whole page */}
+      <div className="no-print contents">
         <Header />
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="mx-auto w-full max-w-[800px] px-5 pb-20 pt-10 md:px-8 md:pb-28 md:pt-16 print:max-w-none print:p-0">
         {/* Título para impresión */}
-        <div className="print-only mb-6 text-center">
+        <div className="print-only mb-6 hidden text-center print:block">
           <div className="mb-4 flex items-center justify-center gap-4">
             <Image
               src="/departments/clubes/especialidades/Inteligencia-Artificial.jpg"
@@ -1409,101 +1413,76 @@ La inteligencia humana, creada a imagen de Dios, incluye capacidades espirituale
         </div>
 
         {/* Encabezado de la especialidad - Solo pantalla */}
-        <div className="no-print mb-12 text-center">
-          <div className="mb-6 flex flex-col items-center justify-center gap-6 sm:flex-row">
-            <div className="relative">
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#4b207f] to-[#6b46c1] p-1 shadow-xl">
-                <div className="rounded-full bg-white p-1">
-                  <Image
-                    src="/departments/clubes/especialidades/Inteligencia-Artificial.jpg"
-                    alt="Logo Especialidad Inteligencia Artificial"
-                    width={120}
-                    height={120}
-                    className="rounded-full object-cover shadow-lg"
-                    priority
-                  />
-                </div>
-              </div>
-              <div className="h-[132px] w-[132px]"></div> {/* Spacer for absolute positioning */}
-            </div>
-            <div className="text-center sm:text-left">
-              <h1 className="mb-3 text-4xl font-bold text-[#4b207f]">
+        <div className="no-print mb-12 md:mb-16">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-8">
+            <Image
+              src="/departments/clubes/especialidades/Inteligencia-Artificial.jpg"
+              alt="Logo Especialidad Inteligencia Artificial"
+              width={120}
+              height={120}
+              className="border-line h-24 w-24 shrink-0 rounded-full border object-cover sm:h-[120px] sm:w-[120px]"
+              priority
+            />
+            <div className="flex flex-col gap-4">
+              <p className="text-ink-soft m-0 flex items-center gap-2 text-[13px] font-semibold uppercase leading-none tracking-[.06em]">
+                <span className="bg-warm h-0.5 w-6" />
+                Club de Conquistadores
+              </p>
+              <h1 className="m-0 text-[40px] leading-[1.04] lg:text-[56px]">
                 Especialidad: Inteligencia Artificial
               </h1>
-              <div className="flex flex-wrap justify-center gap-3 text-sm sm:justify-start">
-                <span className="rounded-full bg-blue-100 px-3 py-1 font-medium text-blue-800">
-                  Nivel de destreza 2
-                </span>
-                <span className="rounded-full bg-green-100 px-3 py-1 font-medium text-green-800">
-                  Actividades vocacionales
-                </span>
-                <span className="rounded-full bg-purple-100 px-3 py-1 font-medium text-purple-800">
-                  División Norteamericana
-                </span>
+              <div className="flex flex-wrap gap-2">
+                {['Nivel de destreza 2', 'Actividades vocacionales', 'División Norteamericana'].map(
+                  (tag) => (
+                    <span
+                      key={tag}
+                      className="border-line inline-flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 text-[13px] font-medium"
+                    >
+                      <span className="bg-warm h-1.5 w-1.5 rounded-full" />
+                      {tag}
+                    </span>
+                  )
+                )}
               </div>
             </div>
           </div>
 
-          {/* Enlace de descarga del PDF - Mejorado */}
-          <div className="mb-6">
-            <div className="inline-block rounded-2xl bg-gradient-to-r from-red-500 to-red-600 p-1 shadow-lg">
-              <a
-                href="/departments/clubes/especialidades/inteligencia_artificial.pdf"
-                download
-                className="flex items-center gap-3 rounded-xl bg-white px-8 py-4 font-semibold text-red-600 transition-all hover:bg-red-50"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className="h-6 w-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-6a3.375 3.375 0 00-3.375 3.375v2.625M12 6v6m0 0l3-3m-3 3l-3-3"
-                  />
-                </svg>
-                <span>Descargar documento PDF oficial</span>
-                <span className="rounded-full bg-red-100 px-2 py-1 text-sm">PDF</span>
-              </a>
-            </div>
-          </div>
+          {/* Enlace de descarga del PDF */}
+          <Button
+            asChild
+            variant="outline"
+            size="lg"
+            className="mt-8 h-auto min-h-[52px] whitespace-normal py-3"
+          >
+            <a href="/departments/clubes/especialidades/inteligencia_artificial.pdf" download>
+              <Download className="h-5 w-5" strokeWidth={1.5} />
+              <span>Descargar documento PDF oficial</span>
+              <span className="text-ink-soft rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium">
+                PDF
+              </span>
+            </a>
+          </Button>
         </div>
 
-        {/* Información sobre la especialidad - MOVIDO AL INICIO - Solo pantalla */}
-        <div className="no-print mb-12 grid grid-cols-1 gap-8 lg:grid-cols-2">
+        {/* Información sobre la especialidad - Solo pantalla */}
+        <div className="no-print mb-12 grid gap-5 md:mb-16 md:gap-6">
           {/* Información general */}
-          <div className="rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-8">
-            <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
-                <svg
-                  className="h-6 w-6 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+          <div className="border-line rounded-2xl border bg-white p-6 md:p-7">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="bg-warm-soft flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
+                <Info className="h-6 w-6" strokeWidth={1.5} />
               </div>
-              <h2 className="text-2xl font-bold text-blue-900">Sobre esta especialidad</h2>
+              <h2 className="m-0 text-[26px] leading-tight">Sobre esta especialidad</h2>
             </div>
-            <div className="space-y-4 text-gray-700">
+            <div className="text-ink-soft space-y-4">
               <p className="leading-relaxed">
-                La especialidad de <strong>Inteligencia Artificial</strong> te introduce al
-                fascinante mundo de la IA, desde sus fundamentos históricos hasta sus aplicaciones
-                modernas en la sociedad.
+                La especialidad de <strong className="text-ink">Inteligencia Artificial</strong> te
+                introduce al fascinante mundo de la IA, desde sus fundamentos históricos hasta sus
+                aplicaciones modernas en la sociedad.
               </p>
-              <div className="rounded-lg border-l-4 border-blue-500 bg-white p-4">
-                <h3 className="mb-2 font-semibold text-blue-900">¿Qué aprenderás?</h3>
-                <ul className="space-y-1 text-sm">
+              <div className="bg-warm-soft text-ink rounded-xl p-5">
+                <h3 className="mb-2 text-lg">¿Qué aprenderás?</h3>
+                <ul className="space-y-1.5 text-[15px] leading-snug">
                   <li>• Historia y evolución de la inteligencia artificial</li>
                   <li>• Conceptos fundamentales y terminología técnica</li>
                   <li>• Aplicaciones reales de IA en la sociedad actual</li>
@@ -1515,29 +1494,17 @@ La inteligencia humana, creada a imagen de Dios, incluye capacidades espirituale
           </div>
 
           {/* Objetivos y recursos */}
-          <div className="rounded-xl border border-green-100 bg-gradient-to-br from-green-50 to-emerald-50 p-8">
-            <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-600">
-                <svg
-                  className="h-6 w-6 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                  />
-                </svg>
+          <div className="border-line rounded-2xl border bg-white p-6 md:p-7">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="bg-warm-soft flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
+                <BadgeCheck className="h-6 w-6" strokeWidth={1.5} />
               </div>
-              <h2 className="text-2xl font-bold text-green-900">Objetivos y recursos</h2>
+              <h2 className="m-0 text-[26px] leading-tight">Objetivos y recursos</h2>
             </div>
-            <div className="space-y-6">
-              <div className="rounded-lg border-l-4 border-green-500 bg-white p-4">
-                <h3 className="mb-3 font-semibold text-green-900">Objetivos de aprendizaje:</h3>
-                <ul className="space-y-1 text-sm text-gray-700">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="bg-warm-soft rounded-xl p-5">
+                <h3 className="mb-2 text-lg">Objetivos de aprendizaje:</h3>
+                <ul className="space-y-1.5 text-[15px] leading-snug">
                   <li>• Comprender los fundamentos de la inteligencia artificial</li>
                   <li>• Conocer la historia y evolución de la IA</li>
                   <li>• Identificar aplicaciones reales de la IA en la sociedad</li>
@@ -1547,9 +1514,9 @@ La inteligencia humana, creada a imagen de Dios, incluye capacidades espirituale
                   </li>
                 </ul>
               </div>
-              <div className="rounded-lg border-l-4 border-emerald-500 bg-white p-4">
-                <h3 className="mb-3 font-semibold text-emerald-900">Recursos recomendados:</h3>
-                <ul className="space-y-1 text-sm text-gray-700">
+              <div className="bg-warm-soft rounded-xl p-5">
+                <h3 className="mb-2 text-lg">Recursos recomendados:</h3>
+                <ul className="space-y-1.5 text-[15px] leading-snug">
                   <li>• Documentales sobre historia de la inteligencia artificial</li>
                   <li>• Visitas a centros de tecnología o universidades</li>
                   <li>• Entrevistas con profesionales en IA</li>
@@ -1562,166 +1529,126 @@ La inteligencia humana, creada a imagen de Dios, incluye capacidades espirituale
         </div>
 
         {/* Formulario interactivo */}
-        <div className="mx-auto max-w-4xl">
-          <form className="space-y-8">
-            {/* Campo para nombre - Solo pantalla */}
-            <div className="no-print rounded-lg border border-gray-200 p-4">
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Nombre del participante:
-              </label>
-              <input
-                type="text"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#4b207f] focus:outline-none focus:ring-1 focus:ring-[#4b207f]"
-              />
-            </div>
+        <form className="space-y-5 md:space-y-6">
+          {/* Campo para nombre - Solo pantalla */}
+          <div className="no-print border-line rounded-2xl border bg-white p-5 md:p-8">
+            <label className="mb-2 block text-sm font-medium">Nombre del participante:</label>
+            <Input type="text" />
+          </div>
 
-            {/* Preguntas */}
-            {questions.map((q) => (
-              <div key={q.id} className="question-block rounded-lg border border-gray-200 p-4">
-                <h3 className="mb-3 text-lg font-semibold text-[#4b207f]">
-                  {q.id}. {q.question}
-                </h3>
+          {/* Preguntas */}
+          {questions.map((q) => (
+            <div
+              key={q.id}
+              className="question-block border-line rounded-2xl border bg-white p-5 md:p-8"
+            >
+              <h3 className="mb-4 text-[22px] leading-[1.2] md:text-[26px]">
+                {q.id}. {q.question}
+              </h3>
 
-                {/* Botón de ayuda interactivo - Solo pantalla */}
-                <div className="no-print mb-3">
-                  <button
-                    type="button"
-                    onClick={() => toggleHelp(q.id)}
-                    className="inline-flex items-center gap-2 rounded-lg bg-blue-100 px-3 py-1 text-sm text-blue-700 transition-colors hover:bg-blue-200"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    {showHelp[q.id] ? 'Ocultar ayuda' : 'Ver ayuda'}
-                  </button>
-                </div>
+              {/* Botón de ayuda interactivo - Solo pantalla */}
+              <div className="no-print mb-5">
+                <Button type="button" variant="secondary" onClick={() => toggleHelp(q.id)}>
+                  <CircleHelp className="h-[18px] w-[18px]" strokeWidth={1.5} />
+                  {showHelp[q.id] ? 'Ocultar ayuda' : 'Ver ayuda'}
+                </Button>
+              </div>
 
-                {/* Respuesta de referencia interactiva - Solo pantalla */}
-                {showHelp[q.id] && (
-                  <div className="no-print mb-4 rounded-lg bg-blue-50 p-4">
-                    <h4 className="mb-2 font-medium text-blue-800">Respuesta de referencia:</h4>
-                    <div className="whitespace-pre-line text-sm text-blue-700">{q.answer}</div>
+              {/* Respuesta de referencia interactiva - Solo pantalla */}
+              {showHelp[q.id] && (
+                <div className="no-print bg-warm-soft mb-6 rounded-xl p-4 md:p-6">
+                  <h4 className="mb-3 text-xl">Respuesta de referencia:</h4>
+                  <div className="whitespace-pre-line text-[17px] leading-[1.7] md:text-lg md:leading-[1.7]">
+                    {q.answer}
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* Campo para respuesta del usuario */}
-                <div className="form-field">
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Tu respuesta:
-                  </label>
-                  <textarea
-                    rows={q.type === 'list' ? 6 : 4}
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#4b207f] focus:outline-none focus:ring-1 focus:ring-[#4b207f] print:border-black"
-                    value={answers[q.id] || ''}
-                    onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+              {/* Campo para respuesta del usuario */}
+              <div className="form-field">
+                <label className="mb-2 block text-sm font-medium">Tu respuesta:</label>
+                <Textarea
+                  rows={q.type === 'list' ? 6 : 4}
+                  className="print:border-black"
+                  value={answers[q.id] || ''}
+                  onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                />
+              </div>
+
+              {/* Campos adicionales para presentaciones */}
+              {q.type === 'presentation' && (
+                <div className="form-field mt-5">
+                  <label className="mb-2 block text-sm font-medium">Fecha de presentación:</label>
+                  <Input
+                    type="date"
+                    className="sm:max-w-xs print:border-black"
+                    value={presentationDates[q.id] || ''}
+                    onChange={(e) => handlePresentationDateChange(q.id, e.target.value)}
                   />
                 </div>
+              )}
 
-                {/* Campos adicionales para presentaciones */}
-                {q.type === 'presentation' && (
-                  <div className="form-field mt-3">
-                    <label className="mb-2 block text-sm font-medium text-gray-700">
-                      Fecha de presentación:
-                    </label>
-                    <input
-                      type="date"
-                      className="rounded-md border border-gray-300 px-3 py-2 focus:border-[#4b207f] focus:outline-none focus:ring-1 focus:ring-[#4b207f] print:border-black"
-                      value={presentationDates[q.id] || ''}
-                      onChange={(e) => handlePresentationDateChange(q.id, e.target.value)}
+              {/* Campos especiales para pregunta 13 */}
+              {q.id === 13 && (
+                <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                  <div className="form-field">
+                    <label className="mb-2 block text-sm font-medium">Lugar de visita:</label>
+                    <Input
+                      type="text"
+                      className="print:border-black"
+                      value={visitInfo.place}
+                      onChange={(e) => setVisitInfo((prev) => ({ ...prev, place: e.target.value }))}
                     />
                   </div>
-                )}
-
-                {/* Campos especiales para pregunta 13 */}
-                {q.id === 13 && (
-                  <div className="mt-3 space-y-3">
-                    <div className="form-field">
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Lugar de visita:
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#4b207f] focus:outline-none focus:ring-1 focus:ring-[#4b207f] print:border-black"
-                        value={visitInfo.place}
-                        onChange={(e) =>
-                          setVisitInfo((prev) => ({ ...prev, place: e.target.value }))
-                        }
-                      />
-                    </div>
-                    <div className="form-field">
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Fecha de visita:
-                      </label>
-                      <input
-                        type="date"
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#4b207f] focus:outline-none focus:ring-1 focus:ring-[#4b207f] print:border-black"
-                        value={visitInfo.date}
-                        onChange={(e) =>
-                          setVisitInfo((prev) => ({ ...prev, date: e.target.value }))
-                        }
-                      />
-                    </div>
+                  <div className="form-field">
+                    <label className="mb-2 block text-sm font-medium">Fecha de visita:</label>
+                    <Input
+                      type="date"
+                      className="print:border-black"
+                      value={visitInfo.date}
+                      onChange={(e) => setVisitInfo((prev) => ({ ...prev, date: e.target.value }))}
+                    />
                   </div>
-                )}
-              </div>
-            ))}
+                </div>
+              )}
+            </div>
+          ))}
 
-            {/* Sección final */}
-            <div className="question-block rounded-lg border border-gray-200 p-4">
-              <h3 className="mb-3 text-lg font-semibold text-[#4b207f]">
-                Finalización de la especialidad
-              </h3>
-              <div className="signature-section space-y-3">
-                <div className="form-field">
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Fecha completada:
-                  </label>
-                  <input
-                    type="date"
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#4b207f] focus:outline-none focus:ring-1 focus:ring-[#4b207f] print:border-black"
-                    value={completionDate}
-                    onChange={(e) => setCompletionDate(e.target.value)}
-                  />
-                </div>
-                <div className="form-field">
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Instructor/asesor:
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#4b207f] focus:outline-none focus:ring-1 focus:ring-[#4b207f] print:border-black"
-                    value={instructor}
-                    onChange={(e) => setInstructor(e.target.value)}
-                  />
-                </div>
+          {/* Sección final */}
+          <div className="question-block border-line rounded-2xl border bg-white p-5 md:p-8">
+            <h3 className="mb-5 text-[22px] leading-[1.2] md:text-[26px]">
+              Finalización de la especialidad
+            </h3>
+            <div className="signature-section grid gap-5 sm:grid-cols-2">
+              <div className="form-field">
+                <label className="mb-2 block text-sm font-medium">Fecha completada:</label>
+                <Input
+                  type="date"
+                  className="print:border-black"
+                  value={completionDate}
+                  onChange={(e) => setCompletionDate(e.target.value)}
+                />
+              </div>
+              <div className="form-field">
+                <label className="mb-2 block text-sm font-medium">Instructor/asesor:</label>
+                <Input
+                  type="text"
+                  className="print:border-black"
+                  value={instructor}
+                  onChange={(e) => setInstructor(e.target.value)}
+                />
               </div>
             </div>
+          </div>
 
-            {/* Botones de acción - Solo pantalla */}
-            <div className="no-print flex justify-center">
-              <button
-                type="button"
-                onClick={() => window.print()}
-                className="flex items-center gap-2 rounded-lg bg-green-600 px-8 py-3 font-semibold text-white transition-colors hover:bg-green-700"
-              >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                  />
-                </svg>
-                Imprimir formulario completado
-              </button>
-            </div>
-          </form>
-        </div>
+          {/* Botones de acción - Solo pantalla */}
+          <div className="no-print flex justify-center pt-4">
+            <Button type="button" size="lg" onClick={() => window.print()}>
+              <Printer className="h-5 w-5" strokeWidth={1.5} />
+              Imprimir formulario completado
+            </Button>
+          </div>
+        </form>
       </div>
 
       <div className="no-print">
