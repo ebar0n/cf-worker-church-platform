@@ -1,4 +1,8 @@
 import React from 'react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import Select from './Select';
 
 interface SkillsAndHealthStepProps {
   formData: {
@@ -26,177 +30,153 @@ export default function SkillsAndHealthStep({
   onBlur,
 }: SkillsAndHealthStepProps) {
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-8">
       {/* Skills Section */}
-      <div className="space-y-6">
-        <div className="text-center">
-          <h2 className="mb-2 text-2xl font-bold text-[#5e3929]">Habilidades y Destrezas</h2>
-          <p className="text-lg text-[#5e3929]">
+      <div className="flex flex-col gap-6 md:gap-8">
+        <div className="flex flex-col gap-1.5">
+          <h2 className="text-[28px] leading-[1.15] md:text-[32px]">Habilidades y Destrezas</h2>
+          <p className="text-ink-soft text-[15px] md:text-base">
             Comparte tus habilidades para servir mejor en la iglesia
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div>
-            <label
-              htmlFor="technicalSkills"
-              className="mb-2 block text-sm font-medium text-[#5e3929]"
-            >
+        <div className="grid gap-5 md:grid-cols-2 md:gap-6">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="technicalSkills" className="text-sm font-medium">
               Habilidades técnicas
             </label>
-            <input
+            <Input
               type="text"
               id="technicalSkills"
               name="technicalSkills"
               value={formData.technicalSkills}
               onChange={onChange}
               onBlur={onBlur}
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-[#5e3929] placeholder-gray-400 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f] focus:ring-opacity-50"
               placeholder="Ej: Computación, música, carpintería..."
             />
           </div>
 
-          <div>
-            <label htmlFor="softSkills" className="mb-2 block text-sm font-medium text-[#5e3929]">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="softSkills" className="text-sm font-medium">
               Habilidades blandas
             </label>
-            <input
+            <Input
               type="text"
               id="softSkills"
               name="softSkills"
               value={formData.softSkills}
               onChange={onChange}
               onBlur={onBlur}
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-[#5e3929] placeholder-gray-400 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f] focus:ring-opacity-50"
               placeholder="Ej: Liderazgo, comunicación, trabajo en equipo..."
             />
           </div>
-        </div>
 
-        <div>
-          <label htmlFor="languages" className="mb-2 block text-sm font-medium text-[#5e3929]">
-            Idiomas que hablas
-          </label>
-          <input
-            type="text"
-            id="languages"
-            name="languages"
-            value={formData.languages}
-            onChange={onChange}
-            onBlur={onBlur}
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-[#5e3929] placeholder-gray-400 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f] focus:ring-opacity-50"
-            placeholder="Ej: Español, inglés, portugués..."
-          />
-        </div>
+          <div className="flex flex-col gap-2 md:col-span-2">
+            <label htmlFor="languages" className="text-sm font-medium">
+              Idiomas que hablas
+            </label>
+            <Input
+              type="text"
+              id="languages"
+              name="languages"
+              value={formData.languages}
+              onChange={onChange}
+              onBlur={onBlur}
+              placeholder="Ej: Español, inglés, portugués..."
+            />
+          </div>
 
-        <div>
-          <label
-            htmlFor="interestsHobbies"
-            className="mb-2 block text-sm font-medium text-[#5e3929]"
-          >
-            Intereses y hobbies
-          </label>
-          <input
-            type="text"
-            id="interestsHobbies"
-            name="interestsHobbies"
-            value={formData.interestsHobbies}
-            onChange={onChange}
-            onBlur={onBlur}
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-[#5e3929] placeholder-gray-400 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f] focus:ring-opacity-50"
-            placeholder="Ej: Lectura, deportes, manualidades..."
-          />
-        </div>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="interestsHobbies" className="text-sm font-medium">
+              Intereses y hobbies
+            </label>
+            <Input
+              type="text"
+              id="interestsHobbies"
+              name="interestsHobbies"
+              value={formData.interestsHobbies}
+              onChange={onChange}
+              onBlur={onBlur}
+              placeholder="Ej: Lectura, deportes, manualidades..."
+            />
+          </div>
 
-        <div>
-          <label
-            htmlFor="volunteeringAvailability"
-            className="mb-2 block text-sm font-medium text-[#5e3929]"
-          >
-            Disponibilidad para voluntariado
-          </label>
-          <select
-            id="volunteeringAvailability"
-            name="volunteeringAvailability"
-            value={formData.volunteeringAvailability}
-            onChange={onChange}
-            onBlur={onBlur}
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-[#5e3929] focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f] focus:ring-opacity-50"
-          >
-            <option value="">Selecciona una opción</option>
-            <option value="weekends">Fines de semana</option>
-            <option value="weekdays">Días de semana</option>
-            <option value="evenings">Noches</option>
-            <option value="flexible">Horario flexible</option>
-            <option value="limited">Tiempo limitado</option>
-            <option value="not_available">No disponible por el momento</option>
-          </select>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="volunteeringAvailability" className="text-sm font-medium">
+              Disponibilidad para voluntariado
+            </label>
+            <Select
+              id="volunteeringAvailability"
+              name="volunteeringAvailability"
+              value={formData.volunteeringAvailability}
+              onChange={onChange}
+              onBlur={onBlur}
+            >
+              <option value="">Selecciona una opción</option>
+              <option value="weekends">Fines de semana</option>
+              <option value="weekdays">Días de semana</option>
+              <option value="evenings">Noches</option>
+              <option value="flexible">Horario flexible</option>
+              <option value="limited">Tiempo limitado</option>
+              <option value="not_available">No disponible por el momento</option>
+            </Select>
+          </div>
         </div>
       </div>
 
       {/* Health Section */}
-      <div className="space-y-6 border-t border-gray-200 pt-8">
-        <div className="text-center">
-          <h2 className="mb-2 text-2xl font-bold text-[#5e3929]">Salud y Necesidades Especiales</h2>
-          <p className="text-lg text-[#5e3929]">
+      <div className="border-line flex flex-col gap-6 border-t pt-8 md:gap-8">
+        <div className="flex flex-col gap-1.5">
+          <h2 className="text-[28px] leading-[1.15] md:text-[32px]">
+            Salud y Necesidades Especiales
+          </h2>
+          <p className="text-ink-soft text-[15px] md:text-base">
             Información para brindarte mejor atención y apoyo
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div>
-            <label
-              htmlFor="medicalConditions"
-              className="mb-2 block text-sm font-medium text-[#5e3929]"
-            >
+        <div className="grid gap-5 md:grid-cols-2 md:gap-6">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="medicalConditions" className="text-sm font-medium">
               Condiciones médicas
             </label>
-            <input
+            <Input
               type="text"
               id="medicalConditions"
               name="medicalConditions"
               value={formData.medicalConditions}
               onChange={onChange}
               onBlur={onBlur}
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-[#5e3929] placeholder-gray-400 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f] focus:ring-opacity-50"
               placeholder="Ej: Diabetes, hipertensión, alergias..."
             />
           </div>
 
-          <div>
-            <label htmlFor="specialNeeds" className="mb-2 block text-sm font-medium text-[#5e3929]">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="specialNeeds" className="text-sm font-medium">
               Necesidades especiales
             </label>
-            <input
+            <Input
               type="text"
               id="specialNeeds"
               name="specialNeeds"
               value={formData.specialNeeds}
               onChange={onChange}
               onBlur={onBlur}
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-[#5e3929] placeholder-gray-400 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f] focus:ring-opacity-50"
               placeholder="Ej: Movilidad reducida, silla de ruedas..."
             />
           </div>
         </div>
       </div>
 
-      {/* Navigation Buttons */}
-      <div className="flex justify-between pt-6">
-        <button
-          type="button"
-          onClick={onPrev}
-          className="rounded-full border border-[#4b207f] bg-white px-8 py-3 font-medium text-[#4b207f] shadow-md transition-colors hover:bg-[#4b207f] hover:text-white"
-        >
+      <div className="border-line flex items-center justify-between gap-3 border-t pt-6">
+        <Button type="button" variant="outline" size="lg" onClick={onPrev}>
+          <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
           Atrás
-        </button>
-        <button
-          type="button"
-          onClick={onNext}
-          className="rounded-full bg-[#4b207f] px-8 py-3 font-medium text-white shadow-md transition-colors hover:bg-[#2f557f]"
-        >
+        </Button>
+        <Button type="button" size="lg" onClick={onNext} className="flex-1 md:flex-none">
           Siguiente
-        </button>
+          <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
+        </Button>
       </div>
     </div>
   );

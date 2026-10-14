@@ -1,4 +1,9 @@
 import React from 'react';
+import { AlertCircle, ArrowLeft, CircleCheck } from 'lucide-react';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { Textarea } from '@/app/components/ui/textarea';
+import Select from './Select';
 
 interface ChurchAndOtherInfoStepProps {
   formData: {
@@ -32,28 +37,27 @@ export default function ChurchAndOtherInfoStep({
   error,
 }: ChurchAndOtherInfoStepProps) {
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-8">
       {/* Church Information Section */}
-      <div className="space-y-6">
-        <div className="text-center">
-          <h2 className="mb-2 text-2xl font-bold text-[#5e3929]">Información de Iglesia</h2>
-          <p className="text-lg text-[#5e3929]">
+      <div className="flex flex-col gap-6 md:gap-8">
+        <div className="flex flex-col gap-1.5">
+          <h2 className="text-[28px] leading-[1.15] md:text-[32px]">Información de Iglesia</h2>
+          <p className="text-ink-soft text-[15px] md:text-base">
             Ayúdanos a conocer cómo puedes servir en la iglesia
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div>
-            <label htmlFor="ministry" className="mb-2 block text-sm font-medium text-[#5e3929]">
+        <div className="grid gap-5 md:grid-cols-2 md:gap-6">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="ministry" className="text-sm font-medium">
               Ministerio actual o de interés
             </label>
-            <select
+            <Select
               id="ministry"
               name="ministry"
               value={formData.ministry}
               onChange={onChange}
               onBlur={onBlur}
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-[#5e3929] focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f] focus:ring-opacity-50"
             >
               <option value="">Selecciona un ministerio</option>
               <option value="ministerio-musica">Ministerio de Música</option>
@@ -74,27 +78,26 @@ export default function ChurchAndOtherInfoStep({
               <option value="club-conquistadores">Club de Conquistadores</option>
               <option value="ministerios-personales">Ministerios Personales y Evangelismo</option>
               <option value="otro">Otro</option>
-            </select>
+            </Select>
           </div>
 
-          <div>
-            <label htmlFor="areasToServe" className="mb-2 block text-sm font-medium text-[#5e3929]">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="areasToServe" className="text-sm font-medium">
               Áreas donde te gustaría servir
             </label>
-            <input
+            <Input
               type="text"
               id="areasToServe"
               name="areasToServe"
               value={formData.areasToServe}
               onChange={onChange}
               onBlur={onBlur}
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-[#5e3929] placeholder-gray-400 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f] focus:ring-opacity-50"
               placeholder="Ej: Música, enseñanza, administración..."
             />
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-3">
           <input
             type="checkbox"
             id="willingToLead"
@@ -102,64 +105,61 @@ export default function ChurchAndOtherInfoStep({
             checked={formData.willingToLead}
             onChange={onChange}
             onBlur={onBlur}
-            className="h-4 w-4 rounded border-gray-300 text-[#4b207f] focus:ring-[#4b207f] focus:ring-opacity-50"
+            className="accent-ink h-5 w-5 flex-none"
           />
-          <label htmlFor="willingToLead" className="text-sm font-medium text-[#5e3929]">
+          <label htmlFor="willingToLead" className="text-base">
             ¿Estarías dispuesto/a a liderar algún ministerio o grupo?
           </label>
         </div>
 
-        <div>
-          <label htmlFor="suggestions" className="mb-2 block text-sm font-medium text-[#5e3929]">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="suggestions" className="text-sm font-medium">
             Sugerencias para mejorar la iglesia
           </label>
-          <textarea
+          <Textarea
             id="suggestions"
             name="suggestions"
             value={formData.suggestions}
             onChange={onChange}
             onBlur={onBlur}
             rows={3}
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-[#5e3929] placeholder-gray-400 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f] focus:ring-opacity-50"
             placeholder="Comparte tus ideas y sugerencias..."
           />
         </div>
 
-        <div>
-          <label htmlFor="pastoralNotes" className="mb-2 block text-sm font-medium text-[#5e3929]">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="pastoralNotes" className="text-sm font-medium">
             Notas pastorales (opcional)
           </label>
-          <textarea
+          <Textarea
             id="pastoralNotes"
             name="pastoralNotes"
             value={formData.pastoralNotes}
             onChange={onChange}
             onBlur={onBlur}
             rows={3}
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-[#5e3929] placeholder-gray-400 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f] focus:ring-opacity-50"
             placeholder="Información adicional que consideres importante..."
           />
         </div>
       </div>
 
       {/* Other Information Section */}
-      <div className="space-y-6 border-t border-gray-200 pt-8">
-        <div className="text-center">
-          <h2 className="mb-2 text-2xl font-bold text-[#5e3929]">Información Adicional</h2>
-          <p className="text-lg text-[#5e3929]">
+      <div className="border-line flex flex-col gap-6 border-t pt-8 md:gap-8">
+        <div className="flex flex-col gap-1.5">
+          <h2 className="text-[28px] leading-[1.15] md:text-[32px]">Información Adicional</h2>
+          <p className="text-ink-soft text-[15px] md:text-base">
             Cualquier otra información que consideres relevante
           </p>
         </div>
 
-        <div>
-          <label htmlFor="additionalInfo" className="mb-2 block text-sm font-medium text-[#5e3929]">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="additionalInfo" className="text-sm font-medium">
             Información adicional
           </label>
-          <textarea
+          <Textarea
             id="additionalInfo"
             name="additionalInfo"
             rows={4}
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-[#5e3929] placeholder-gray-400 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f] focus:ring-opacity-50"
             placeholder="Comparte cualquier información adicional que consideres importante para conocerte mejor..."
           />
         </div>
@@ -167,38 +167,38 @@ export default function ChurchAndOtherInfoStep({
 
       {/* Success/Error Messages */}
       {success && (
-        <div className="rounded-lg bg-green-50 p-4 text-center">
-          <p className="font-semibold text-green-800">{success}</p>
+        <div className="border-line flex items-center gap-3 rounded-xl border bg-white p-4">
+          <CircleCheck className="h-5 w-5 flex-none text-green-700" strokeWidth={1.5} />
+          <p className="text-[15px] font-medium">{success}</p>
         </div>
       )}
 
       {error && (
-        <div className="rounded-lg bg-red-50 p-4 text-center">
-          <p className="font-semibold text-red-800">{error}</p>
+        <div className="border-line flex items-center gap-3 rounded-xl border bg-white p-4 text-[#b3261e]">
+          <AlertCircle className="h-5 w-5 flex-none" strokeWidth={1.5} />
+          <p className="text-[15px] font-medium">{error}</p>
         </div>
       )}
 
       {/* Navigation and Submit Buttons */}
-      <div className="flex justify-between pt-6">
-        <button
-          type="button"
-          onClick={onPrev}
-          className="rounded-full border border-[#4b207f] bg-white px-8 py-3 font-medium text-[#4b207f] shadow-md transition-colors hover:bg-[#4b207f] hover:text-white"
-        >
+      <div className="border-line flex items-center justify-between gap-3 border-t pt-6">
+        <Button type="button" variant="outline" size="lg" onClick={onPrev}>
+          <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
           Atrás
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
+          size="lg"
           onClick={onSubmit}
           disabled={submitting}
-          className="rounded-full bg-[#4b207f] px-8 py-3 font-medium text-white shadow-md transition-colors hover:bg-[#2f557f] disabled:opacity-50"
+          className="flex-1 md:flex-none"
         >
           {submitting
             ? 'Guardando...'
             : isExisting
               ? 'Actualizar información'
               : 'Completar registro'}
-        </button>
+        </Button>
       </div>
     </div>
   );

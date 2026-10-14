@@ -1,4 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { AlertCircle } from 'lucide-react';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
 
 interface TurnstileConfig {
   siteKey: string;
@@ -122,57 +125,60 @@ export default function IdentificationStep({
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="text-center">
-        <h2 className="mb-2 text-2xl font-bold text-[#5e3929]">Identificación</h2>
-        <p className="text-[#5e3929] opacity-80">Ingresa tu documento de identidad para comenzar</p>
+    <div className="flex flex-col gap-6 md:gap-8">
+      <div className="flex flex-col gap-1.5">
+        <h2 className="text-[28px] leading-[1.15] md:text-[32px]">Identificación</h2>
+        <p className="text-ink-soft text-[15px] md:text-base">
+          Ingresa tu documento de identidad para comenzar
+        </p>
       </div>
 
-      <div className="flex w-full flex-col items-center justify-center">
-        <label
-          htmlFor="documentID"
-          className="mb-1 block text-center text-base font-medium text-[#5e3929]"
-        >
+      <div className="flex max-w-md flex-col gap-2">
+        <label htmlFor="documentID" className="text-sm font-medium">
           Número de documento
         </label>
-        <span className="mb-2 block text-center text-xs text-[#8c7b6b]">
-          (Ejemplo: registro civil, cédula, pasaporte o cualquier documento legal vigente que
-          permita identificarte)
-        </span>
-        <input
+        <Input
           id="documentID"
           name="documentID"
           type="text"
           value={documentID}
           onChange={onChange}
-          className="w-full max-w-md rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
           placeholder="Número de documento"
           autoComplete="off"
           required
         />
+        <span className="text-ink-soft text-[13px]">
+          (Ejemplo: registro civil, cédula, pasaporte o cualquier documento legal vigente que
+          permita identificarte)
+        </span>
       </div>
 
-      {error && <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600">{error}</div>}
+      {error && (
+        <div className="border-line flex items-center gap-3 rounded-xl border bg-white p-4 text-[15px] font-medium text-[#b3261e]">
+          <AlertCircle className="h-5 w-5 flex-none" strokeWidth={1.5} />
+          {error}
+        </div>
+      )}
 
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex items-center gap-3">
         <input
           type="checkbox"
           id="termsAccepted"
           name="termsAccepted"
           checked={termsAccepted}
           onChange={onChange}
-          className="h-4 w-4 rounded border-[#d4c5b9] text-[#4b207f] focus:ring-[#4b207f]"
+          className="accent-ink h-5 w-5 flex-none"
         />
-        <label htmlFor="termsAccepted" className="text-sm text-[#5e3929]">
+        <label htmlFor="termsAccepted" className="text-base">
           Acepto los{' '}
-          <a href="/privacy" target="_blank" className="text-[#4b207f] hover:underline">
+          <a href="/privacy" target="_blank" className="text-denim hover:text-ink underline">
             términos y condiciones
           </a>
         </label>
       </div>
 
       {/* Turnstile Widget */}
-      <div className="flex justify-center">
+      <div className="flex">
         <div
           ref={turnstileRef}
           id="turnstile-widget-container"
@@ -186,15 +192,16 @@ export default function IdentificationStep({
         ></div>
       </div>
 
-      <div className="flex justify-center">
-        <button
+      <div className="border-line flex justify-end border-t pt-6">
+        <Button
           type="button"
+          size="lg"
           onClick={onCheck}
           disabled={loading || !documentID || !termsAccepted || !turnstileToken}
-          className="rounded-lg bg-[#4b207f] px-6 py-2 text-white hover:bg-[#3a1a5f] disabled:bg-[#d4c5b9]"
+          className="w-full md:w-auto"
         >
           {loading ? 'Buscando...' : 'Continuar'}
-        </button>
+        </Button>
       </div>
     </div>
   );

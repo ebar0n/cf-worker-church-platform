@@ -1,7 +1,8 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Header from '@/app/components/Header';
+import { AlertCircle, Check, CircleCheck } from 'lucide-react';
+import { buttonVariants } from '@/app/components/ui/button';
 import IdentificationStep from './IdentificationStep';
 import PersonalInfoStep from './PersonalInfoStep';
 import MembershipInfoStep from './MembershipInfoStep';
@@ -83,13 +84,14 @@ const initialFormData: MemberFormData = {
   termsAccepted: false,
 };
 
+// Stepper labels; the last entry is the thank-you screen (no segment)
 const steps = [
-  'Identification',
-  'Personal Information',
-  'Professional & Education',
-  'Skills, Health & Special Needs',
-  'Membership Information',
-  'Church & Other Information',
+  'Identificación',
+  'Información personal',
+  'Profesión y estudios',
+  'Habilidades y salud',
+  'Membresía',
+  'Iglesia y otros',
   'Gracias',
 ];
 
@@ -476,20 +478,20 @@ export default function MemberFormClient() {
         );
       case 6:
         return (
-          <div className="flex flex-col items-center justify-center gap-6 py-12">
-            <h2 className="text-2xl font-bold text-[#4b207f]">
+          <div className="flex flex-col items-center gap-5 py-6 text-center md:py-10">
+            <span className="bg-warm-soft flex h-14 w-14 items-center justify-center rounded-full">
+              <CircleCheck className="h-7 w-7" strokeWidth={1.5} />
+            </span>
+            <h2 className="text-[28px] leading-[1.15] md:text-[32px]">
               ¡Gracias por actualizar tu información!
             </h2>
-            <p className="max-w-xl text-center text-lg text-[#5e3929]">
+            <p className="text-ink-soft max-w-xl text-base leading-relaxed md:text-lg">
               Tu registro ha sido guardado exitosamente.
               <br />
               Si tienes dudas o deseas actualizar algún dato, puedes volver a este formulario en
               cualquier momento.
             </p>
-            <Link
-              href="/"
-              className="rounded-full bg-[#4b207f] px-8 py-3 font-medium text-white shadow-md transition-colors hover:bg-[#2f557f]"
-            >
+            <Link href="/" className={buttonVariants({ size: 'lg' })}>
               Volver al inicio
             </Link>
           </div>
@@ -499,57 +501,90 @@ export default function MemberFormClient() {
     }
   };
 
+  const showAutoSave = step < steps.length - 1 && formData.documentID && formData.termsAccepted;
+
   return (
-    <div className="min-h-screen bg-[#f8f6f2]">
-      <Header />
-      <div className="mx-auto mt-8 flex w-full max-w-4xl flex-col gap-8 rounded-2xl bg-white p-8 shadow-lg">
-        <div className="text-center">
-          <h1 className="mb-2 text-3xl font-bold text-[#4b207f] md:text-4xl">
-            {isExisting ? 'Actualiza tus datos' : 'Regístrate como miembro'}
-          </h1>
-          <p className="text-lg text-[#5e3929]">
-            &ldquo;Cada uno ponga al servicio de los demás el don que haya recibido, administrando
-            fielmente la gracia de Dios en sus diversas formas.&rdquo; - 1 Pedro 4:10
-          </p>
-          <p className="mt-4 text-lg text-[#5e3929]">
-            ¡Ayúdanos a conocerte mejor para servir juntos en la obra de Dios!
-          </p>
-          {registerInfo && (
-            <div className="mt-2 flex flex-col items-center">
-              <div className="flex w-fit flex-col gap-1 rounded-lg bg-[#f3f0fa] px-4 py-2 text-sm text-[#4b207f] shadow-sm">
-                <div className="whitespace-nowrap">
-                  Fecha de creación: {formatDateVerbose(registerInfo.createdAt)}
-                </div>
-                <div className="whitespace-nowrap">
-                  Última actualización: {formatDateVerbose(registerInfo.updatedAt)}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          {renderStep()}
-        </form>
-        {step < steps.length - 1 && (
-          <div className="flex flex-col items-center justify-between">
-            <div className="mt-4 flex justify-center gap-2">
-              {steps.map((label, idx) => (
-                <div
-                  key={label}
-                  className={`h-2 w-2 rounded-full ${step === idx ? 'bg-[#4b207f]' : 'bg-[#ede9f6]'}`}
-                />
-              ))}
-            </div>
-            {formData.documentID && formData.termsAccepted && (
-              <div className="text-sm text-[#5e3929]">
+    <main className="mx-auto flex w-full max-w-[880px] flex-col gap-8 px-5 pb-14 pt-8 md:px-8 md:pb-28 md:pt-14 lg:gap-10 xl:px-0">
+      <div className="flex flex-col gap-3">
+        <h1 className="text-[40px] leading-[1.04] lg:text-[48px] lg:leading-[1.1]">
+          {isExisting ? 'Actualiza tus datos' : 'Regístrate como miembro'}
+        </h1>
+        <p className="text-ink-soft max-w-[640px] text-base leading-relaxed">
+          &ldquo;Cada uno ponga al servicio de los demás el don que haya recibido, administrando
+          fielmente la gracia de Dios en sus diversas formas.&rdquo; — 1 Pedro 4:10
+        </p>
+        <p className="text-ink-soft text-base">
+          ¡Ayúdanos a conocerte mejor para servir juntos en la obra de Dios!
+        </p>
+        {(registerInfo || showAutoSave) && (
+          <div className="text-ink-soft flex flex-wrap items-center gap-x-6 gap-y-1 text-sm">
+            {registerInfo && (
+              <>
+                <span>Fecha de creación: {formatDateVerbose(registerInfo.createdAt)}</span>
+                <span>Última actualización: {formatDateVerbose(registerInfo.updatedAt)}</span>
+              </>
+            )}
+            {showAutoSave && (
+              <span aria-live="polite" className="flex items-center gap-2 md:ml-auto">
                 {autoSaveStatus === 'saving' && 'Guardando...'}
-                {autoSaveStatus === 'saved' && 'Cambios guardados'}
-                {autoSaveStatus === 'error' && 'Error al guardar'}
-              </div>
+                {autoSaveStatus === 'saved' && (
+                  <>
+                    <Check className="h-4 w-4" strokeWidth={1.5} />
+                    Cambios guardados
+                  </>
+                )}
+                {autoSaveStatus === 'error' && (
+                  <span className="flex items-center gap-1.5 text-[#b3261e]">
+                    <AlertCircle className="h-4 w-4" strokeWidth={1.5} />
+                    Error al guardar
+                  </span>
+                )}
+              </span>
             )}
           </div>
         )}
       </div>
-    </div>
+
+      {step < steps.length - 1 && (
+        <div className="flex flex-col gap-2.5">
+          <p className="text-ink-soft flex justify-between gap-4 text-[13px] md:hidden">
+            <span>
+              Paso {step + 1} de {steps.length - 1}
+            </span>
+            {step < steps.length - 2 && <span>Sigue: {steps[step + 1]}</span>}
+          </p>
+          <ol className="grid grid-cols-6 gap-1 md:gap-2">
+            {steps.slice(0, -1).map((label, idx) => (
+              <li
+                key={label}
+                aria-current={idx === step ? 'step' : undefined}
+                className="flex flex-col gap-2.5"
+              >
+                <div
+                  className={`h-1 rounded-sm ${idx < step ? 'bg-ink' : idx === step ? 'bg-warm' : 'bg-line'}`}
+                />
+                <span
+                  className={`sr-only items-center gap-1.5 text-[13px] leading-[1.3] md:not-sr-only md:flex ${idx === step ? 'font-semibold' : 'font-medium'} ${idx > step ? 'text-ink-soft' : ''}`}
+                >
+                  {idx < step ? (
+                    <Check className="h-3.5 w-3.5 flex-none" strokeWidth={2} />
+                  ) : (
+                    `${idx + 1} · `
+                  )}
+                  {label}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      <form
+        onSubmit={handleSubmit}
+        className="border-line flex flex-col gap-8 rounded-2xl border bg-white p-5 md:p-10"
+      >
+        {renderStep()}
+      </form>
+    </main>
   );
 }
