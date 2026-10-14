@@ -3,9 +3,11 @@ import { verifyTurnstileToken, withTurnstileProtection } from '@/lib/turnstile';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { z } from 'zod';
 
+// documentID is trimmed like in the program flows, so "123 " finds the
+// same member instead of creating a duplicate.
 const memberSchema = z.object({
-  documentID: z.string().min(1),
-  name: z.string(),
+  documentID: z.string().trim().min(1),
+  name: z.string().trim().min(2),
   gender: z.string().optional(),
   phone: z.string().min(5),
   birthDate: z.string().optional(),
@@ -40,15 +42,15 @@ const memberSchema = z.object({
 
 // Esquema específico para la creación inicial
 const initialMemberSchema = z.object({
-  documentID: z.string().min(1),
-  name: z.string().min(2),
+  documentID: z.string().trim().min(1),
+  name: z.string().trim().min(2),
   phone: z.string().min(5),
 });
 
 export async function GET(request: NextRequest) {
   return withTurnstileProtection(request, async (req) => {
     const { searchParams } = new URL(req.url);
-    const documentID = searchParams.get('documentID');
+    const documentID = searchParams.get('documentID')?.trim();
 
     if (!documentID) {
       return NextResponse.json({ error: 'Document ID is required' }, { status: 400 });
@@ -95,18 +97,21 @@ async function handleCreateMember(request: NextRequest) {
     }
 
     const now = new Date().toISOString();
-    const result = await env.DB.prepare(
+    // Blur auto-save and "Siguiente" can both send the first POST: the second
+    // one gets the existing member instead of a unique-index 500.
+    await env.DB.prepare(
       `
       INSERT INTO Member (
         documentID, name, phone, createdAt, updatedAt
       ) VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(documentID) DO NOTHING
     `
     )
       .bind(parse.data.documentID, parse.data.name, parse.data.phone, now, now)
       .run();
 
-    const member = await env.DB.prepare('SELECT * FROM Member WHERE id = ?')
-      .bind(result.meta.last_row_id)
+    const member = await env.DB.prepare('SELECT * FROM Member WHERE documentID = ?')
+      .bind(parse.data.documentID)
       .first();
 
     if (!member) {
@@ -156,7 +161,7 @@ async function handleUpdateMember(request: NextRequest) {
     addField('name', parse.data.name);
     addField('gender', parse.data.gender || null);
     addField('phone', parse.data.phone);
-    addField('birthDate', parse.data.birthDate);
+    addField('birthDate', parse.data.birthDate || null);
     addField('maritalStatus', parse.data.maritalStatus || null);
     addField('address', parse.data.address);
     addField('email', parse.data.email || null);

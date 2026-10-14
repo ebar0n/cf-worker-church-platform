@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '@/app/admin/components/AdminLayout';
 import BarChartCustom from '@/app/admin/components/BarChartCustom';
 import AreaChartCustom from '@/app/admin/components/AreaChartCustom';
+import { todayInBogota } from '@/lib/age-classification';
 
 interface ChartData {
   name: string;
@@ -143,7 +144,8 @@ export default function AdminDashboard({ adminEmail }: AdminDashboardProps) {
   };
 
   const getQuarterLabel = () => {
-    const currentDate = new Date();
+    // Same calendar as the server's birthday lists
+    const currentDate = todayInBogota();
     const currentMonth = currentDate.getMonth() + 1;
     const currentQuarter = Math.ceil(currentMonth / 3);
 
