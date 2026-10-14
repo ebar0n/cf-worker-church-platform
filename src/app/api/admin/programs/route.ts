@@ -7,15 +7,16 @@ export async function GET() {
   const { env } = getCloudflareContext();
 
   try {
-    // Get all programs with enrollment counts
+    // Children and adults both count as enrolled. Subqueries rather than two
+    // LEFT JOINs, which would multiply rows and inflate both counts.
     const programs = await env.DB.prepare(
       `
       SELECT
         p.*,
-        COUNT(e.id) as enrollmentCount
+        (SELECT COUNT(*) FROM Enrollment e WHERE e.programId = p.id) +
+        (SELECT COUNT(*) FROM ProgramAdultEnrollment pae WHERE pae.programId = p.id)
+          as enrollmentCount
       FROM Program p
-      LEFT JOIN Enrollment e ON p.id = e.programId
-      GROUP BY p.id
       ORDER BY p.createdAt DESC
     `
     ).all();

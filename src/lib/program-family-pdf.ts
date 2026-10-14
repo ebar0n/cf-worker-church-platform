@@ -5,7 +5,7 @@ import {
   buildProgramAuthorizationPdf,
   documentTypeByAge,
 } from './program-pdf';
-import { type FamilyPerson, type ProgramFamily } from './program-family';
+import { familyEmergencyContact, type FamilyPerson, type ProgramFamily } from './program-family';
 import { classify } from './age-classification';
 
 export class FamilyPdfError extends Error {}
@@ -88,9 +88,7 @@ export async function buildFamilyPdf(options: {
       `${label}: convierte la imagen a JPG o PNG y vuelve a cargarla para incluirla en la carpeta.`
     );
   };
-  const emergency =
-    family.adults.find((adult) => adult.emergencyContactName && adult.emergencyContactPhone) ??
-    family.adults.find((adult) => adult.emergencyContactName || adult.emergencyContactPhone);
+  const emergency = familyEmergencyContact(family.adults);
 
   const appendProfile = async (person: FamilyPerson) => {
     const label = `${person.name} - foto`;

@@ -91,6 +91,7 @@ export default function ProgramRosterAdmin({
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [downloadingPdf, setDownloadingPdf] = useState<string | null>(null);
   const load = useCallback(async () => {
     try {
       const res = await fetch(`/api/admin/programs/${programId}/roster`);
@@ -115,6 +116,30 @@ export default function ProgramRosterAdmin({
       body: JSON.stringify({ documentID, received }),
     });
     if (res.ok) await load();
+  };
+
+  // The packet route answers 422 naming the person/attachment to fix; a plain
+  // download link would swallow that message, so fetch it and show it.
+  const downloadFamilyPdf = async (family: Family) => {
+    const fallback = 'No se pudo generar la carpeta familiar. Inténtalo de nuevo.';
+    setDownloadingPdf(family.id);
+    try {
+      const res = await fetch(`/api/admin/programs/${programId}/families/${family.id}/pdf`);
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        alert(body.error ?? fallback);
+        return;
+      }
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(await res.blob());
+      link.download = familyPdfFilename(family);
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch {
+      alert(fallback);
+    } finally {
+      setDownloadingPdf(null);
+    }
   };
 
   const matches = (person: Person) =>
@@ -397,13 +422,12 @@ export default function ProgramRosterAdmin({
                 </div>
 
                 <div className="my-3 flex flex-wrap items-center gap-3">
-                  <Button asChild className="bg-[#4b207f] text-white">
-                    <a
-                      href={`/api/admin/programs/${programId}/families/${family.id}/pdf`}
-                      download={familyPdfFilename(family)}
-                    >
-                      Descargar PDF familiar
-                    </a>
+                  <Button
+                    onClick={() => downloadFamilyPdf(family)}
+                    disabled={downloadingPdf === family.id}
+                    className="bg-[#4b207f] text-white"
+                  >
+                    {downloadingPdf === family.id ? 'Generando PDF...' : 'Descargar PDF familiar'}
                   </Button>
                   <span className="text-xs text-gray-600">
                     Portada, hojas de vida, anexos y autorizaciones para firma.
