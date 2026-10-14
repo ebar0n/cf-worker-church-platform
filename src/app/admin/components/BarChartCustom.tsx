@@ -22,8 +22,10 @@ export default function BarChartCustom({ data }: { data: ChartData[] }) {
       {
         label: 'Solicitudes',
         data: data.map((d) => d.value),
-        backgroundColor: '#e36520', // Naranja institucional
+        backgroundColor: '#ffa92d', // warm
+        hoverBackgroundColor: '#f29a17',
         borderRadius: 8,
+        maxBarThickness: 64,
       },
     ],
   };
@@ -34,7 +36,8 @@ export default function BarChartCustom({ data }: { data: ChartData[] }) {
       legend: { display: false },
     },
     scales: {
-      y: { beginAtZero: true },
+      x: { grid: { display: false }, ticks: { color: '#5c5852' } },
+      y: { beginAtZero: true, grid: { color: '#e8e3da' }, ticks: { color: '#5c5852' } },
     },
   };
 

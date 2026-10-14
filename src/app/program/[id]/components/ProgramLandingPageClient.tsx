@@ -2,11 +2,44 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Button } from '@/app/components/ui/button';
+import { AlertCircle, ArrowLeft, ArrowRight, Check, ChevronDown, X } from 'lucide-react';
+import { Button, buttonVariants } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Checkbox } from '@/app/components/ui/checkbox';
 import { Program } from '@/app/types';
-import { getDepartmentImage, getDepartmentName, getDepartmentColor } from '@/lib/constants';
+import { getDepartmentImage, getDepartmentName } from '@/lib/constants';
+
+const STEP_LABELS = [
+  'Documento del Niño',
+  'Información del Niño',
+  'Documentos de Responsables',
+  'Información de Responsables',
+  'Confirmación y Términos',
+  'Inscripción Finalizada',
+];
+
+const LABEL_CLASS = 'mb-2 block text-sm font-medium text-ink';
+const H2_CLASS = 'mb-6 text-[28px] leading-tight md:text-[32px]';
+const H3_CLASS = 'mb-4 text-xl';
+const SUBCARD_CLASS = 'rounded-2xl border border-line p-5';
+// Kit "choice card": a radio row that turns warm-soft with an ink border when checked
+const CHOICE_CLASS =
+  'flex h-[52px] cursor-pointer items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 text-base text-ink has-[:checked]:border-ink has-[:checked]:bg-warm-soft has-[:checked]:font-medium';
+
+function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <div className="relative">
+      <select
+        {...props}
+        className="text-ink focus-visible:border-denim focus-visible:outline-denim/25 h-12 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-4 pr-11 text-base focus-visible:outline-2 focus-visible:outline-offset-2"
+      />
+      <ChevronDown
+        className="text-ink-soft pointer-events-none absolute right-3.5 top-3.5 h-5 w-5"
+        strokeWidth={1.5}
+      />
+    </div>
+  );
+}
 
 interface Member {
   id: number;
@@ -737,26 +770,26 @@ export default function ProgramLandingPageClient() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg">Cargando programa...</div>
+      <div className="bg-paper flex min-h-screen items-center justify-center">
+        <div className="text-ink-soft text-lg">Cargando programa...</div>
       </div>
     );
   }
 
   if (!program) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg text-red-600">Programa no encontrado</div>
+      <div className="bg-paper flex min-h-screen items-center justify-center">
+        <div className="text-lg text-[#b3261e]">Programa no encontrado</div>
       </div>
     );
   }
 
   if (!program.isActive) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="bg-paper flex min-h-screen items-center justify-center px-5">
         <div className="text-center">
-          <h1 className="mb-4 text-2xl font-bold text-gray-900">Programa No Disponible</h1>
-          <p className="text-gray-600">
+          <h1 className="mb-4 text-[40px] leading-[1.04]">Programa No Disponible</h1>
+          <p className="text-ink-soft">
             Este programa no está disponible para inscripciones en este momento.
           </p>
         </div>
@@ -765,114 +798,88 @@ export default function ProgramLandingPageClient() {
   }
 
   return (
-    <div
-      className="min-h-screen"
-      style={{
-        background: `linear-gradient(135deg, #f8f6f2 0%, #f0f0f0 100%)`,
-      }}
-    >
-      <div className="container mx-auto px-4 py-8">
+    <div className="bg-paper min-h-screen">
+      <div className="mx-auto w-full max-w-[880px] px-5 py-10 md:px-8 lg:py-16">
         {/* Header */}
-        <div className="mb-8 text-center">
-          {/* Department Logo Square */}
-          <div className="mb-6 flex justify-center">
-            <div
-              className="rounded-lg border p-3 shadow-lg"
-              style={{
-                backgroundColor: `${getDepartmentColor(program.department)}20`,
-                borderColor: `${getDepartmentColor(program.department)}40`,
+        <div className="mb-10 flex flex-col gap-5">
+          <span className="border-line inline-flex items-center gap-2 self-start rounded-full border bg-white px-3 py-1.5 text-[13px] font-medium">
+            <img
+              src={getDepartmentImage(program.department)}
+              alt={`Logo ${getDepartmentName(program.department)}`}
+              className="h-6 w-6 object-contain grayscale"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
               }}
-            >
-              <img
-                src={getDepartmentImage(program.department)}
-                alt={`Logo ${getDepartmentName(program.department)}`}
-                className="h-20 w-20 object-contain"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                }}
-              />
-            </div>
-          </div>
-
-          <h1 className="mb-4 text-4xl font-bold text-gray-900">{program.title}</h1>
-          <p
-            className="mb-2 text-xl font-medium"
-            style={{ color: getDepartmentColor(program.department) }}
-          >
+            />
             {getDepartmentName(program.department)}
-          </p>
-          <p className="mb-6 text-lg text-gray-600">
+          </span>
+
+          <h1 className="text-[40px] leading-[1.04] lg:text-[56px]">{program.title}</h1>
+          <p className="text-ink-soft max-w-[640px] text-lg leading-relaxed">
             ¡Únete a esta increíble aventura! Completa el formulario para inscribir a tu hijo/a.
           </p>
 
           {/* Program Content */}
           {program.content && (
-            <div className="mx-auto mb-8 max-w-2xl rounded-lg bg-white p-6 shadow-sm">
-              <h3 className="mb-4 text-lg font-semibold text-gray-900">Detalles</h3>
-              <div className="leading-relaxed text-gray-700">
-                <div className="whitespace-pre-wrap text-sm">{program.content}</div>
-              </div>
+            <div className="border-line rounded-2xl border bg-white p-6 md:p-8">
+              <h3 className="mb-3 text-2xl">Detalles</h3>
+              <div className="whitespace-pre-wrap text-base leading-[1.7]">{program.content}</div>
             </div>
           )}
+        </div>
 
-          {/* Progress Steps */}
-          <div className="mb-8 flex justify-center">
-            <div className="flex items-center space-x-1 sm:space-x-4">
-              {[1, 2, 3, 4, 5, 6].map((stepNumber) => (
-                <div key={stepNumber} className="flex items-center">
+        {/* Progress Steps */}
+        <div className="mb-8 flex flex-col gap-2.5">
+          <p className="text-ink-soft text-[13px] md:hidden">
+            Paso {step} de 6: {STEP_LABELS[step - 1]}
+          </p>
+          <ol className="grid grid-cols-6 gap-1 md:gap-2">
+            {STEP_LABELS.map((label, index) => {
+              const stepNumber = index + 1;
+              return (
+                <li key={label} className="flex flex-col gap-2.5">
                   <div
-                    className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium sm:h-8 sm:w-8 sm:text-sm ${
-                      step >= stepNumber ? 'text-white' : 'bg-gray-200 text-gray-600'
+                    className={`h-1 rounded-sm ${
+                      stepNumber < step ? 'bg-ink' : stepNumber === step ? 'bg-warm' : 'bg-line'
                     }`}
-                    style={{
-                      backgroundColor:
-                        step >= stepNumber ? getDepartmentColor(program.department) : undefined,
-                    }}
+                  />
+                  <div
+                    className={`hidden items-start gap-1.5 text-[13px] leading-snug md:flex ${
+                      stepNumber === step
+                        ? 'text-ink font-semibold'
+                        : stepNumber < step
+                          ? 'text-ink font-medium'
+                          : 'text-ink-soft font-medium'
+                    }`}
                   >
-                    {stepNumber}
+                    {stepNumber < step ? (
+                      <Check className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                    ) : (
+                      `${stepNumber} · `
+                    )}
+                    {label}
                   </div>
-                  {stepNumber < 6 && (
-                    <div
-                      className="mx-1 h-1 w-6 sm:mx-2 sm:w-12"
-                      style={{
-                        backgroundColor:
-                          step > stepNumber ? getDepartmentColor(program.department) : '#E5E7EB',
-                      }}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="text-sm text-gray-500">
-            Paso {step} de 6:{' '}
-            {step === 1
-              ? 'Documento del Niño'
-              : step === 2
-                ? 'Información del Niño'
-                : step === 3
-                  ? 'Documentos de Responsables'
-                  : step === 4
-                    ? 'Información de Responsables'
-                    : step === 5
-                      ? 'Confirmación y Términos'
-                      : 'Inscripción Finalizada'}
-          </div>
+                </li>
+              );
+            })}
+          </ol>
         </div>
 
         {/* Form */}
-        <div className="mx-auto max-w-2xl">
-          <form onSubmit={handleSubmit} className="rounded-lg bg-white p-8 shadow-lg">
+        <div>
+          <form
+            onSubmit={handleSubmit}
+            className="border-line rounded-2xl border bg-white p-6 md:p-10"
+          >
             {/* Step 1: Child Information */}
             {step === 1 && (
               <div className="space-y-6">
-                <h2 className="mb-6 text-2xl font-semibold text-gray-900">Documento del Niño/a</h2>
+                <h2 className={H2_CLASS}>Documento del Niño/a</h2>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Número del Registro Civil *
+                  <label className={LABEL_CLASS}>
+                    Número del Registro Civil <span className="text-[#b3261e]">*</span>
                   </label>
                   <Input
                     type="text"
@@ -900,14 +907,14 @@ export default function ProgramLandingPageClient() {
                   </div>
 
                   {turnstileToken && (
-                    <div className="text-center text-sm text-green-600">
+                    <div className="text-center text-sm text-green-700">
                       ✓ Verificación completada
                     </div>
                   )}
 
                   {siteKey && (!widgetRendered || captchaLoadTimeout) && (
                     <div className="text-center">
-                      <p className="mb-2 text-sm text-gray-600">
+                      <p className="text-ink-soft mb-2 text-sm">
                         {captchaLoadTimeout
                           ? "El captcha no se cargó. Haz clic en 'Reintentar' para solucionarlo."
                           : "Si el captcha no aparece, haz clic en 'Reintentar'"}
@@ -915,7 +922,7 @@ export default function ProgramLandingPageClient() {
                       <button
                         type="button"
                         onClick={resetTurnstileWidget}
-                        className="text-sm text-blue-600 underline hover:text-blue-800"
+                        className="text-denim hover:text-ink text-sm underline"
                       >
                         Reintentar captcha
                       </button>
@@ -928,12 +935,10 @@ export default function ProgramLandingPageClient() {
             {/* Step 2: Child Information */}
             {step === 2 && (
               <div className="space-y-6">
-                <h2 className="mb-6 text-2xl font-semibold text-gray-900">
-                  Información del Niño/a
-                </h2>
+                <h2 className={H2_CLASS}>Información del Niño/a</h2>
 
                 {childFound && (
-                  <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3">
+                  <div className="mb-4 rounded-xl border border-green-200 bg-green-50 p-3">
                     <p className="text-sm text-green-800">
                       ✓ Niño(a) encontrado: <strong>{childFound.name}</strong>
                     </p>
@@ -946,8 +951,8 @@ export default function ProgramLandingPageClient() {
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700">
-                      Nombre Completo *
+                    <label className={LABEL_CLASS}>
+                      Nombre Completo <span className="text-[#b3261e]">*</span>
                     </label>
                     <Input
                       type="text"
@@ -959,23 +964,22 @@ export default function ProgramLandingPageClient() {
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700">Género *</label>
-                    <select
+                    <label className={LABEL_CLASS}>Género *</label>
+                    <Select
                       value={formData.childGender}
                       onChange={(e) => handleInputChange('childGender', e.target.value)}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required
                     >
                       <option value="">Seleccionar género</option>
                       <option value="male">Masculino</option>
                       <option value="female">Femenino</option>
-                    </select>
+                    </Select>
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Fecha de Nacimiento *
+                  <label className={LABEL_CLASS}>
+                    Fecha de Nacimiento <span className="text-[#b3261e]">*</span>
                   </label>
                   <Input
                     type="date"
@@ -990,37 +994,35 @@ export default function ProgramLandingPageClient() {
             {/* Step 3: Documents of Parents or Guardian */}
             {step === 3 && (
               <div className="space-y-6">
-                <h2 className="mb-6 text-2xl font-semibold text-gray-900">
-                  Documentos de los Responsables
-                </h2>
+                <h2 className={H2_CLASS}>Documentos de los Responsables</h2>
 
                 {/* Form Type Selection */}
                 <div className="space-y-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Tipo de Responsable *
+                  <label className="text-ink block text-sm font-medium">
+                    Tipo de Responsable <span className="text-[#b3261e]">*</span>
                   </label>
-                  <div className="space-y-3">
-                    <label className="flex items-center space-x-3">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className={CHOICE_CLASS}>
                       <input
                         type="radio"
                         name="useGuardian"
                         value="false"
                         checked={!formData.useGuardian}
                         onChange={() => handleInputChange('useGuardian', false)}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                        className="accent-ink h-5 w-5 shrink-0"
                       />
-                      <span className="text-sm text-gray-700">Padres (Padre y Madre)</span>
+                      <span>Padres (Padre y Madre)</span>
                     </label>
-                    <label className="flex items-center space-x-3">
+                    <label className={CHOICE_CLASS}>
                       <input
                         type="radio"
                         name="useGuardian"
                         value="true"
                         checked={formData.useGuardian}
                         onChange={() => handleInputChange('useGuardian', true)}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                        className="accent-ink h-5 w-5 shrink-0"
                       />
-                      <span className="text-sm text-gray-700">Tutor/Representante</span>
+                      <span>Tutor/Representante</span>
                     </label>
                   </div>
                 </div>
@@ -1029,15 +1031,11 @@ export default function ProgramLandingPageClient() {
                 {!formData.useGuardian && (
                   <div className="space-y-6">
                     {/* Father Document */}
-                    <div className="rounded-lg border border-gray-200 p-4">
-                      <h3 className="mb-4 text-lg font-medium text-gray-900">
-                        Documento del Padre
-                      </h3>
+                    <div className={SUBCARD_CLASS}>
+                      <h3 className={H3_CLASS}>Documento del Padre</h3>
 
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Número de Documento
-                        </label>
+                        <label className={LABEL_CLASS}>Número de Documento</label>
                         <Input
                           type="text"
                           value={formData.fatherDocumentID}
@@ -1045,7 +1043,7 @@ export default function ProgramLandingPageClient() {
                           placeholder="Ej: 87654321"
                         />
                         {fatherFound && (
-                          <div className="mt-2 rounded-md border border-green-200 bg-green-50 p-3">
+                          <div className="mt-2 rounded-xl border border-green-200 bg-green-50 p-3">
                             <p className="text-sm text-green-800">
                               ✓ Padre encontrado: <strong>{fatherFound.name}</strong>
                             </p>
@@ -1055,15 +1053,11 @@ export default function ProgramLandingPageClient() {
                     </div>
 
                     {/* Mother Document */}
-                    <div className="rounded-lg border border-gray-200 p-4">
-                      <h3 className="mb-4 text-lg font-medium text-gray-900">
-                        Documento de la Madre
-                      </h3>
+                    <div className={SUBCARD_CLASS}>
+                      <h3 className={H3_CLASS}>Documento de la Madre</h3>
 
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Número de Documento
-                        </label>
+                        <label className={LABEL_CLASS}>Número de Documento</label>
                         <Input
                           type="text"
                           value={formData.motherDocumentID}
@@ -1071,7 +1065,7 @@ export default function ProgramLandingPageClient() {
                           placeholder="Ej: 12345678"
                         />
                         {motherFound && (
-                          <div className="mt-2 rounded-md border border-green-200 bg-green-50 p-3">
+                          <div className="mt-2 rounded-xl border border-green-200 bg-green-50 p-3">
                             <p className="text-sm text-green-800">
                               ✓ Madre encontrada: <strong>{motherFound.name}</strong>
                             </p>
@@ -1085,14 +1079,12 @@ export default function ProgramLandingPageClient() {
                 {/* Guardian Document */}
                 {formData.useGuardian && (
                   <div className="space-y-6">
-                    <div className="rounded-lg border border-gray-200 p-4">
-                      <h3 className="mb-4 text-lg font-medium text-gray-900">
-                        Documento del Tutor/Representante
-                      </h3>
+                    <div className={SUBCARD_CLASS}>
+                      <h3 className={H3_CLASS}>Documento del Tutor/Representante</h3>
 
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Número de Documento *
+                        <label className={LABEL_CLASS}>
+                          Número de Documento <span className="text-[#b3261e]">*</span>
                         </label>
                         <Input
                           type="text"
@@ -1103,10 +1095,10 @@ export default function ProgramLandingPageClient() {
                           disabled={searchingGuardian}
                         />
                         {searchingGuardian && (
-                          <p className="mt-1 text-sm text-blue-600">Buscando tutor...</p>
+                          <p className="text-ink-soft mt-1 text-sm">Buscando tutor...</p>
                         )}
                         {guardianFound && (
-                          <div className="mt-2 rounded-md border border-green-200 bg-green-50 p-3">
+                          <div className="mt-2 rounded-xl border border-green-200 bg-green-50 p-3">
                             <p className="text-sm text-green-800">
                               ✓ Tutor encontrado: <strong>{guardianFound.name}</strong>
                             </p>
@@ -1122,37 +1114,35 @@ export default function ProgramLandingPageClient() {
             {/* Step 4: Information of Parents or Guardian */}
             {step === 4 && (
               <div className="space-y-6">
-                <h2 className="mb-6 text-2xl font-semibold text-gray-900">
-                  Información de los Responsables
-                </h2>
+                <h2 className={H2_CLASS}>Información de los Responsables</h2>
 
                 {/* Form Type Selection */}
                 <div className="space-y-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Tipo de Responsable *
+                  <label className="text-ink block text-sm font-medium">
+                    Tipo de Responsable <span className="text-[#b3261e]">*</span>
                   </label>
-                  <div className="space-y-3">
-                    <label className="flex items-center space-x-3">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className={CHOICE_CLASS}>
                       <input
                         type="radio"
                         name="useGuardian"
                         value="false"
                         checked={!formData.useGuardian}
                         onChange={() => handleInputChange('useGuardian', false)}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                        className="accent-ink h-5 w-5 shrink-0"
                       />
-                      <span className="text-sm text-gray-700">Padres (Padre y Madre)</span>
+                      <span>Padres (Padre y Madre)</span>
                     </label>
-                    <label className="flex items-center space-x-3">
+                    <label className={CHOICE_CLASS}>
                       <input
                         type="radio"
                         name="useGuardian"
                         value="true"
                         checked={formData.useGuardian}
                         onChange={() => handleInputChange('useGuardian', true)}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                        className="accent-ink h-5 w-5 shrink-0"
                       />
-                      <span className="text-sm text-gray-700">Tutor/Representante</span>
+                      <span>Tutor/Representante</span>
                     </label>
                   </div>
                 </div>
@@ -1161,13 +1151,11 @@ export default function ProgramLandingPageClient() {
                 {!formData.useGuardian && (
                   <div className="space-y-6">
                     {/* Father Information */}
-                    <div className="rounded-lg border border-gray-200 p-4">
-                      <h3 className="mb-4 text-lg font-medium text-gray-900">
-                        Información del Padre
-                      </h3>
+                    <div className={SUBCARD_CLASS}>
+                      <h3 className={H3_CLASS}>Información del Padre</h3>
 
                       {fatherFound && (
-                        <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3">
+                        <div className="mb-4 rounded-xl border border-green-200 bg-green-50 p-3">
                           <p className="text-sm text-green-800">
                             ✓ Padre encontrado: <strong>{fatherFound.name}</strong>
                           </p>
@@ -1175,7 +1163,7 @@ export default function ProgramLandingPageClient() {
                             Los datos se autocompletaron desde el registro de miembros. Puedes
                             editarlos si es necesario.
                           </p>
-                          <p className="mt-1 text-xs text-gray-600">
+                          <p className="text-ink-soft mt-1 text-xs">
                             Última actualización:{' '}
                             {new Date(fatherFound.updatedAt).toLocaleDateString('es-ES')}
                           </p>
@@ -1184,9 +1172,7 @@ export default function ProgramLandingPageClient() {
 
                       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div>
-                          <label className="mb-2 block text-sm font-medium text-gray-700">
-                            Nombre Completo
-                          </label>
+                          <label className={LABEL_CLASS}>Nombre Completo</label>
                           <Input
                             type="text"
                             value={formData.fatherName}
@@ -1195,9 +1181,7 @@ export default function ProgramLandingPageClient() {
                           />
                         </div>
                         <div>
-                          <label className="mb-2 block text-sm font-medium text-gray-700">
-                            Teléfono
-                          </label>
+                          <label className={LABEL_CLASS}>Teléfono</label>
                           <Input
                             type="tel"
                             value={formData.fatherPhone}
@@ -1209,13 +1193,11 @@ export default function ProgramLandingPageClient() {
                     </div>
 
                     {/* Mother Information */}
-                    <div className="rounded-lg border border-gray-200 p-4">
-                      <h3 className="mb-4 text-lg font-medium text-gray-900">
-                        Información de la Madre
-                      </h3>
+                    <div className={SUBCARD_CLASS}>
+                      <h3 className={H3_CLASS}>Información de la Madre</h3>
 
                       {motherFound && (
-                        <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3">
+                        <div className="mb-4 rounded-xl border border-green-200 bg-green-50 p-3">
                           <p className="text-sm text-green-800">
                             ✓ Madre encontrada: <strong>{motherFound.name}</strong>
                           </p>
@@ -1223,7 +1205,7 @@ export default function ProgramLandingPageClient() {
                             Los datos se autocompletaron desde el registro de miembros. Puedes
                             editarlos si es necesario.
                           </p>
-                          <p className="mt-1 text-xs text-gray-600">
+                          <p className="text-ink-soft mt-1 text-xs">
                             Última actualización:{' '}
                             {new Date(motherFound.updatedAt).toLocaleDateString('es-ES')}
                           </p>
@@ -1232,9 +1214,7 @@ export default function ProgramLandingPageClient() {
 
                       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div>
-                          <label className="text-sm font-medium text-gray-700">
-                            Nombre Completo
-                          </label>
+                          <label className={LABEL_CLASS}>Nombre Completo</label>
                           <Input
                             type="text"
                             value={formData.motherName}
@@ -1243,9 +1223,7 @@ export default function ProgramLandingPageClient() {
                           />
                         </div>
                         <div>
-                          <label className="mb-2 block text-sm font-medium text-gray-700">
-                            Teléfono
-                          </label>
+                          <label className={LABEL_CLASS}>Teléfono</label>
                           <Input
                             type="tel"
                             value={formData.motherPhone}
@@ -1261,13 +1239,11 @@ export default function ProgramLandingPageClient() {
                 {/* Guardian/Representative Information */}
                 {formData.useGuardian && (
                   <div className="space-y-6">
-                    <div className="rounded-lg border border-gray-200 p-4">
-                      <h3 className="mb-4 text-lg font-medium text-gray-900">
-                        Información del Tutor/Representante
-                      </h3>
+                    <div className={SUBCARD_CLASS}>
+                      <h3 className={H3_CLASS}>Información del Tutor/Representante</h3>
 
                       {guardianFound && (
-                        <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3">
+                        <div className="mb-4 rounded-xl border border-green-200 bg-green-50 p-3">
                           <p className="text-sm text-green-800">
                             ✓ Tutor encontrado: <strong>{guardianFound.name}</strong>
                           </p>
@@ -1275,7 +1251,7 @@ export default function ProgramLandingPageClient() {
                             Los datos se autocompletaron desde el registro de miembros. Puedes
                             editarlos si es necesario.
                           </p>
-                          <p className="mt-1 text-xs text-gray-600">
+                          <p className="text-ink-soft mt-1 text-xs">
                             Última actualización:{' '}
                             {new Date(guardianFound.updatedAt).toLocaleDateString('es-ES')}
                           </p>
@@ -1284,8 +1260,8 @@ export default function ProgramLandingPageClient() {
 
                       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div>
-                          <label className="mb-2 block text-sm font-medium text-gray-700">
-                            Nombre Completo *
+                          <label className={LABEL_CLASS}>
+                            Nombre Completo <span className="text-[#b3261e]">*</span>
                           </label>
                           <Input
                             type="text"
@@ -1296,8 +1272,8 @@ export default function ProgramLandingPageClient() {
                           />
                         </div>
                         <div>
-                          <label className="mb-2 block text-sm font-medium text-gray-700">
-                            Teléfono *
+                          <label className={LABEL_CLASS}>
+                            Teléfono <span className="text-[#b3261e]">*</span>
                           </label>
                           <Input
                             type="tel"
@@ -1310,18 +1286,17 @@ export default function ProgramLandingPageClient() {
                       </div>
 
                       <div className="mt-4">
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Tipo de Relación *
+                        <label className={LABEL_CLASS}>
+                          Tipo de Relación <span className="text-[#b3261e]">*</span>
                         </label>
-                        <select
+                        <Select
                           value={formData.relationship}
                           onChange={(e) => handleInputChange('relationship', e.target.value)}
-                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           required
                         >
                           <option value="guardian">Tutor Legal</option>
                           <option value="representative">Representante</option>
-                        </select>
+                        </Select>
                       </div>
                     </div>
                   </div>
@@ -1332,53 +1307,51 @@ export default function ProgramLandingPageClient() {
             {/* Step 5: Confirmation and Terms */}
             {step === 5 && (
               <div className="space-y-6">
-                <h2 className="mb-6 text-2xl font-semibold text-gray-900">
-                  Confirmación y Términos
-                </h2>
+                <h2 className={H2_CLASS}>Confirmación y Términos</h2>
 
                 {/* Summary */}
-                <div className="space-y-4 rounded-lg bg-gray-50 p-6">
-                  <h3 className="text-lg font-medium text-gray-900">Resumen de la Inscripción</h3>
+                <div className="border-line bg-paper space-y-4 rounded-2xl border p-6">
+                  <h3 className="text-xl">Resumen de la Inscripción</h3>
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <h4 className="font-medium text-gray-700">Niño/a:</h4>
-                      <p className="text-gray-600">{formData.childName}</p>
-                      <p className="text-gray-600">Doc: {formData.childDocumentID}</p>
+                      <h4 className="text-ink font-sans text-sm font-semibold">Niño/a:</h4>
+                      <p className="text-ink-soft">{formData.childName}</p>
+                      <p className="text-ink-soft">Doc: {formData.childDocumentID}</p>
                       {childFound && (
-                        <p className="text-xs text-green-600">✓ Registrado en la base de datos</p>
+                        <p className="text-xs text-green-700">✓ Registrado en la base de datos</p>
                       )}
                     </div>
 
                     <div>
-                      <h4 className="font-medium text-gray-700">
+                      <h4 className="text-ink font-sans text-sm font-semibold">
                         {formData.useGuardian ? 'Tutor/Representante:' : 'Responsables:'}
                       </h4>
                       {formData.useGuardian ? (
                         <>
-                          <p className="text-gray-600">{formData.guardianName}</p>
-                          <p className="text-gray-600">Tel: {formData.guardianPhone}</p>
+                          <p className="text-ink-soft">{formData.guardianName}</p>
+                          <p className="text-ink-soft">Tel: {formData.guardianPhone}</p>
                           {guardianFound && (
-                            <p className="text-xs text-green-600">✓ Miembro registrado</p>
+                            <p className="text-xs text-green-700">✓ Miembro registrado</p>
                           )}
                         </>
                       ) : (
                         <>
-                          <p className="text-gray-600">Padre: {formData.fatherName}</p>
+                          <p className="text-ink-soft">Padre: {formData.fatherName}</p>
                           {fatherFound && (
-                            <p className="text-xs text-green-600">✓ Miembro registrado</p>
+                            <p className="text-xs text-green-700">✓ Miembro registrado</p>
                           )}
-                          <p className="text-gray-600">Madre: {formData.motherName}</p>
+                          <p className="text-ink-soft">Madre: {formData.motherName}</p>
                           {motherFound && (
-                            <p className="text-xs text-green-600">✓ Miembro registrada</p>
+                            <p className="text-xs text-green-700">✓ Miembro registrada</p>
                           )}
                         </>
                       )}
                     </div>
                   </div>
 
-                  <div className="border-t pt-4">
-                    <h4 className="mb-3 font-medium text-gray-700">Programa:</h4>
+                  <div className="border-line border-t pt-4">
+                    <h4 className="text-ink mb-3 font-sans text-sm font-semibold">Programa:</h4>
                     <div className="flex items-center space-x-3">
                       <img
                         src={getDepartmentImage(program.department)}
@@ -1390,8 +1363,8 @@ export default function ProgramLandingPageClient() {
                         }}
                       />
                       <div>
-                        <p className="font-medium text-gray-600">{program.title}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-ink font-medium">{program.title}</p>
+                        <p className="text-ink-soft text-sm">
                           {getDepartmentName(program.department)}
                         </p>
                       </div>
@@ -1410,17 +1383,17 @@ export default function ProgramLandingPageClient() {
                       }
                       required
                     />
-                    <label htmlFor="acceptPrivacy" className="text-sm text-gray-700">
+                    <label htmlFor="acceptPrivacy" className="text-ink text-[15px]">
                       Acepto el{' '}
                       <a
                         href="/privacy"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 underline hover:text-blue-800"
+                        className="text-denim hover:text-ink underline"
                       >
                         tratamiento de mis datos personales según la política de privacidad
                       </a>{' '}
-                      *
+                      <span className="text-[#b3261e]">*</span>
                     </label>
                   </div>
                 </div>
@@ -1441,7 +1414,7 @@ export default function ProgramLandingPageClient() {
                     ></div>
                   </div>
                   {turnstileToken && (
-                    <div className="text-center text-sm text-green-600">
+                    <div className="text-center text-sm text-green-700">
                       ✓ Verificación completada
                     </div>
                   )}
@@ -1454,51 +1427,32 @@ export default function ProgramLandingPageClient() {
               <div className="space-y-6">
                 <div className="text-center">
                   <div className="mb-6 flex justify-center">
-                    <div className="rounded-full bg-green-100 p-4">
-                      <svg
-                        className="h-12 w-12 text-green-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
+                    <div className="bg-warm-soft flex h-16 w-16 items-center justify-center rounded-full">
+                      <Check className="text-ink h-8 w-8" strokeWidth={1.5} />
                     </div>
                   </div>
 
-                  <h2 className="mb-4 text-3xl font-bold text-gray-900">
+                  <h2 className="mb-4 text-[32px] leading-tight md:text-[40px]">
                     ¡Inscripción Completada!
                   </h2>
 
-                  <p className="mb-6 text-lg text-gray-600">
-                    La inscripción de <strong>{formData.childName}</strong> al programa{' '}
-                    <strong>{program.title}</strong> ha sido registrada exitosamente.
+                  <p className="text-ink-soft mb-8 text-lg">
+                    La inscripción de <strong className="text-ink">{formData.childName}</strong> al
+                    programa <strong className="text-ink">{program.title}</strong> ha sido
+                    registrada exitosamente.
                   </p>
 
-                  <div className="mb-8 rounded-lg bg-blue-50 p-6">
-                    <h3 className="mb-4 text-xl font-semibold text-blue-900">
-                      ¿Eres miembro de la iglesia?
-                    </h3>
-                    <p className="mb-4 text-blue-800">
+                  <div className="bg-warm-soft rounded-2xl p-6 md:p-8">
+                    <h3 className="mb-3 text-2xl">¿Eres miembro de la iglesia?</h3>
+                    <p className="text-ink-soft mb-6">
                       Te invitamos a actualizar tu información en nuestro registro de miembros para
                       mantenernos conectados y poder servirte mejor.
                     </p>
-                    <div className="flex flex-col justify-center space-y-3 sm:flex-row sm:space-x-4 sm:space-y-0">
-                      <a
-                        href="/member"
-                        className="inline-flex items-center justify-center rounded-md bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
-                      >
+                    <div className="flex flex-col justify-center gap-3 sm:flex-row">
+                      <a href="/member" className={buttonVariants({ variant: 'dark', size: 'lg' })}>
                         Actualizar mis datos
                       </a>
-                      <a
-                        href="/"
-                        className="inline-flex items-center justify-center rounded-md border border-blue-600 px-6 py-3 font-medium text-blue-600 transition-colors hover:bg-blue-50"
-                      >
+                      <a href="/" className={buttonVariants({ variant: 'outline', size: 'lg' })}>
                         Volver al inicio
                       </a>
                     </div>
@@ -1509,24 +1463,22 @@ export default function ProgramLandingPageClient() {
 
             {/* Navigation Buttons */}
             {step < 6 && (
-              <div className="mt-8 flex justify-between">
+              <div className="border-line mt-8 flex gap-3 border-t pt-6">
                 {step > 1 && (
                   <Button
                     type="button"
                     variant="outline"
+                    size="lg"
                     onClick={prevStep}
                     disabled={isSubmitting}
-                    style={{
-                      borderColor: getDepartmentColor(program.department),
-                      color: getDepartmentColor(program.department),
-                    }}
-                    className="hover:bg-opacity-10"
+                    className="max-sm:px-4"
                   >
-                    Anterior
+                    <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
+                    <span className="max-sm:sr-only">Anterior</span>
                   </Button>
                 )}
 
-                <div className="ml-auto">
+                <div className="ml-auto max-sm:flex-1">
                   {step < 5 ? (
                     <Button
                       type="button"
@@ -1549,10 +1501,8 @@ export default function ProgramLandingPageClient() {
                             !formData.motherName ||
                             !formData.motherPhone))
                       }
-                      style={{
-                        backgroundColor: getDepartmentColor(program.department),
-                      }}
-                      className="hover:opacity-90"
+                      size="lg"
+                      className="max-sm:w-full"
                     >
                       {(step === 1 && searchingChild) ||
                       (step === 3 && (searchingFather || searchingMother || searchingGuardian))
@@ -1560,15 +1510,14 @@ export default function ProgramLandingPageClient() {
                         : step === 4
                           ? 'Revisar'
                           : 'Siguiente'}
+                      <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
                     </Button>
                   ) : (
                     <Button
                       type="submit"
                       disabled={isSubmitting || !turnstileToken || !formData.acceptPrivacy}
-                      style={{
-                        backgroundColor: getDepartmentColor(program.department),
-                      }}
-                      className="hover:opacity-90"
+                      size="lg"
+                      className="max-sm:w-full"
                     >
                       {isSubmitting ? 'Enviando...' : 'Enviar Inscripción'}
                     </Button>
@@ -1579,32 +1528,17 @@ export default function ProgramLandingPageClient() {
 
             {/* Error Message */}
             {error && (
-              <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <svg
-                      className="mr-2 h-5 w-5 text-red-400"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <p className="text-sm font-medium text-red-800">{error}</p>
-                  </div>
-                  <button onClick={clearError} className="text-red-400 hover:text-red-600">
-                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
-                </div>
+              <div className="border-line mt-4 flex items-start gap-3 rounded-xl border bg-white p-4">
+                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#b3261e]" strokeWidth={1.5} />
+                <p className="flex-1 text-[15px] text-[#b3261e]">{error}</p>
+                <button
+                  type="button"
+                  onClick={clearError}
+                  aria-label="Cerrar mensaje"
+                  className="text-ink-soft hover:text-ink"
+                >
+                  <X className="h-4 w-4" strokeWidth={1.5} />
+                </button>
               </div>
             )}
           </form>

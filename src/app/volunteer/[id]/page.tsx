@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
+import Footer from '@/app/components/Footer';
 import Header from '@/app/components/Header';
 import VolunteerRegistrationForm from './VolunteerRegistrationForm';
 
@@ -92,7 +93,7 @@ export async function generateMetadata({
         images: [logoUrl],
       },
       other: {
-        'theme-color': '#4b207f',
+        'theme-color': '#faf8f4',
       },
     };
 
@@ -137,9 +138,12 @@ export default async function VolunteerEventPage({ params }: { params: Promise<{
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+    <div className="flex min-h-screen flex-col">
       <Header />
-      <VolunteerRegistrationForm event={event} />
+      <main className="flex-1">
+        <VolunteerRegistrationForm event={event} />
+      </main>
+      <Footer />
     </div>
   );
 }

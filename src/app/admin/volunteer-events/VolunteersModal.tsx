@@ -1,6 +1,15 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { downloadCsv } from '@/lib/csv';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { Car, ChevronDown, Download, Loader2, Phone, Users, X } from 'lucide-react';
+
+// Native select dressed as a kit field; the chevron sits over it
+const SELECT_CLASS =
+  'text-ink focus-visible:border-denim focus-visible:outline-denim/25 h-12 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-4 pr-11 text-base focus-visible:outline-2 focus-visible:outline-offset-2';
+const SELECT_CHEVRON =
+  'text-ink-soft pointer-events-none absolute right-3.5 top-1/2 h-5 w-5 -translate-y-1/2';
 
 interface VolunteerRegistration {
   id: number;
@@ -136,41 +145,34 @@ export default function VolunteersModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4">
-      <div className="my-auto w-full max-w-6xl rounded-lg bg-white p-6 shadow-xl">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-xl font-bold text-[#4b207f]">Voluntarios - {eventTitle}</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="h-6 w-6"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+    <div className="bg-ink/50 fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
+      <div className="border-line my-auto w-full max-w-6xl rounded-2xl border bg-white p-5 md:p-6">
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <h2 className="text-ink text-[28px] leading-tight">Voluntarios - {eventTitle}</h2>
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Cerrar">
+            <X className="h-5 w-5" strokeWidth={1.5} />
+          </Button>
         </div>
 
         {/* Stats */}
-        <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="rounded-lg bg-[#4b207f]/10 p-4">
-            <div className="text-2xl font-bold text-[#4b207f]">{volunteers.length}</div>
-            <div className="text-sm text-gray-700">Total Voluntarios</div>
+        <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="bg-warm-soft rounded-2xl p-4">
+            <div className="font-heading text-ink text-[32px] font-bold leading-none">
+              {volunteers.length}
+            </div>
+            <div className="text-ink-soft mt-1 text-sm">Total Voluntarios</div>
           </div>
-          <div className="rounded-lg bg-green-100 p-4">
-            <div className="text-2xl font-bold text-green-700">
+          <div className="border-line rounded-2xl border bg-white p-4">
+            <div className="font-heading text-ink text-[32px] font-bold leading-none">
               {volunteers.filter((v) => v.hasTransport).length}
             </div>
-            <div className="text-sm text-gray-700">Con Transporte</div>
+            <div className="text-ink-soft mt-1 text-sm">Con Transporte</div>
           </div>
-          <div className="rounded-lg bg-blue-100 p-4">
-            <div className="text-2xl font-bold text-blue-700">
+          <div className="border-line rounded-2xl border bg-white p-4">
+            <div className="font-heading text-ink text-[32px] font-bold leading-none">
               {volunteers.reduce((sum, v) => sum + (v.transportSlots || 0), 0)}
             </div>
-            <div className="text-sm text-gray-700">Cupos Disponibles</div>
+            <div className="text-ink-soft mt-1 text-sm">Cupos Disponibles</div>
           </div>
           {/* <div className="rounded-lg bg-orange-100 p-4">
             <div className="text-2xl font-bold text-orange-700">
@@ -181,63 +183,55 @@ export default function VolunteersModal({
         </div>
 
         {/* Filters */}
-        <div className="mb-4 space-y-3">
+        <div className="mb-5 space-y-4">
           <div className="flex flex-col gap-2 sm:flex-row">
-            <input
+            <Input
               type="text"
               placeholder="Buscar por nombre o documento..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#4b207f] focus:outline-none"
+              className="flex-1"
             />
-            <button
-              onClick={downloadCSV}
-              className="w-full rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 sm:w-auto"
-            >
+            <Button variant="outline" onClick={downloadCSV} className="h-12 w-full sm:w-auto">
+              <Download className="h-4 w-4" strokeWidth={1.5} />
               Descargar CSV
-            </button>
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Servicio</label>
-              <select
-                value={filterService}
-                onChange={(e) => setFilterService(e.target.value)}
-                className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-3 pr-10 text-sm focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239CA3AF'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 0.75rem center',
-                  backgroundSize: '1.25rem',
-                }}
-              >
-                <option value="all">Todos los servicios</option>
-                {availableServices.map((service) => (
-                  <option key={service} value={service}>
-                    {service}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={filterService}
+                  onChange={(e) => setFilterService(e.target.value)}
+                  className={SELECT_CLASS}
+                >
+                  <option value="all">Todos los servicios</option>
+                  {availableServices.map((service) => (
+                    <option key={service} value={service}>
+                      {service}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className={SELECT_CHEVRON} strokeWidth={1.5} />
+              </div>
             </div>
 
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Transporte</label>
-              <select
-                value={filterTransport}
-                onChange={(e) => setFilterTransport(e.target.value)}
-                className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-3 pr-10 text-sm focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239CA3AF'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 0.75rem center',
-                  backgroundSize: '1.25rem',
-                }}
-              >
-                <option value="all">Todos</option>
-                <option value="yes">Con transporte</option>
-                <option value="no">Sin transporte</option>
-              </select>
+              <div className="relative">
+                <select
+                  value={filterTransport}
+                  onChange={(e) => setFilterTransport(e.target.value)}
+                  className={SELECT_CLASS}
+                >
+                  <option value="all">Todos</option>
+                  <option value="yes">Con transporte</option>
+                  <option value="no">Sin transporte</option>
+                </select>
+                <ChevronDown className={SELECT_CHEVRON} strokeWidth={1.5} />
+              </div>
             </div>
 
             {/* <div>
@@ -245,7 +239,7 @@ export default function VolunteersModal({
               <select
                 value={filterDiet}
                 onChange={(e) => setFilterDiet(e.target.value)}
-                className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-3 pr-10 text-sm focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
+                className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-3 pr-10 text-sm focus:border-denim focus:outline-none focus:ring-2 focus:ring-denim/25"
                 style={{
                   backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239CA3AF'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
                   backgroundRepeat: 'no-repeat',
@@ -264,47 +258,60 @@ export default function VolunteersModal({
         {/* Volunteers List */}
         {loading ? (
           <div className="flex justify-center py-8">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-[#4b207f] border-t-transparent"></div>
+            <Loader2 className="text-ink h-8 w-8 animate-spin" strokeWidth={1.5} />
           </div>
         ) : filteredVolunteers.length === 0 ? (
-          <div className="py-8 text-center text-gray-500">
-            {volunteers.length === 0
-              ? 'No hay voluntarios registrados para este evento'
-              : 'No se encontraron voluntarios con los filtros seleccionados'}
+          <div className="flex items-center gap-4 rounded-2xl border border-dashed border-gray-300 p-5">
+            <span className="bg-warm-soft flex h-11 w-11 flex-none items-center justify-center rounded-xl">
+              <Users className="text-ink h-5 w-5" strokeWidth={1.5} />
+            </span>
+            <p className="text-ink text-[15px] font-semibold">
+              {volunteers.length === 0
+                ? 'No hay voluntarios registrados para este evento'
+                : 'No se encontraron voluntarios con los filtros seleccionados'}
+            </p>
           </div>
         ) : (
           <div className="space-y-2">
             {filteredVolunteers.map((volunteer) => (
               <div
                 key={volunteer.id}
-                className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4"
+                className="border-line flex items-center justify-between gap-3 rounded-xl border bg-white p-4"
               >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-semibold text-[#4b207f]">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h4 className="text-ink text-lg leading-tight">
                       {volunteer.member?.name || 'Miembro no encontrado'}
                     </h4>
-                    <span className="rounded-full bg-[#4b207f]/10 px-2 py-0.5 text-xs text-[#4b207f]">
+                    <span className="text-ink-soft rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium">
                       {volunteer.memberDocumentID}
                     </span>
                   </div>
-                  <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
-                    {volunteer.member?.phone && <span>📱 {volunteer.member.phone}</span>}
+                  <div className="text-ink-soft mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                    {volunteer.member?.phone && (
+                      <span className="flex items-center gap-1.5">
+                        <Phone className="h-3.5 w-3.5" strokeWidth={1.5} />
+                        {volunteer.member.phone}
+                      </span>
+                    )}
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700">
+                    <span className="border-line text-ink inline-flex items-center gap-2 rounded-full border bg-white px-3 py-1 text-xs font-medium">
+                      <span className="bg-warm h-1.5 w-1.5 rounded-full" />
                       {volunteer.selectedService}
                     </span>
                     {volunteer.hasTransport ? (
-                      <span className="rounded-full bg-green-100 px-2 py-1 text-xs text-green-700">
-                        🚗 Transporte
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-800">
+                        <Car className="h-3.5 w-3.5" strokeWidth={1.5} />
+                        Transporte
                         {volunteer.transportSlots && volunteer.transportSlots > 0
                           ? ` (${volunteer.transportSlots} cupos extra)`
                           : ''}
                       </span>
                     ) : (
-                      <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-500">
-                        🚗 Sin transporte
+                      <span className="text-ink-soft inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium">
+                        <Car className="h-3.5 w-3.5" strokeWidth={1.5} />
+                        Sin transporte
                       </span>
                     )}
                     {/* <span
@@ -316,17 +323,18 @@ export default function VolunteersModal({
                     >
                       🍽️ {volunteer.dietType === 'vegetariana' ? 'Vegetariana' : 'Normal'}
                     </span> */}
-                    <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
+                    <span className="text-ink-soft rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium">
                       {new Date(volunteer.createdAt).toLocaleDateString('es-ES')}
                     </span>
                   </div>
                 </div>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => handleDeleteVolunteer(volunteer.id)}
-                  className="ml-2 rounded-lg border border-red-500 px-3 py-1 text-sm text-red-500 hover:bg-red-50"
+                  className="text-[#b3261e] hover:bg-red-50"
                 >
                   Eliminar
-                </button>
+                </Button>
               </div>
             ))}
           </div>

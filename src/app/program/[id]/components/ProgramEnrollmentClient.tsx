@@ -1,7 +1,19 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import {
+  AlertCircle,
+  Camera,
+  ChevronDown,
+  CircleCheck,
+  FileText,
+  Paperclip,
+  Pencil,
+  Plus,
+  Trash2,
+  X,
+} from 'lucide-react';
+import { Button } from '@/app/components/ui/button';
 import { classify } from '@/lib/age-classification';
 import PdfFilePreview from '@/app/components/PdfFilePreview';
 import { printableImage } from '@/lib/printable-image';
@@ -133,20 +145,32 @@ const safeCategory = (birthDate: string | null): string => {
   }
 };
 
-// Buttons and interactive accents use the church brand color, not the
-// department color (which can be jarring, e.g. red for Aventureros).
-const FORM_COLOR = '#4b207f';
-
 const INPUT_CLASS =
-  'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#4b207f] focus:outline-none focus:ring-1 focus:ring-[#4b207f]';
-const LABEL_CLASS = 'mb-1 block text-sm font-medium text-gray-700';
+  'h-12 w-full rounded-xl border border-gray-300 bg-white px-4 text-base text-ink placeholder:text-gray-500 focus-visible:border-denim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-denim/25 disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-500';
+const LABEL_CLASS = 'mb-2 block text-sm font-medium text-ink';
+const HELP_CLASS = 'mt-2 text-[13px] text-ink-soft';
+const ERROR_CLASS = 'flex items-start gap-1.5 text-sm text-[#b3261e]';
+const CARD_CLASS = 'rounded-2xl border border-line bg-white p-6 md:p-8';
+const SECTION_CLASS =
+  'border-t border-line pt-5 font-sans text-[13px] font-semibold uppercase tracking-[.06em] text-ink-soft';
+// Kit "choice card": a checkbox row that turns warm-soft with an ink border when checked
+const CHOICE_CLASS =
+  'flex cursor-pointer items-start gap-3 rounded-xl border border-gray-300 bg-white p-4 text-[15px] text-ink has-[:checked]:border-ink has-[:checked]:bg-warm-soft has-[[aria-invalid=true]]:border-[#b3261e]';
+const CHECKBOX_CLASS = 'mt-0.5 h-5 w-5 shrink-0 accent-ink';
+const ICON_BUTTON_CLASS =
+  'inline-flex h-11 w-11 items-center justify-center rounded-xl text-ink-soft hover:bg-gray-100 hover:text-ink';
 
-const CATEGORY_COLORS: Record<string, string> = {
-  Principiante: 'bg-gray-100 text-gray-700',
-  Aventurero: 'bg-amber-100 text-amber-800',
-  Conquistador: 'bg-green-100 text-green-800',
-  'Guía Mayor': 'bg-purple-100 text-purple-800',
-};
+function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <div className="relative">
+      <select {...props} className={`${INPUT_CLASS} appearance-none pr-11`} />
+      <ChevronDown
+        className="text-ink-soft pointer-events-none absolute right-3.5 top-3.5 h-5 w-5"
+        strokeWidth={1.5}
+      />
+    </div>
+  );
+}
 
 function ClassificationBadge({ birthDate }: { birthDate: string | null }) {
   if (!birthDate) return null;
@@ -157,9 +181,7 @@ function ClassificationBadge({ birthDate }: { birthDate: string | null }) {
     return null;
   }
   return (
-    <span
-      className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${CATEGORY_COLORS[result.category] || 'bg-gray-100'}`}
-    >
+    <span className="border-line text-ink inline-block rounded-full border bg-white px-2.5 py-1 text-xs font-medium">
       {result.category}
       {result.className ? ` · ${result.className}` : ''} ({result.age} años)
     </span>
@@ -224,35 +246,28 @@ function CameraModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-4 shadow-xl">
+    <div className="bg-ink/70 fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <div className="border-line w-full max-w-md rounded-2xl border bg-white p-4">
         {cameraError ? (
-          <p className="py-8 text-center text-sm text-gray-700">{cameraError}</p>
+          <p className="text-ink-soft py-8 text-center text-[15px]">{cameraError}</p>
         ) : (
           <video
             ref={videoRef}
             autoPlay
             playsInline
             muted
-            className="aspect-video w-full rounded-lg bg-black object-cover"
+            className="bg-ink aspect-video w-full rounded-xl object-cover"
           />
         )}
         <div className="mt-4 flex gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 rounded-lg border border-gray-300 py-2 text-sm font-semibold text-gray-700"
-          >
+          <Button type="button" variant="outline" onClick={onClose} className="flex-1">
             Cerrar
-          </button>
+          </Button>
           {!cameraError && (
-            <button
-              type="button"
-              onClick={capture}
-              className="flex-1 rounded-lg bg-[#4b207f] py-2 text-sm font-semibold text-white"
-            >
-              📸 Capturar
-            </button>
+            <Button type="button" onClick={capture} className="flex-1">
+              <Camera className="h-[18px] w-[18px]" strokeWidth={1.5} />
+              Capturar
+            </Button>
           )}
         </div>
       </div>
@@ -342,35 +357,43 @@ export function FileCapture({
         {label}
       </label>
       {description && (
-        <p id={`${fileId}-help`} className="mb-2 text-sm text-gray-600">
+        <p id={`${fileId}-help`} className="text-ink-soft -mt-1 mb-3 text-[13px]">
           {description}
         </p>
       )}
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-3">
+      <div className="bg-paper flex flex-wrap items-center gap-3 rounded-xl border border-dashed border-gray-300 p-3">
         {source && isImage ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={source}
             alt={`Vista previa: ${label}`}
-            className="h-16 w-16 rounded-lg object-contain"
+            className="h-14 w-14 rounded-xl bg-white object-contain"
           />
         ) : (
-          <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-gray-200 text-gray-400">
-            {file || existingUrl ? '📄' : '＋'}
+          <div className="bg-warm-soft text-ink flex h-14 w-14 items-center justify-center rounded-xl">
+            {file || existingUrl ? (
+              <FileText className="h-6 w-6" strokeWidth={1.5} />
+            ) : (
+              <Plus className="h-6 w-6" strokeWidth={1.5} />
+            )}
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm text-gray-600">{status}</p>
-          <div className="mt-1 flex flex-wrap gap-2">
-            <button
+          <p className="text-ink-soft truncate text-sm">{status}</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={() => setCameraOpen(true)}
-              className="rounded-md bg-white px-3 py-1 text-xs font-semibold text-[#4b207f] shadow-sm ring-1 ring-gray-200"
+              className="h-11"
             >
-              📷 Tomar foto
-            </button>
-            <label className="cursor-pointer rounded-md bg-white px-3 py-1 text-xs font-semibold text-[#4b207f] shadow-sm ring-1 ring-gray-200">
-              📎 Subir archivo
+              <Camera className="h-4 w-4" strokeWidth={1.5} />
+              Tomar foto
+            </Button>
+            <label className="border-ink text-ink has-[:focus-visible]:outline-denim inline-flex h-11 cursor-pointer items-center gap-2 rounded-xl border bg-white px-3 text-sm font-medium transition-colors hover:bg-[#f0ece5] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2">
+              <Paperclip className="h-4 w-4" strokeWidth={1.5} />
+              Subir archivo
               <input
                 id={fileId}
                 aria-label={label}
@@ -378,7 +401,7 @@ export function FileCapture({
                 type="file"
                 disabled={preparingFile}
                 accept={accept}
-                className="hidden"
+                className="sr-only"
                 onChange={(e) => {
                   selectFile(e.target.files?.[0] || null);
                   e.target.value = '';
@@ -386,37 +409,40 @@ export function FileCapture({
               />
             </label>
             {file && (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => {
                   onChange(null);
                   setFileError(null);
                 }}
-                className="rounded-md px-2 py-1 text-xs font-semibold text-red-600"
+                className="h-11 text-[#b3261e] hover:bg-red-50"
               >
                 Quitar
-              </button>
+              </Button>
             )}
           </div>
         </div>
       </div>
       {preparingFile && (
-        <p role="status" className="mt-2 text-sm text-gray-600">
+        <p role="status" className="text-ink-soft mt-2 text-sm">
           Preparando imagen para impresión...
         </p>
       )}
       {fileError && (
-        <p role="alert" className="mt-2 text-sm text-red-700">
+        <p role="alert" className={`mt-2 ${ERROR_CLASS}`}>
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.5} />
           {fileError}
         </p>
       )}
       {source && (isImage || isPdf) && (
         <details
           key={source}
-          className="mt-2 rounded-lg border border-gray-200 p-3"
+          className="border-line mt-2 rounded-xl border bg-white p-3"
           onToggle={(event) => setShowPdf(event.currentTarget.open)}
         >
-          <summary className="cursor-pointer text-sm font-semibold text-[#4b207f]">
+          <summary className="text-denim hover:text-ink cursor-pointer text-sm font-medium">
             Vista previa de {label.toLowerCase()}
           </summary>
           {isPdf ? (
@@ -432,7 +458,7 @@ export function FileCapture({
         </details>
       )}
       {source && !isImage && !isPdf && (
-        <p className="mt-2 text-xs text-gray-600">
+        <p className={HELP_CLASS}>
           No se puede mostrar la vista previa de este formato. Sube una copia en JPG, PNG o PDF.
         </p>
       )}
@@ -469,16 +495,15 @@ function HealthFields({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
       <div>
         <label htmlFor="enrollment-field-1" className={LABEL_CLASS}>
-          Tipo de sangre *
+          Tipo de sangre <span className="text-[#b3261e]">*</span>
         </label>
-        <select
+        <Select
           id="enrollment-field-1"
           value={values.bloodType}
           onChange={set('bloodType')}
-          className={INPUT_CLASS}
           required
         >
           <option value="">Selecciona...</option>
@@ -487,7 +512,7 @@ function HealthFields({
               {t}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
       <div>
         <label htmlFor="enrollment-field-3" className={LABEL_CLASS}>
@@ -530,7 +555,7 @@ function HealthFields({
       </div>
       <div className="sm:col-span-2">
         <label htmlFor="enrollment-field-2" className={LABEL_CLASS}>
-          EPS *
+          EPS <span className="text-[#b3261e]">*</span>
         </label>
         <input
           id="enrollment-field-2"
@@ -548,7 +573,7 @@ function HealthFields({
             <option key={eps} value={eps} />
           ))}
         </datalist>
-        <p id={`${epsSuggestionsId}-help`} className="mt-1 text-xs text-gray-500">
+        <p id={`${epsSuggestionsId}-help`} className={HELP_CLASS}>
           Selecciona una sugerencia o escribe el nombre de otra EPS o régimen especial.
         </p>
       </div>
@@ -568,10 +593,10 @@ function EmergencyFields({
     onChange({ ...values, [key]: e.target.value });
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
       <div>
         <label htmlFor="enrollment-field-6" className={LABEL_CLASS}>
-          Nombre del contacto *
+          Nombre del contacto <span className="text-[#b3261e]">*</span>
         </label>
         <input
           id="enrollment-field-6"
@@ -584,7 +609,7 @@ function EmergencyFields({
       </div>
       <div>
         <label htmlFor="enrollment-field-7" className={LABEL_CLASS}>
-          Teléfono *
+          Teléfono <span className="text-[#b3261e]">*</span>
         </label>
         <input
           id="enrollment-field-7"
@@ -615,31 +640,20 @@ function Modal({
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 sm:items-center">
+    <div className="bg-ink/50 fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:items-center">
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="my-8 w-full max-w-lg rounded-2xl bg-white shadow-xl"
+        className="border-line my-8 w-full max-w-xl rounded-2xl border bg-white"
       >
-        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-          <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-          <button
-            onClick={onClose}
-            className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-            aria-label="Cerrar"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+        <div className="border-line flex items-center justify-between gap-4 border-b py-3 pl-5 pr-3 md:pl-8">
+          <h3 className="text-2xl leading-tight md:text-[28px]">{title}</h3>
+          <button type="button" onClick={onClose} className={ICON_BUTTON_CLASS} aria-label="Cerrar">
+            <X className="h-5 w-5" strokeWidth={1.5} />
           </button>
         </div>
-        <div className="max-h-[70vh] overflow-y-auto px-5 py-4">{children}</div>
+        <div className="max-h-[70vh] overflow-y-auto px-5 py-6 md:px-8">{children}</div>
       </div>
     </div>
   );
@@ -660,7 +674,6 @@ export default function ProgramEnrollmentClient({
   programId,
   programTitle,
   programContent,
-  programColor,
   departmentName,
   departmentImage,
 }: Props) {
@@ -1222,81 +1235,72 @@ export default function ProgramEnrollmentClient({
     }
   };
 
-  const primaryStyle = (disabled: boolean) => ({
-    backgroundColor: disabled ? '#d1d5db' : FORM_COLOR,
-  });
-
   return (
     <div
       onChangeCapture={() => {
         setDirty(true);
         setSavedMessage('');
       }}
-      className="min-h-screen px-4 py-8"
-      style={{ background: 'linear-gradient(135deg, #f8f6f2 0%, #f0f0f0 100%)' }}
+      className="bg-paper min-h-screen"
     >
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto w-full max-w-[880px] px-5 py-10 md:px-8 lg:py-16">
         {/* Hero */}
-        <div className="mb-8 text-center">
-          <div className="mb-6 flex justify-center">
-            <div
-              className="rounded-lg border p-3 shadow-lg"
-              style={{ backgroundColor: `${programColor}20`, borderColor: `${programColor}40` }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={departmentImage}
-                alt={`Logo ${departmentName}`}
-                className="h-20 w-20 object-contain"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            </div>
-          </div>
-          <h1 className="mb-3 text-4xl font-bold text-gray-900">{programTitle}</h1>
-          <p className="mb-2 text-xl font-medium" style={{ color: programColor }}>
+        <div className="mb-10 flex flex-col gap-5">
+          <span className="border-line inline-flex items-center gap-2 self-start rounded-full border bg-white px-3 py-1.5 text-[13px] font-medium">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={departmentImage}
+              alt={`Logo ${departmentName}`}
+              className="h-6 w-6 object-contain grayscale"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
             {departmentName}
-          </p>
-          <p className="mb-6 text-lg text-gray-600">
+          </span>
+          <h1 className="text-[40px] leading-[1.04] lg:text-[56px]">{programTitle}</h1>
+          <p className="text-ink-soft max-w-[640px] text-lg leading-relaxed">
             Inscripción familiar: como padre, madre, tutor o guía mayor registras y gestionas a tu
             grupo familiar.
           </p>
 
           {programContent && (
-            <div className="mx-auto mb-8 max-w-2xl rounded-lg bg-white p-6 text-left shadow-sm">
-              <h3 className="mb-3 text-center text-lg font-semibold text-gray-900">Detalles</h3>
-              <div className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
-                {programContent}
-              </div>
+            <div className={CARD_CLASS}>
+              <h3 className="mb-3 text-2xl">Detalles</h3>
+              <div className="whitespace-pre-wrap text-base leading-[1.7]">{programContent}</div>
             </div>
           )}
         </div>
 
         {error && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div className="border-line mb-6 flex items-start gap-3 rounded-xl border bg-white p-4 text-[15px] text-[#b3261e]">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" strokeWidth={1.5} />
             {error}
           </div>
         )}
 
         {savedMessage && !dirty && (
-          <p role="status" className="mb-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">
+          <p
+            role="status"
+            className="border-line text-ink mb-6 flex items-start gap-3 rounded-xl border bg-white p-4 text-[15px]"
+          >
+            <CircleCheck className="mt-0.5 h-5 w-5 shrink-0 text-green-700" strokeWidth={1.5} />
             {savedMessage}
           </p>
         )}
 
         {/* Step 1: identify */}
         {step === 'identify' && (
-          <div className="rounded-2xl bg-white p-6 shadow-lg">
-            <h2 className="mb-3 text-lg font-semibold text-gray-800">
+          <div className={CARD_CLASS}>
+            <h2 className="text-[28px] leading-tight md:text-[32px]">
               Identifícate como responsable
             </h2>
-            <p className="mb-4 text-sm text-gray-600">
+            <p className="text-ink-soft mb-6 mt-2">
               Ingresa tu documento. Si ya estás inscrito verás tu grupo familiar; si no, podrás
               registrarte. Los niños siempre se inscriben a través de un adulto responsable.
             </p>
             <label htmlFor="enrollment-field-8" className={LABEL_CLASS}>
-              Documento del adulto responsable *
+              Documento del adulto responsable <span className="text-[#b3261e]">*</span>
             </label>
             <input
               id="enrollment-field-8"
@@ -1306,32 +1310,32 @@ export default function ProgramEnrollmentClient({
               placeholder="Ej: 12345678"
               inputMode="numeric"
             />
-            <div ref={turnstileRef} className="mt-4 flex justify-center" />
+            <div ref={turnstileRef} className="mt-6 flex" />
             {turnstileToken && (
-              <p className="mt-2 text-center text-sm text-green-600">✓ Verificación completada</p>
+              <p className="mt-2 text-sm text-green-700">✓ Verificación completada</p>
             )}
-            <button
+            <Button
               onClick={handleIdentify}
               disabled={busy || !documentID.trim() || !turnstileToken}
-              className="mt-4 w-full rounded-lg py-3 font-semibold text-white shadow-sm transition-colors"
-              style={primaryStyle(busy || !documentID.trim() || !turnstileToken)}
+              size="lg"
+              className="mt-6 w-full"
             >
               {busy ? 'Consultando...' : 'Continuar'}
-            </button>
+            </Button>
           </div>
         )}
 
         {/* Step 2: adult registration / edit */}
         {step === 'adult' && (
-          <form onSubmit={handleJoin} className="rounded-2xl bg-white p-6 shadow-lg">
-            <h2 className="mb-1 text-lg font-semibold text-gray-800">Datos del responsable</h2>
-            <p className="mb-4 text-sm text-gray-600">
-              Documento: <span className="font-mono font-semibold">{documentID}</span>
+          <form onSubmit={handleJoin} className={CARD_CLASS}>
+            <h2 className="text-[28px] leading-tight md:text-[32px]">Datos del responsable</h2>
+            <p className="text-ink-soft mb-6 mt-2">
+              Documento: <span className="text-ink font-semibold">{documentID}</span>
             </p>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <label htmlFor="enrollment-field-9" className={LABEL_CLASS}>
-                  Nombre completo *
+                  Nombre completo <span className="text-[#b3261e]">*</span>
                 </label>
                 <input
                   id="enrollment-field-9"
@@ -1343,7 +1347,7 @@ export default function ProgramEnrollmentClient({
               </div>
               <div>
                 <label htmlFor="enrollment-field-10" className={LABEL_CLASS}>
-                  Teléfono *
+                  Teléfono <span className="text-[#b3261e]">*</span>
                 </label>
                 <input
                   id="enrollment-field-10"
@@ -1355,7 +1359,7 @@ export default function ProgramEnrollmentClient({
               </div>
               <div>
                 <label htmlFor="enrollment-field-11" className={LABEL_CLASS}>
-                  Fecha de nacimiento *
+                  Fecha de nacimiento <span className="text-[#b3261e]">*</span>
                 </label>
                 <input
                   id="enrollment-field-11"
@@ -1380,54 +1384,50 @@ export default function ProgramEnrollmentClient({
               </div>
               <div>
                 <label htmlFor="adult-gender" className={LABEL_CLASS}>
-                  Género {adultForm.isTutor ? '' : '*'}
+                  Género {!adultForm.isTutor && <span className="text-[#b3261e]">*</span>}
                 </label>
-                <select
+                <Select
                   id="adult-gender"
                   value={adultForm.gender}
                   onChange={(e) => setAdultForm({ ...adultForm, gender: e.target.value })}
-                  className={INPUT_CLASS}
                   required={!adultForm.isTutor}
                   disabled={adultForm.isTutor}
                 >
                   <option value="">Selecciona...</option>
                   <option value="M">Masculino</option>
                   <option value="F">Femenino</option>
-                </select>
+                </Select>
               </div>
-              <div className="flex items-end">
-                <label className="flex items-center gap-2 pb-2 text-sm text-gray-700">
+              <div className="sm:col-span-2">
+                <label className={CHOICE_CLASS}>
                   <input
                     type="checkbox"
                     checked={adultForm.isTutor}
                     onChange={(e) => setAdultForm({ ...adultForm, isTutor: e.target.checked })}
+                    className={CHECKBOX_CLASS}
                   />
                   Soy el tutor / acudiente (no el padre ni la madre)
                 </label>
               </div>
             </div>
 
-            <p className="mt-4 text-sm text-gray-500">
+            <p className="text-ink-soft mt-6 text-sm">
               Con estos datos básicos comenzamos tu inscripción. Después podrás completar tu
               información de salud, foto y documento, y agregar a tus niños desde tu grupo familiar.
             </p>
 
-            <div className="mt-6 flex gap-3">
-              <button
+            <div className="border-line mt-8 flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row sm:justify-between">
+              <Button
                 type="button"
+                variant="outline"
+                size="lg"
                 onClick={() => setStep(adult ? 'dashboard' : 'identify')}
-                className="flex-1 rounded-lg border border-gray-300 py-3 font-semibold text-gray-700"
               >
                 {adult ? 'Cancelar' : 'Volver'}
-              </button>
-              <button
-                type="submit"
-                disabled={busy || processingFiles > 0}
-                className="flex-1 rounded-lg py-3 font-semibold text-white shadow-sm transition-colors"
-                style={primaryStyle(busy)}
-              >
+              </Button>
+              <Button type="submit" size="lg" disabled={busy || processingFiles > 0}>
                 {busy ? 'Guardando...' : 'Guardar y continuar'}
-              </button>
+              </Button>
             </div>
           </form>
         )}
@@ -1435,71 +1435,67 @@ export default function ProgramEnrollmentClient({
         {/* Dashboard: manage the whole family */}
         {step === 'dashboard' && adult && (
           <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900">Tu grupo familiar</h2>
-              <p className="text-sm text-gray-600">
+            <div>
+              <h2 className="text-[32px] leading-tight lg:text-[40px]">Tu grupo familiar</h2>
+              <p className="text-ink-soft mt-2">
                 Guarda cada formulario antes de cerrarlo. Los datos guardados se conservan: puedes
                 volver con tu documento para continuar y completar tu inscripción.
               </p>
             </div>
 
             {/* Children (optional: only if the adult has a family group) */}
-            <div className="rounded-2xl bg-white p-6 shadow-lg">
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-800">Niños ({children.length})</h3>
-                <button
-                  onClick={openChildModal}
-                  className="rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm"
-                  style={{ backgroundColor: FORM_COLOR }}
-                >
+            <div className={CARD_CLASS}>
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <h3 className="text-2xl">Niños ({children.length})</h3>
+                <Button variant="outline" onClick={openChildModal}>
                   + Agregar niño
-                </button>
+                </Button>
               </div>
 
               {children.length === 0 ? (
-                <p className="text-sm text-gray-600">
+                <p className="text-ink-soft text-[15px]">
                   Aún no has registrado niños. Si solo asistes tú, no necesitas agregarlos.
                 </p>
               ) : (
-                <ul className="divide-y divide-gray-100">
+                <ul className="divide-line divide-y">
                   {children.map((child) => (
                     <li
                       key={child.documentID}
-                      className={`flex flex-wrap items-center gap-3 rounded-lg px-3 py-3 ${
+                      className={`flex flex-wrap items-center gap-3 rounded-xl px-3 py-3 ${
                         isPersonComplete(child) ? 'bg-green-50' : ''
                       }`}
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-gray-800">{child.name}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-ink font-medium">{child.name}</p>
+                        <p className="text-ink-soft text-[13px]">
                           Documento {child.documentID}
                           {isPersonComplete(child) ? (
                             <span className="ml-2 text-green-700">· completo ✓</span>
                           ) : (
-                            <span className="ml-2 text-amber-700">· datos pendientes</span>
+                            <span className="text-ink ml-2 font-medium">· datos pendientes</span>
                           )}
                         </p>
                         <div className="mt-1">
                           <ClassificationBadge birthDate={child.birthDate} />
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 text-xs">
+                      <div className="flex items-center gap-1">
                         <button
                           onClick={() => openEditChild(child)}
                           title="Editar"
                           aria-label="Editar"
-                          className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                          className={ICON_BUTTON_CLASS}
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Pencil className="h-[18px] w-[18px]" strokeWidth={1.5} />
                         </button>
                         <button
                           onClick={() => handleRemoveChild(child.documentID, child.name)}
                           disabled={busy || processingFiles > 0}
                           title="Quitar"
                           aria-label="Quitar"
-                          className="rounded-lg p-2 text-red-500 hover:bg-red-50 hover:text-red-700"
+                          className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-[#b3261e] hover:bg-red-50"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-[18px] w-[18px]" strokeWidth={1.5} />
                         </button>
                       </div>
                     </li>
@@ -1509,45 +1505,40 @@ export default function ProgramEnrollmentClient({
             </div>
 
             {/* Responsibles */}
-            <div className="rounded-2xl bg-white p-6 shadow-lg">
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Responsables ({adults.length})
-                </h3>
-                <button
-                  onClick={openAdultModal}
-                  disabled={busy}
-                  className="rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm"
-                  style={{ backgroundColor: FORM_COLOR }}
-                >
+            <div className={CARD_CLASS}>
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <h3 className="text-2xl">Responsables ({adults.length})</h3>
+                <Button variant="outline" onClick={openAdultModal} disabled={busy}>
                   + Agregar responsable
-                </button>
+                </Button>
               </div>
               {children.length === 0 && (
-                <p className="mb-3 text-sm text-gray-600">
+                <p className="text-ink-soft mb-3 text-[15px]">
                   Para agregar al otro padre o tutor, guarda primero un niño. Después podrás
                   gestionar a toda la familia desde cualquiera de los responsables.
                 </p>
               )}
-              <ul className="divide-y divide-gray-100">
+              <ul className="divide-line divide-y">
                 {adults.map((a) => (
                   <li
                     key={a.documentID}
-                    className={`flex flex-wrap items-center gap-3 rounded-lg px-3 py-3 ${
+                    className={`flex flex-wrap items-center gap-3 rounded-xl px-3 py-3 ${
                       isPersonComplete(a) ? 'bg-green-50' : ''
                     }`}
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-gray-800">
+                      <p className="text-ink font-medium">
                         {a.name}
-                        {a.isSelf && <span className="ml-2 text-xs text-gray-400">(tú)</span>}
+                        {a.isSelf && (
+                          <span className="text-ink-soft ml-2 text-xs font-normal">(tú)</span>
+                        )}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-ink-soft text-[13px]">
                         Documento {a.documentID} · {relationshipLabel(a.relationship)}
                         {isPersonComplete(a) ? (
                           <span className="ml-2 text-green-700">· completo ✓</span>
                         ) : (
-                          <span className="ml-2 text-amber-700">· datos pendientes</span>
+                          <span className="text-ink ml-2 font-medium">· datos pendientes</span>
                         )}
                       </p>
                     </div>
@@ -1556,9 +1547,9 @@ export default function ProgramEnrollmentClient({
                         onClick={() => openEditResponsible(a)}
                         title="Editar"
                         aria-label="Editar"
-                        className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                        className={ICON_BUTTON_CLASS}
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="h-[18px] w-[18px]" strokeWidth={1.5} />
                       </button>
                       {!a.isSelf && (
                         <button
@@ -1566,9 +1557,9 @@ export default function ProgramEnrollmentClient({
                           disabled={busy || processingFiles > 0}
                           title="Quitar"
                           aria-label="Quitar"
-                          className="rounded-lg p-2 text-red-500 hover:bg-red-50 hover:text-red-700"
+                          className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-[#b3261e] hover:bg-red-50"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-[18px] w-[18px]" strokeWidth={1.5} />
                         </button>
                       )}
                     </div>
@@ -1578,40 +1569,31 @@ export default function ProgramEnrollmentClient({
             </div>
 
             {/* Emergency contact (one per family) */}
-            <div className="rounded-2xl bg-white p-6 shadow-lg">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Contacto de emergencia de la familia
-                </h3>
-                <button
-                  onClick={openEmergencyModal}
-                  className="rounded-lg border px-4 py-2 text-sm font-semibold"
-                  style={{ borderColor: FORM_COLOR, color: FORM_COLOR }}
-                >
+            <div className={CARD_CLASS}>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h3 className="text-2xl">Contacto de emergencia de la familia</h3>
+                <Button variant="outline" onClick={openEmergencyModal}>
                   {adult.emergencyContactName ? 'Editar' : 'Agregar'}
-                </button>
+                </Button>
               </div>
               {adult.emergencyContactName ? (
-                <p className="mt-2 text-sm text-gray-700">
+                <p className="text-ink mt-3 text-[15px]">
                   <span className="font-medium">{adult.emergencyContactName}</span> ·{' '}
                   {adult.emergencyContactPhone}
                 </p>
               ) : (
-                <p className="mt-2 text-sm text-amber-800">
+                <p className="text-ink-soft mt-3 text-[15px]">
                   Aún no has registrado a quién llamar en una emergencia.
                 </p>
               )}
             </div>
 
             {/* Each responsible saves their own consent. Printing is handled by the directiva. */}
-            <div
-              className="rounded-2xl border p-6"
-              style={{ borderColor: `${FORM_COLOR}40`, backgroundColor: `${FORM_COLOR}10` }}
-            >
-              <h3 className="text-lg font-semibold text-gray-800">
+            <div className="border-line bg-warm-soft rounded-2xl border p-6 md:p-8">
+              <h3 className="text-2xl">
                 {finalized ? 'Inscripción confirmada' : 'Finalizar la inscripción'}
               </h3>
-              <p className="mt-1 text-sm text-gray-600">
+              <p className="text-ink-soft mt-2 text-[15px] leading-relaxed">
                 {finalized
                   ? 'Estas son las aceptaciones que guardaste para tu inscripción. Puedes seguir consultándolas aquí.'
                   : 'Completa los datos y adjuntos de tu grupo familiar y confirma las siguientes casillas.'}{' '}
@@ -1619,20 +1601,19 @@ export default function ProgramEnrollmentClient({
                 responsable debe ingresar con su documento y guardar su propia aceptación.
               </p>
 
-              <p className="mt-2 text-sm">
+              <p className="mt-3 text-[15px]">
                 <a
                   href="/privacy"
                   target="_blank"
                   rel="noreferrer"
-                  className="font-medium underline"
-                  style={{ color: FORM_COLOR }}
+                  className="text-denim hover:text-ink font-medium underline"
                 >
                   Consultar la política de tratamiento de datos personales
                 </a>
               </p>
 
-              <div className="mt-4 space-y-3">
-                <label className="flex items-start gap-2 text-sm text-gray-700">
+              <div className="mt-5 space-y-3">
+                <label className={CHOICE_CLASS}>
                   <input
                     type="checkbox"
                     checked={dataTreatmentAccepted}
@@ -1640,13 +1621,13 @@ export default function ProgramEnrollmentClient({
                     aria-invalid={consentError && !dataTreatmentAccepted}
                     aria-describedby={consentError ? 'enrollment-consent-warning' : undefined}
                     onChange={(e) => setFinalizeAccept(e.target.checked)}
-                    className="mt-0.5"
+                    className={CHECKBOX_CLASS}
                   />
                   <span>
                     Autorizo el tratamiento de datos personales (incluidos datos de salud) para la
                     gestión del programa, según la Ley 1581 de 2012.
                     {adult.dataTreatmentAcceptedAt && (
-                      <span className="mt-1 block text-xs text-green-800">
+                      <span className="mt-1 block text-[13px] text-green-800">
                         Aceptado el{' '}
                         <time dateTime={adult.dataTreatmentAcceptedAt}>
                           {consentDate(adult.dataTreatmentAcceptedAt)}
@@ -1655,7 +1636,7 @@ export default function ProgramEnrollmentClient({
                     )}
                   </span>
                 </label>
-                <label className="flex items-start gap-2 text-sm text-gray-700">
+                <label className={CHOICE_CLASS}>
                   <input
                     type="checkbox"
                     checked={participationConfirmed}
@@ -1663,13 +1644,13 @@ export default function ProgramEnrollmentClient({
                     aria-invalid={consentError && !participationConfirmed}
                     aria-describedby={consentError ? 'enrollment-consent-warning' : undefined}
                     onChange={(e) => setFinalizeConfirm(e.target.checked)}
-                    className="mt-0.5"
+                    className={CHECKBOX_CLASS}
                   />
                   <span>
                     Confirmo la inscripción a {programTitle} y me comprometo a firmar las
                     autorizaciones que entregue la directiva.
                     {adult.participationConfirmedAt && (
-                      <span className="mt-1 block text-xs text-green-800">
+                      <span className="mt-1 block text-[13px] text-green-800">
                         Confirmado el{' '}
                         <time dateTime={adult.participationConfirmedAt}>
                           {consentDate(adult.participationConfirmedAt)}
@@ -1681,41 +1662,43 @@ export default function ProgramEnrollmentClient({
               </div>
 
               {consentChanged && (
-                <p role="status" className="mt-3 text-sm text-amber-800">
+                <p role="status" className="text-ink mt-3 text-sm font-medium">
                   Cambio sin guardar.
                   {(adult.dataTreatmentAcceptedAt || adult.participationConfirmedAt) &&
                     ' La aceptación registrada no se ha modificado.'}
                 </p>
               )}
               {consentError && (
-                <p
-                  id="enrollment-consent-warning"
-                  role="alert"
-                  className="mt-2 text-sm text-red-700"
-                >
+                <p id="enrollment-consent-warning" role="alert" className={`mt-2 ${ERROR_CLASS}`}>
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.5} />
                   Debes marcar ambas casillas para confirmar la inscripción.
                 </p>
               )}
 
               {(!finalized || consentChanged) && (
-                <button
+                <Button
                   type="button"
+                  variant="dark"
+                  size="lg"
                   onClick={handleFinalize}
                   disabled={busy || !dataTreatmentAccepted || !participationConfirmed}
-                  className="mt-4 rounded-lg px-4 py-3 text-sm font-semibold text-white"
-                  style={primaryStyle(busy || !dataTreatmentAccepted || !participationConfirmed)}
+                  className="mt-5 h-auto min-h-[52px] whitespace-normal py-3"
                 >
                   {busy ? 'Guardando...' : 'Guardar aceptación y confirmar inscripción'}
-                </button>
+                </Button>
               )}
               {finalized && !consentChanged && (
-                <p className="mt-4 text-sm text-green-800">
+                <p className="text-ink mt-5 flex items-start gap-2 text-[15px]">
+                  <CircleCheck
+                    className="mt-0.5 h-5 w-5 shrink-0 text-green-700"
+                    strokeWidth={1.5}
+                  />
                   Tu aceptación quedó guardada. La directiva imprimirá la carpeta familiar. Cada
                   adulto firmará su autorización y los padres o tutores firmarán por los menores.
                 </p>
               )}
               {!finalized && (
-                <p className="mt-4 text-sm text-gray-500">
+                <p className="text-ink-soft mt-4 text-sm">
                   Marca ambas casillas y guarda tu aceptación. No necesitas descargar ni imprimir
                   documentos.
                 </p>
@@ -1726,35 +1709,37 @@ export default function ProgramEnrollmentClient({
       </div>
 
       {pendingClose && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4">
+        <div className="bg-ink/60 fixed inset-0 z-[80] flex items-center justify-center p-4">
           <div
             role="alertdialog"
             aria-modal="true"
             aria-label="Cambios sin guardar"
-            className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl"
+            className="border-line w-full max-w-sm rounded-2xl border bg-white p-6"
           >
-            <h3 className="font-semibold">Tienes cambios sin guardar</h3>
-            <p className="mt-2 text-sm text-gray-600">
+            <h3 className="text-2xl leading-tight">Tienes cambios sin guardar</h3>
+            <p className="text-ink-soft mt-2 text-[15px]">
               Vuelve al formulario y guarda la información para conservarla.
             </p>
-            <button
+            <Button
               type="button"
+              size="lg"
               onClick={() => setPendingClose(null)}
-              className="mt-4 w-full rounded-lg bg-[#4b207f] p-3 font-semibold text-white"
+              className="mt-5 w-full"
             >
               Seguir editando
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => {
                 pendingClose();
                 setPendingClose(null);
                 setDirty(false);
               }}
-              className="mt-2 w-full rounded-lg p-3 text-sm text-red-700"
+              className="mt-2 w-full text-[#b3261e] hover:bg-red-50"
             >
               Descartar cambios y cerrar
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -1766,23 +1751,22 @@ export default function ProgramEnrollmentClient({
           onClose={() => closeEditor(() => setChildModalOpen(false))}
         >
           {error && (
-            <p role="alert" className="mb-4 text-sm text-red-700">
+            <p role="alert" className={`mb-4 ${ERROR_CLASS}`}>
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.5} />
               {error}
             </p>
           )}
-          <form onSubmit={handleAddChild} className="space-y-4">
-            <p role="status" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+          <form onSubmit={handleAddChild} className="space-y-5">
+            <p role="status" className="bg-warm-soft text-ink rounded-xl p-3 text-sm">
               {dirty
                 ? 'Tienes cambios sin guardar. Usa el botón Guardar al terminar.'
                 : 'Completa los datos y guárdalos antes de cerrar este formulario.'}
             </p>
-            <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-              Datos personales del niño
-            </h4>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <h4 className={SECTION_CLASS}>Datos personales del niño</h4>
+            <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <label htmlFor="enrollment-field-13" className={LABEL_CLASS}>
-                  Documento del niño *
+                  Documento del niño <span className="text-[#b3261e]">*</span>
                 </label>
                 <input
                   id="enrollment-field-13"
@@ -1795,14 +1779,14 @@ export default function ProgramEnrollmentClient({
                   readOnly={childEditing}
                 />
                 {!childEditing && (
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className={HELP_CLASS}>
                     Si el niño ya está registrado, sus datos se completarán automáticamente.
                   </p>
                 )}
               </div>
               <div className="sm:col-span-2">
                 <label htmlFor="enrollment-field-14" className={LABEL_CLASS}>
-                  Nombre completo *
+                  Nombre completo <span className="text-[#b3261e]">*</span>
                 </label>
                 <input
                   id="enrollment-field-14"
@@ -1830,20 +1814,19 @@ export default function ProgramEnrollmentClient({
                 <label htmlFor="enrollment-field-15" className={LABEL_CLASS}>
                   Género
                 </label>
-                <select
+                <Select
                   id="enrollment-field-15"
                   value={childForm.gender}
                   onChange={(e) => setChildForm({ ...childForm, gender: e.target.value })}
-                  className={INPUT_CLASS}
                 >
                   <option value="">Selecciona...</option>
                   <option value="M">Masculino</option>
                   <option value="F">Femenino</option>
-                </select>
+                </Select>
               </div>
               <div>
                 <label htmlFor="enrollment-field-16" className={LABEL_CLASS}>
-                  Fecha de nacimiento *
+                  Fecha de nacimiento <span className="text-[#b3261e]">*</span>
                 </label>
                 <input
                   id="enrollment-field-16"
@@ -1859,9 +1842,7 @@ export default function ProgramEnrollmentClient({
               </div>
             </div>
 
-            <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-              Información de salud del niño
-            </h4>
+            <h4 className={SECTION_CLASS}>Información de salud del niño</h4>
             <HealthFields values={childHealth} onChange={setChildHealth}>
               <FileCapture
                 onProcessingChange={onFileProcessing}
@@ -1878,9 +1859,7 @@ export default function ProgramEnrollmentClient({
               />
             </HealthFields>
 
-            <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-              Documentos del niño
-            </h4>
+            <h4 className={SECTION_CLASS}>Documentos del niño</h4>
             <FileCapture
               onProcessingChange={onFileProcessing}
               label="Documento de identidad"
@@ -1895,22 +1874,24 @@ export default function ProgramEnrollmentClient({
               }}
             />
 
-            <div className="flex gap-3 pt-2">
-              <button
+            <div className="border-line flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row">
+              <Button
                 type="button"
+                variant="outline"
+                size="lg"
                 onClick={() => closeEditor(() => setChildModalOpen(false))}
-                className="flex-1 rounded-lg border border-gray-300 py-3 font-semibold text-gray-700"
+                className="sm:flex-1"
               >
                 Cancelar
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
+                size="lg"
                 disabled={busy || processingFiles > 0}
-                className="flex-1 rounded-lg py-3 font-semibold text-white shadow-sm"
-                style={primaryStyle(busy)}
+                className="sm:flex-1"
               >
                 {busy ? 'Guardando...' : childEditing ? 'Guardar cambios' : 'Guardar niño'}
-              </button>
+              </Button>
             </div>
           </form>
         </Modal>
@@ -1929,26 +1910,27 @@ export default function ProgramEnrollmentClient({
           onClose={() => closeEditor(() => setAdultModalOpen(false))}
         >
           {error && (
-            <p role="alert" className="mb-4 text-sm text-red-700">
+            <p role="alert" className={`mb-4 ${ERROR_CLASS}`}>
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.5} />
               {error}
             </p>
           )}
-          <form onSubmit={handleSaveResponsible} className="space-y-4">
-            <p role="status" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+          <form onSubmit={handleSaveResponsible} className="space-y-5">
+            <p role="status" className="bg-warm-soft text-ink rounded-xl p-3 text-sm">
               {dirty
                 ? 'Tienes cambios sin guardar. Usa el botón Guardar al terminar.'
                 : 'Completa los datos y guárdalos antes de cerrar este formulario.'}
             </p>
             {!coAdultEditing && (
-              <p className="text-sm text-gray-600">
+              <p className="text-ink-soft text-[15px]">
                 Registra y guarda los datos del otro padre, madre o tutor. Ambos podrán consultar la
                 familia con su propio documento.
               </p>
             )}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <label htmlFor="enrollment-field-17" className={LABEL_CLASS}>
-                  Documento *
+                  Documento <span className="text-[#b3261e]">*</span>
                 </label>
                 <input
                   id="enrollment-field-17"
@@ -1960,13 +1942,13 @@ export default function ProgramEnrollmentClient({
                   required
                   readOnly={coAdultEditing}
                 />
-                <p className="mt-1 text-xs text-gray-500">
+                <p className={HELP_CLASS}>
                   Si ya está registrado como miembro, sus datos se completarán automáticamente.
                 </p>
               </div>
               <div className="sm:col-span-2">
                 <label htmlFor="enrollment-field-18" className={LABEL_CLASS}>
-                  Nombre completo *
+                  Nombre completo <span className="text-[#b3261e]">*</span>
                 </label>
                 <input
                   id="enrollment-field-18"
@@ -2004,7 +1986,7 @@ export default function ProgramEnrollmentClient({
               </div>
               <div>
                 <label htmlFor="enrollment-field-20" className={LABEL_CLASS}>
-                  Teléfono *
+                  Teléfono <span className="text-[#b3261e]">*</span>
                 </label>
                 <input
                   id="enrollment-field-20"
@@ -2016,7 +1998,7 @@ export default function ProgramEnrollmentClient({
               </div>
               <div>
                 <label htmlFor="enrollment-field-21" className={LABEL_CLASS}>
-                  Fecha de nacimiento *
+                  Fecha de nacimiento <span className="text-[#b3261e]">*</span>
                 </label>
                 <input
                   id="enrollment-field-21"
@@ -2029,36 +2011,34 @@ export default function ProgramEnrollmentClient({
               </div>
               <div>
                 <label htmlFor="co-adult-gender" className={LABEL_CLASS}>
-                  Género {coAdultForm.isTutor ? '' : '*'}
+                  Género {!coAdultForm.isTutor && <span className="text-[#b3261e]">*</span>}
                 </label>
-                <select
+                <Select
                   id="co-adult-gender"
                   value={coAdultForm.gender}
                   onChange={(e) => setCoAdultForm({ ...coAdultForm, gender: e.target.value })}
-                  className={INPUT_CLASS}
                   required={!coAdultForm.isTutor}
                   disabled={coAdultForm.isTutor}
                 >
                   <option value="">Selecciona...</option>
                   <option value="M">Masculino</option>
                   <option value="F">Femenino</option>
-                </select>
+                </Select>
               </div>
               <div className="sm:col-span-2">
-                <label className="flex items-center gap-2 text-sm text-gray-700">
+                <label className={CHOICE_CLASS}>
                   <input
                     type="checkbox"
                     checked={coAdultForm.isTutor}
                     onChange={(e) => setCoAdultForm({ ...coAdultForm, isTutor: e.target.checked })}
+                    className={CHECKBOX_CLASS}
                   />
                   Es el tutor / acudiente (no el padre ni la madre)
                 </label>
               </div>
             </div>
 
-            <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-              Información de salud
-            </h4>
+            <h4 className={SECTION_CLASS}>Información de salud</h4>
             <HealthFields values={coAdultHealth} onChange={setCoAdultHealth}>
               <FileCapture
                 onProcessingChange={onFileProcessing}
@@ -2075,9 +2055,7 @@ export default function ProgramEnrollmentClient({
               />
             </HealthFields>
 
-            <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-              Documentos
-            </h4>
+            <h4 className={SECTION_CLASS}>Documentos</h4>
             <FileCapture
               onProcessingChange={onFileProcessing}
               label="Documento de identidad"
@@ -2092,22 +2070,24 @@ export default function ProgramEnrollmentClient({
               }}
             />
 
-            <div className="flex gap-3 pt-2">
-              <button
+            <div className="border-line flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row">
+              <Button
                 type="button"
+                variant="outline"
+                size="lg"
                 onClick={() => closeEditor(() => setAdultModalOpen(false))}
-                className="flex-1 rounded-lg border border-gray-300 py-3 font-semibold text-gray-700"
+                className="sm:flex-1"
               >
                 Cancelar
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
+                size="lg"
                 disabled={busy || processingFiles > 0}
-                className="flex-1 rounded-lg py-3 font-semibold text-white shadow-sm"
-                style={primaryStyle(busy)}
+                className="sm:flex-1"
               >
                 {busy ? 'Guardando...' : coAdultEditing ? 'Guardar cambios' : 'Guardar responsable'}
-              </button>
+              </Button>
             </div>
           </form>
         </Modal>
@@ -2120,36 +2100,39 @@ export default function ProgramEnrollmentClient({
           onClose={() => closeEditor(() => setEmergencyModalOpen(false))}
         >
           {error && (
-            <p role="alert" className="mb-4 text-sm text-red-700">
+            <p role="alert" className={`mb-4 ${ERROR_CLASS}`}>
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.5} />
               {error}
             </p>
           )}
-          <form onSubmit={handleSaveEmergency} className="space-y-4">
-            <p role="status" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+          <form onSubmit={handleSaveEmergency} className="space-y-5">
+            <p role="status" className="bg-warm-soft text-ink rounded-xl p-3 text-sm">
               {dirty
                 ? 'Tienes cambios sin guardar. Usa el botón Guardar al terminar.'
                 : 'Completa los datos y guárdalos antes de cerrar este formulario.'}
             </p>
-            <p className="text-sm text-gray-600">
+            <p className="text-ink-soft text-[15px]">
               A quién llamar en caso de emergencia. Es el mismo para toda la familia.
             </p>
             <EmergencyFields values={emergency} onChange={setEmergency} />
-            <div className="flex gap-3 pt-2">
-              <button
+            <div className="border-line flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row">
+              <Button
                 type="button"
+                variant="outline"
+                size="lg"
                 onClick={() => closeEditor(() => setEmergencyModalOpen(false))}
-                className="flex-1 rounded-lg border border-gray-300 py-3 font-semibold text-gray-700"
+                className="sm:flex-1"
               >
                 Cancelar
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
+                size="lg"
                 disabled={busy || processingFiles > 0}
-                className="flex-1 rounded-lg py-3 font-semibold text-white shadow-sm"
-                style={primaryStyle(busy)}
+                className="sm:flex-1"
               >
                 {busy ? 'Guardando...' : 'Guardar contacto'}
-              </button>
+              </Button>
             </div>
           </form>
         </Modal>

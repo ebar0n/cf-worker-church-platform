@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '@/app/admin/components/AdminLayout';
 import BarChartCustom from '@/app/admin/components/BarChartCustom';
 import AreaChartCustom from '@/app/admin/components/AreaChartCustom';
+import { Cake, Download } from 'lucide-react';
 import { todayInBogota } from '@/lib/age-classification';
 
 interface ChartData {
@@ -229,26 +230,23 @@ export default function AdminDashboard({ adminEmail }: AdminDashboardProps) {
 
   return (
     <AdminLayout adminEmail={adminEmail}>
-      <div className="space-y-8 px-4 py-4 md:px-8">
+      <div className="space-y-12">
         {/* SECCIÓN 1: SOLICITUDES */}
         <div>
-          <h1 className="mb-6 text-2xl font-bold text-[#4b207f]">Solicitudes</h1>
+          <h1 className="mb-5 text-[28px] leading-tight md:text-[32px]">Solicitudes</h1>
 
-          {/* Stats Cards - Solicitudes */}
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-1">
-            <div className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-[#e36520]">Total de solicitudes</h2>
-              <div className="mt-2 text-4xl font-bold text-[#e36520]">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="border-line rounded-2xl border bg-white p-6">
+              <h2 className="text-ink-soft font-sans text-[13px] font-medium tracking-normal">
+                Total de solicitudes
+              </h2>
+              <div className="font-heading mt-3 text-5xl font-bold leading-none">
                 {loading ? '...' : totalFriends}
               </div>
-              <div className="mt-2 text-[#7c7c7c]">Solicitudes nuevas (sin leer)</div>
+              <div className="text-ink-soft mt-3 text-sm">Solicitudes nuevas (sin leer)</div>
             </div>
-          </div>
-
-          {/* Charts - Solicitudes */}
-          <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-1">
-            <div className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-[#4b207f]">Solicitudes por tipo</h2>
+            <div className="border-line rounded-2xl border bg-white p-6 lg:col-span-2">
+              <h2 className="mb-4 text-2xl leading-tight">Solicitudes por tipo</h2>
               <BarChartCustom data={chartData} />
             </div>
           </div>
@@ -256,38 +254,31 @@ export default function AdminDashboard({ adminEmail }: AdminDashboardProps) {
 
         {/* SECCIÓN 2: MIEMBROS */}
         <div>
-          <h1 className="mb-6 text-2xl font-bold text-[#4b207f]">Miembros</h1>
+          <h1 className="mb-5 text-[28px] leading-tight md:text-[32px]">Miembros</h1>
 
-          {/* Stats Cards - Miembros */}
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-1">
-            <div className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-[#4b207f]">Total de miembros</h2>
-              <div className="mt-2 text-4xl font-bold text-[#4b207f]">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="border-line rounded-2xl border bg-white p-6">
+              <h2 className="text-ink-soft font-sans text-[13px] font-medium tracking-normal">
+                Total de miembros
+              </h2>
+              <div className="font-heading mt-3 text-5xl font-bold leading-none">
                 {loading ? '...' : totalMembers}
               </div>
-              <div className="mt-2 text-[#7c7c7c]">Miembros registrados en la iglesia</div>
+              <div className="text-ink-soft mt-3 text-sm">Miembros registrados en la iglesia</div>
             </div>
-          </div>
-
-          {/* Charts - Miembros */}
-          <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
-            <div className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-[#4b207f]">
-                Miembros por año de bautismo
-              </h2>
+            <div className="border-line rounded-2xl border bg-white p-6 lg:col-span-2">
+              <h2 className="mb-4 text-2xl leading-tight">Miembros por año de bautismo</h2>
               <AreaChartCustom data={yearChartData} />
             </div>
-            <div className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-[#4b207f]">
-                Miembros por edad actual
-              </h2>
-              <BarChartCustom data={memberAgeRanges} />
-            </div>
           </div>
 
-          <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-1">
-            <div className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-[#4b207f]">Distribución por género</h2>
+          <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="border-line rounded-2xl border bg-white p-6">
+              <h2 className="mb-4 text-2xl leading-tight">Miembros por edad actual</h2>
+              <BarChartCustom data={memberAgeRanges} />
+            </div>
+            <div className="border-line rounded-2xl border bg-white p-6">
+              <h2 className="mb-4 text-2xl leading-tight">Distribución por género</h2>
               <BarChartCustom data={memberGenderDistribution} />
             </div>
           </div>
@@ -295,27 +286,24 @@ export default function AdminDashboard({ adminEmail }: AdminDashboardProps) {
 
         {/* SECCIÓN 3: NIÑOS */}
         <div>
-          <h1 className="mb-6 text-2xl font-bold text-[#4b207f]">Niños</h1>
+          <h1 className="mb-5 text-[28px] leading-tight md:text-[32px]">Niños</h1>
 
-          {/* Stats Cards - Niños */}
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-1">
-            <div className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-[#28a745]">Total de niños</h2>
-              <div className="mt-2 text-4xl font-bold text-[#28a745]">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="border-line rounded-2xl border bg-white p-6">
+              <h2 className="text-ink-soft font-sans text-[13px] font-medium tracking-normal">
+                Total de niños
+              </h2>
+              <div className="font-heading mt-3 text-5xl font-bold leading-none">
                 {loading ? '...' : totalChildren}
               </div>
-              <div className="mt-2 text-[#7c7c7c]">Niños registrados</div>
+              <div className="text-ink-soft mt-3 text-sm">Niños registrados</div>
             </div>
-          </div>
-
-          {/* Charts - Niños */}
-          <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
-            <div className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-[#4b207f]">Niños por edad</h2>
+            <div className="border-line rounded-2xl border bg-white p-6">
+              <h2 className="mb-4 text-2xl leading-tight">Niños por edad</h2>
               <BarChartCustom data={childAgeRanges} />
             </div>
-            <div className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-[#4b207f]">Distribución por género</h2>
+            <div className="border-line rounded-2xl border bg-white p-6">
+              <h2 className="mb-4 text-2xl leading-tight">Distribución por género</h2>
               <BarChartCustom data={childGenderDistribution} />
             </div>
           </div>
@@ -323,30 +311,32 @@ export default function AdminDashboard({ adminEmail }: AdminDashboardProps) {
 
         {/* SECCIÓN 4: CUMPLEAÑOS */}
         <div>
-          <h1 className="mb-6 text-2xl font-bold text-[#4b207f]">Cumpleaños del Trimestre</h1>
+          <h1 className="mb-5 text-[28px] leading-tight md:text-[32px]">
+            Cumpleaños del Trimestre
+          </h1>
 
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Cumpleaños de miembros */}
-            <div className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-[#4b207f]">Miembros</h2>
-                <div className="flex items-center space-x-2">
+            <div className="border-line rounded-2xl border bg-white p-6">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-2xl leading-tight">Miembros</h2>
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => setSelectedQuarter('current')}
-                    className={`rounded px-3 py-1 text-sm font-medium ${
+                    className={`h-10 rounded-xl border px-3 text-sm font-medium transition-colors ${
                       selectedQuarter === 'current'
-                        ? 'bg-[#4b207f] text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'border-ink bg-warm-soft text-ink'
+                        : 'border-line text-ink-soft bg-white hover:bg-gray-100'
                     }`}
                   >
                     Actual
                   </button>
                   <button
                     onClick={() => setSelectedQuarter('previous')}
-                    className={`rounded px-3 py-1 text-sm font-medium ${
+                    className={`h-10 rounded-xl border px-3 text-sm font-medium transition-colors ${
                       selectedQuarter === 'previous'
-                        ? 'bg-[#4b207f] text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'border-ink bg-warm-soft text-ink'
+                        : 'border-line text-ink-soft bg-white hover:bg-gray-100'
                     }`}
                   >
                     Anterior
@@ -356,73 +346,65 @@ export default function AdminDashboard({ adminEmail }: AdminDashboardProps) {
                       downloadBirthdaysCSV(getSelectedQuarterBirthdays().memberBirthdays, 'members')
                     }
                     disabled={getSelectedQuarterBirthdays().memberBirthdays.length === 0}
-                    className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-colors ${
                       getSelectedQuarterBirthdays().memberBirthdays.length > 0
-                        ? 'bg-green-600 text-white hover:bg-green-700'
-                        : 'cursor-not-allowed bg-gray-300 text-gray-500'
+                        ? 'border-line text-ink bg-white hover:bg-gray-100'
+                        : 'cursor-not-allowed border-gray-200 bg-gray-100 text-gray-500'
                     }`}
                     title="Descargar lista en CSV"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="h-4 w-4"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
-                      />
-                    </svg>
+                    <Download className="h-4 w-4" strokeWidth={1.5} />
                   </button>
                 </div>
               </div>
-              <div className="mb-2 text-sm text-[#7c7c7c]">{getQuarterLabel()}</div>
-              <div className="space-y-4">
+              <div className="text-ink-soft mb-3 text-[13px]">{getQuarterLabel()}</div>
+              <div>
                 {loading ? (
-                  <div className="text-center text-[#7c7c7c]">Cargando...</div>
+                  <div className="text-ink-soft text-sm">Cargando...</div>
                 ) : getSelectedQuarterBirthdays().memberBirthdays.length > 0 ? (
-                  <div className="space-y-1">
+                  <div className="divide-line divide-y">
                     {getSelectedQuarterBirthdays().memberBirthdays.map(
                       (birthday: BirthdayData, index: number) => (
-                        <div key={index} className="text-sm text-[#7c7c7c]">
+                        <div key={index} className="text-ink py-2.5 text-[15px]">
                           {birthday.name} - {formatBirthday(birthday.birthDate)}
                         </div>
                       )
                     )}
                   </div>
                 ) : (
-                  <div className="text-center text-[#7c7c7c]">
-                    No hay cumpleaños en este trimestre
+                  <div className="flex items-center gap-4 rounded-2xl border border-dashed border-gray-300 p-5">
+                    <div className="bg-warm-soft flex h-11 w-11 flex-none items-center justify-center rounded-xl">
+                      <Cake className="text-ink h-5 w-5" strokeWidth={1.5} />
+                    </div>
+                    <div className="text-[15px] font-semibold">
+                      No hay cumpleaños en este trimestre
+                    </div>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Cumpleaños de niños */}
-            <div className="rounded-2xl border border-[#ececec] bg-[#fcfbfa] p-6 shadow-sm">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-[#4b207f]">Niños</h2>
-                <div className="flex items-center space-x-2">
+            <div className="border-line rounded-2xl border bg-white p-6">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-2xl leading-tight">Niños</h2>
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => setSelectedQuarter('current')}
-                    className={`rounded px-3 py-1 text-sm font-medium ${
+                    className={`h-10 rounded-xl border px-3 text-sm font-medium transition-colors ${
                       selectedQuarter === 'current'
-                        ? 'bg-[#4b207f] text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'border-ink bg-warm-soft text-ink'
+                        : 'border-line text-ink-soft bg-white hover:bg-gray-100'
                     }`}
                   >
                     Actual
                   </button>
                   <button
                     onClick={() => setSelectedQuarter('previous')}
-                    className={`rounded px-3 py-1 text-sm font-medium ${
+                    className={`h-10 rounded-xl border px-3 text-sm font-medium transition-colors ${
                       selectedQuarter === 'previous'
-                        ? 'bg-[#4b207f] text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'border-ink bg-warm-soft text-ink'
+                        : 'border-line text-ink-soft bg-white hover:bg-gray-100'
                     }`}
                   >
                     Anterior
@@ -432,47 +414,39 @@ export default function AdminDashboard({ adminEmail }: AdminDashboardProps) {
                       downloadBirthdaysCSV(getSelectedQuarterBirthdays().childBirthdays, 'children')
                     }
                     disabled={getSelectedQuarterBirthdays().childBirthdays.length === 0}
-                    className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-colors ${
                       getSelectedQuarterBirthdays().childBirthdays.length > 0
-                        ? 'bg-green-600 text-white hover:bg-green-700'
-                        : 'cursor-not-allowed bg-gray-300 text-gray-500'
+                        ? 'border-line text-ink bg-white hover:bg-gray-100'
+                        : 'cursor-not-allowed border-gray-200 bg-gray-100 text-gray-500'
                     }`}
                     title="Descargar lista en CSV"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="h-4 w-4"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
-                      />
-                    </svg>
+                    <Download className="h-4 w-4" strokeWidth={1.5} />
                   </button>
                 </div>
               </div>
-              <div className="mb-2 text-sm text-[#7c7c7c]">{getQuarterLabel()}</div>
-              <div className="space-y-4">
+              <div className="text-ink-soft mb-3 text-[13px]">{getQuarterLabel()}</div>
+              <div>
                 {loading ? (
-                  <div className="text-center text-[#7c7c7c]">Cargando...</div>
+                  <div className="text-ink-soft text-sm">Cargando...</div>
                 ) : getSelectedQuarterBirthdays().childBirthdays.length > 0 ? (
-                  <div className="space-y-1">
+                  <div className="divide-line divide-y">
                     {getSelectedQuarterBirthdays().childBirthdays.map(
                       (birthday: BirthdayData, index: number) => (
-                        <div key={index} className="text-sm text-[#7c7c7c]">
+                        <div key={index} className="text-ink py-2.5 text-[15px]">
                           {birthday.name} - {formatBirthday(birthday.birthDate)}
                         </div>
                       )
                     )}
                   </div>
                 ) : (
-                  <div className="text-center text-[#7c7c7c]">
-                    No hay cumpleaños en este trimestre
+                  <div className="flex items-center gap-4 rounded-2xl border border-dashed border-gray-300 p-5">
+                    <div className="bg-warm-soft flex h-11 w-11 flex-none items-center justify-center rounded-xl">
+                      <Cake className="text-ink h-5 w-5" strokeWidth={1.5} />
+                    </div>
+                    <div className="text-[15px] font-semibold">
+                      No hay cumpleaños en este trimestre
+                    </div>
                   </div>
                 )}
               </div>

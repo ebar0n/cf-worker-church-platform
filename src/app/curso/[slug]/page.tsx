@@ -1,5 +1,7 @@
 import { Metadata } from 'next';
 import CourseLandingClient from '@/app/curso/[slug]/components/CourseLandingClient';
+import Footer from '@/app/components/Footer';
+import Header from '@/app/components/Header';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 interface CourseRow {
@@ -103,5 +105,13 @@ export async function generateMetadata({
 }
 
 export default function CoursePage() {
-  return <CourseLandingClient />;
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Header />
+      <main className="flex-1">
+        <CourseLandingClient />
+      </main>
+      <Footer />
+    </div>
+  );
 }

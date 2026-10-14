@@ -2,12 +2,20 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import Link from 'next/link';
+import {
+  AlertCircle,
+  ArrowRight,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Megaphone,
+} from 'lucide-react';
 import Header from '@/app/components/Header';
 import Footer from '@/app/components/Footer';
 import DepartmentBadge from '@/app/components/DepartmentBadge';
-import { getDepartmentImage, getDepartmentColor, getDepartmentName } from '@/lib/constants';
-import Link from 'next/link';
 import { MarkdownImage } from '@/app/components/MarkdownImage';
+import { Button } from '@/app/components/ui/button';
 
 interface Announcement {
   id: number;
@@ -75,478 +83,263 @@ export default function AnnouncementsPage() {
     currentPage * itemsPerPage
   );
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-[#f5f0ff] via-[#ede9f6] to-[#f8f5ff]">
-        <Header />
-        <div className="container mx-auto px-4 py-20">
-          <div className="text-center">
-            <div className="inline-block h-16 w-16 animate-spin rounded-full border-4 border-[#4b207f] border-t-transparent"></div>
-            <p className="mt-6 text-lg font-medium text-gray-600">Cargando anuncios...</p>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-[#f5f0ff] via-[#ede9f6] to-[#f8f5ff]">
-        <Header />
-        <div className="container mx-auto px-4 py-20">
-          <div className="text-center">
-            <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-              <svg
-                className="h-8 w-8 text-red-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                />
-              </svg>
-            </div>
-            <p className="text-lg font-medium text-red-600">
-              Error al cargar los anuncios: {error}
-            </p>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-[#f5f0ff] via-[#ede9f6] to-[#f8f5ff]">
-      <Header />
+    <div className="flex min-h-screen flex-col">
+      <Header current="anuncios" />
 
-      {/* Banner Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#fff8e1] via-[#f3e5f5] to-[#e8eaf6] py-16">
-        {/* Subtle pattern overlay */}
-        <div className="absolute inset-0 opacity-10">
-          <div
-            className="h-full w-full"
-            style={{
-              backgroundImage: `radial-gradient(circle at 25% 25%, #4b207f 1px, transparent 1px)`,
-              backgroundSize: '20px 20px',
-            }}
-          ></div>
-        </div>
-
-        <div className="container relative mx-auto px-4 text-center">
-          {/* Icon */}
-          <div className="mb-6 flex justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#4b207f] shadow-lg">
-              <svg
-                className="h-8 w-8 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"
-                />
-              </svg>
-            </div>
-          </div>
-
-          {/* Title */}
-          <h1 className="mb-4 text-4xl font-bold text-[#4b207f] lg:text-5xl">
-            Anuncios de la Semana
-          </h1>
-
-          {/* Subtitle */}
-          <p className="mx-auto max-w-2xl text-lg text-gray-600 lg:text-xl">
+      <main className="mx-auto flex w-full max-w-[75rem] flex-1 flex-col gap-10 px-5 py-14 md:px-8 lg:gap-14 lg:py-24 xl:px-0">
+        <div className="flex flex-col gap-4">
+          {!error && (loading || announcements.length > 0) && (
+            <p className="text-ink-soft m-0 flex items-center gap-2 text-[13px] font-semibold uppercase leading-none tracking-[.06em]">
+              <span className="bg-warm h-0.5 w-6" />
+              {loading
+                ? 'Cargando anuncios...'
+                : `${announcements.length} anuncio${announcements.length !== 1 ? 's' : ''} disponible${announcements.length !== 1 ? 's' : ''}`}
+            </p>
+          )}
+          <h1 className="m-0 text-[40px] leading-[1.04] lg:text-[64px]">Anuncios de la Semana</h1>
+          <p className="text-ink-soft m-0 max-w-2xl text-lg lg:text-xl">
             Mantente informado sobre las últimas noticias y eventos de nuestra iglesia
           </p>
         </div>
-      </div>
 
-      {/* Content Section */}
-      <main className="flex-1">
-        <div className="container mx-auto px-4 py-12 lg:py-16">
-          {/* Stats Section */}
-          <div className="mb-12 flex justify-center">
-            <div className="rounded-2xl border border-white/20 bg-white/80 px-8 py-4 shadow-lg backdrop-blur-sm">
-              <p className="font-medium text-gray-700">
-                {announcements.length === 0
-                  ? 'No se encontraron anuncios'
-                  : `${announcements.length} anuncio${announcements.length !== 1 ? 's' : ''} disponible${announcements.length !== 1 ? 's' : ''}`}
+        {loading ? (
+          <div aria-hidden className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="border-line flex animate-pulse flex-col gap-3.5 rounded-2xl border bg-white p-6"
+              >
+                <div className="h-3 w-[110px] rounded-md bg-[#efebe4]" />
+                <div className="h-6 w-4/5 rounded-lg bg-[#efebe4]" />
+                <div className="h-3 rounded-md bg-[#efebe4]" />
+                <div className="h-3 w-3/5 rounded-md bg-[#efebe4]" />
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="border-line flex items-center gap-3.5 rounded-xl border bg-white p-4 text-[15px] font-medium sm:max-w-xl">
+            <AlertCircle className="h-[22px] w-[22px] flex-none text-[#b3261e]" strokeWidth={1.5} />
+            Error al cargar los anuncios: {error}
+          </div>
+        ) : announcements.length === 0 ? (
+          <div className="flex items-center gap-4 rounded-2xl border border-dashed border-gray-300 p-5 sm:max-w-xl">
+            <div className="bg-warm-soft flex h-11 w-11 flex-none items-center justify-center rounded-xl">
+              <Megaphone className="h-5 w-5" strokeWidth={1.5} />
+            </div>
+            <div>
+              <h3 className="m-0 font-sans text-[15px] font-semibold leading-snug tracking-normal">
+                No hay anuncios disponibles
+              </h3>
+              <p className="text-ink-soft m-0 text-sm">
+                No se encontraron anuncios para mostrar en este momento.
               </p>
             </div>
           </div>
-
-          {/* Announcements Grid */}
-          {announcements.length > 0 && (
-            <div className="mb-16 grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
+        ) : (
+          <>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
               {paginatedAnnouncements.map((announcement, index) => (
                 <div
                   key={announcement.id}
-                  className="group relative transform overflow-hidden rounded-3xl border border-white/30 bg-white/95 shadow-xl backdrop-blur-sm transition-all duration-500 hover:-translate-y-3 hover:shadow-2xl"
-                  style={{
-                    animationDelay: `${index * 100}ms`,
-                    animation: 'fadeInUp 0.6s ease-out forwards',
-                  }}
+                  className="border-line flex flex-col gap-5 rounded-2xl border bg-white p-6 lg:p-7"
                 >
-                  {/* Enhanced gradient overlay on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-50/60 via-pink-50/40 to-indigo-50/60 opacity-0 transition-opacity duration-500 group-hover:opacity-100"></div>
-
-                  {/* Department background image if available */}
-                  {announcement.department && getDepartmentImage(announcement.department) && (
-                    <div className="absolute inset-0 opacity-15 transition-opacity duration-500 group-hover:opacity-20">
-                      <img
-                        src={getDepartmentImage(announcement.department)}
-                        alt="Department background"
-                        className="h-full w-full rounded-3xl object-cover"
-                      />
-                      {/* Enhanced color overlay based on department */}
-                      <div
-                        className="absolute inset-0 rounded-3xl opacity-30"
-                        style={{
-                          background: `linear-gradient(135deg, ${getDepartmentColor(announcement.department)}40, ${getDepartmentColor(announcement.department)}25, ${getDepartmentColor(announcement.department)}10)`,
-                        }}
-                      />
-                    </div>
-                  )}
-
-                  {/* Subtle pattern overlay */}
-                  <div className="opacity-8 group-hover:opacity-12 absolute inset-0 transition-opacity duration-500">
-                    <div
-                      className="h-full w-full"
-                      style={{
-                        backgroundImage: `radial-gradient(circle at 25% 25%, ${announcement.department ? getDepartmentColor(announcement.department) : '#4b207f'} 1px, transparent 1px)`,
-                        backgroundSize: '20px 20px',
-                      }}
-                    ></div>
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-ink-soft m-0 flex items-center gap-2 text-sm font-medium leading-none">
+                      <Calendar className="h-4 w-4" strokeWidth={1.5} />
+                      {new Date(announcement.announcementDate + 'T00:00:00').toLocaleDateString(
+                        'es-ES',
+                        {
+                          weekday: 'short',
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        }
+                      )}
+                    </p>
+                    {!announcement.isActive && (
+                      <span className="text-ink-soft rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium">
+                        Inactivo
+                      </span>
+                    )}
                   </div>
 
-                  <div className="relative flex min-h-[280px] flex-col p-4 sm:min-h-[320px] sm:p-6 md:min-h-[360px] md:p-8">
-                    {/* Status indicator */}
-                    {!announcement.isActive && (
-                      <div className="absolute right-4 top-4">
-                        <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
-                          Inactivo
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Department image badge - Top right corner */}
-                    {announcement.department && getDepartmentImage(announcement.department) && (
-                      <div className="absolute right-4 top-4 z-10">
-                        <div className="flex flex-col items-end gap-2">
-                          <span
-                            className="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium text-white shadow-sm"
-                            style={{ backgroundColor: getDepartmentColor(announcement.department) }}
-                          >
-                            {getDepartmentName(announcement.department)}
-                          </span>
-                          <div className="h-24 w-24 overflow-hidden rounded-xl border-2 border-white/80 bg-white/95 shadow-xl backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-2xl">
-                            <img
-                              src={getDepartmentImage(announcement.department)}
-                              alt={getDepartmentName(announcement.department)}
-                              className="h-full w-full object-cover opacity-90 transition-opacity hover:opacity-100"
-                            />
-                            <div
-                              className="absolute inset-0 opacity-30"
-                              style={{
-                                backgroundColor: getDepartmentColor(announcement.department),
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Subtle Date badge */}
-                    <div className="w-fit">
-                      <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-gray-100/80 px-3 py-1.5 text-xs font-medium text-gray-600">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                          className="h-3 w-3"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
-                          />
-                        </svg>
-                        {new Date(announcement.announcementDate + 'T00:00:00').toLocaleDateString(
-                          'es-ES',
-                          {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          }
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Enhanced Title - moved down to avoid overlap */}
-                    <h3 className="mb-4 mt-16 line-clamp-2 text-2xl font-bold leading-tight text-[#4b207f] transition-colors duration-300 group-hover:text-[#6b46c1] sm:mt-20">
+                  <div className="flex flex-col gap-2.5">
+                    <h3 className="m-0 line-clamp-2 text-[28px] leading-[1.15]">
                       {announcement.title}
                     </h3>
 
-                    {/* Enhanced Content with react-markdown */}
-                    <div className="prose prose-sm mb-4 max-w-none">
-                      <div
-                        ref={(el) => {
-                          contentRefs.current[index] = el;
+                    <div
+                      ref={(el) => {
+                        contentRefs.current[index] = el;
+                      }}
+                      className="text-ink-soft line-clamp-4 text-base leading-relaxed"
+                    >
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          // Customize link styling and make them clickable
+                          a: ({ node, href, ...props }) => (
+                            <a
+                              {...props}
+                              href={href}
+                              className="text-denim hover:text-ink cursor-pointer underline transition-colors duration-200"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (href) {
+                                  window.open(href, '_blank', 'noopener,noreferrer');
+                                }
+                              }}
+                            />
+                          ),
+                          // Headings stay small inside a card
+                          h1: ({ node, ...props }) => (
+                            <h1 {...props} className="text-ink mb-2 text-xl" />
+                          ),
+                          h2: ({ node, ...props }) => (
+                            <h2 {...props} className="text-ink mb-2 text-lg" />
+                          ),
+                          h3: ({ node, ...props }) => (
+                            <h3 {...props} className="text-ink mb-2 text-base" />
+                          ),
+                          h4: ({ node, ...props }) => (
+                            <h4 {...props} className="text-ink mb-2 text-sm" />
+                          ),
+                          h5: ({ node, ...props }) => (
+                            <h5 {...props} className="text-ink mb-2 text-xs font-bold" />
+                          ),
+                          h6: ({ node, ...props }) => (
+                            <h6 {...props} className="text-ink mb-2 text-xs font-bold" />
+                          ),
+                          p: ({ node, ...props }) => <p {...props} className="mb-2" />,
+                          strong: ({ node, ...props }) => (
+                            <strong {...props} className="text-ink font-semibold" />
+                          ),
+                          em: ({ node, ...props }) => <em {...props} className="italic" />,
+                          ul: ({ node, ...props }) => (
+                            <ul {...props} className="mb-2 ml-4 list-disc space-y-1" />
+                          ),
+                          ol: ({ node, ...props }) => (
+                            <ol {...props} className="mb-2 ml-4 list-decimal space-y-1" />
+                          ),
+                          li: ({ node, ...props }) => <li {...props} />,
+                          // react-markdown 10 has no `inline` flag: style inline code
+                          // here and let <pre> reset it for blocks.
+                          code: ({ node, ...props }) => (
+                            <code
+                              {...props}
+                              className="text-ink rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs"
+                            />
+                          ),
+                          pre: ({ node, ...props }) => (
+                            <pre
+                              {...props}
+                              className="mb-2 overflow-x-auto rounded-lg bg-gray-100 p-3 [&>code]:p-0"
+                            />
+                          ),
+                          blockquote: ({ node, ...props }) => (
+                            <blockquote
+                              {...props}
+                              className="border-warm mb-2 border-l-2 pl-3 italic"
+                            />
+                          ),
+                          table: ({ node, ...props }) => (
+                            <div className="mb-2 overflow-x-auto">
+                              <table
+                                {...props}
+                                className="border-line min-w-full border-collapse border"
+                              />
+                            </div>
+                          ),
+                          thead: ({ node, ...props }) => (
+                            <thead {...props} className="bg-gray-50" />
+                          ),
+                          tbody: ({ node, ...props }) => <tbody {...props} />,
+                          tr: ({ node, ...props }) => (
+                            <tr {...props} className="border-line border-b" />
+                          ),
+                          th: ({ node, ...props }) => (
+                            <th
+                              {...props}
+                              className="border-line text-ink border px-2 py-1 text-left text-xs font-semibold"
+                            />
+                          ),
+                          td: ({ node, ...props }) => (
+                            <td {...props} className="border-line border px-2 py-1 text-xs" />
+                          ),
+                          hr: ({ node, ...props }) => (
+                            <hr {...props} className="border-line my-3" />
+                          ),
+                          img: (props) => <MarkdownImage {...props} size="md" />,
                         }}
-                        className="line-clamp-5 text-base leading-relaxed text-gray-700 transition-colors duration-300 group-hover:text-gray-800 sm:line-clamp-6"
                       >
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          components={{
-                            // Customize link styling and make them clickable
-                            a: ({ node, href, ...props }) => (
-                              <a
-                                {...props}
-                                href={href}
-                                className="cursor-pointer text-[#4b207f] underline transition-colors duration-200 hover:text-[#e36520]"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (href) {
-                                    window.open(href, '_blank', 'noopener,noreferrer');
-                                  }
-                                }}
-                              />
-                            ),
-                            // Customize heading styles
-                            h1: ({ node, ...props }) => (
-                              <h1 {...props} className="mb-2 text-xl font-bold text-[#4b207f]" />
-                            ),
-                            h2: ({ node, ...props }) => (
-                              <h2 {...props} className="mb-2 text-lg font-bold text-[#4b207f]" />
-                            ),
-                            h3: ({ node, ...props }) => (
-                              <h3 {...props} className="mb-2 text-base font-bold text-[#4b207f]" />
-                            ),
-                            h4: ({ node, ...props }) => (
-                              <h4 {...props} className="mb-2 text-sm font-bold text-[#4b207f]" />
-                            ),
-                            h5: ({ node, ...props }) => (
-                              <h5 {...props} className="mb-2 text-xs font-bold text-[#4b207f]" />
-                            ),
-                            h6: ({ node, ...props }) => (
-                              <h6 {...props} className="mb-2 text-xs font-bold text-[#4b207f]" />
-                            ),
-                            // Customize paragraph styling
-                            p: ({ node, ...props }) => <p {...props} className="mb-2" />,
-                            // Customize strong/bold styling
-                            strong: ({ node, ...props }) => (
-                              <strong {...props} className="font-bold" />
-                            ),
-                            // Customize emphasis/italic styling
-                            em: ({ node, ...props }) => <em {...props} className="italic" />,
-                            // Customize list styling
-                            ul: ({ node, ...props }) => (
-                              <ul {...props} className="mb-2 ml-4 list-disc space-y-1" />
-                            ),
-                            ol: ({ node, ...props }) => (
-                              <ol {...props} className="mb-2 ml-4 list-decimal space-y-1" />
-                            ),
-                            li: ({ node, ...props }) => <li {...props} className="text-gray-700" />,
-                            // Customize code styling
-                            code: ({ node, inline, ...props }: any) => {
-                              if (inline) {
-                                return (
-                                  <code
-                                    {...props}
-                                    className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs text-gray-800"
-                                  />
-                                );
-                              }
-                              return (
-                                <code
-                                  {...props}
-                                  className="block overflow-x-auto rounded bg-gray-100 p-3 font-mono text-xs text-gray-800"
-                                />
-                              );
-                            },
-                            pre: ({ node, ...props }) => (
-                              <pre
-                                {...props}
-                                className="mb-2 overflow-x-auto rounded bg-gray-100 p-3"
-                              />
-                            ),
-                            // Customize blockquote styling
-                            blockquote: ({ node, ...props }) => (
-                              <blockquote
-                                {...props}
-                                className="mb-2 border-l-4 border-[#4b207f] bg-gray-50 pl-3 italic text-gray-700"
-                              />
-                            ),
-                            // Customize table styling
-                            table: ({ node, ...props }) => (
-                              <div className="mb-2 overflow-x-auto">
-                                <table
-                                  {...props}
-                                  className="min-w-full border-collapse border border-gray-300"
-                                />
-                              </div>
-                            ),
-                            thead: ({ node, ...props }) => (
-                              <thead {...props} className="bg-gray-100" />
-                            ),
-                            tbody: ({ node, ...props }) => <tbody {...props} />,
-                            tr: ({ node, ...props }) => (
-                              <tr {...props} className="border-b border-gray-300" />
-                            ),
-                            th: ({ node, ...props }) => (
-                              <th
-                                {...props}
-                                className="border border-gray-300 px-2 py-1 text-left text-xs font-semibold text-gray-700"
-                              />
-                            ),
-                            td: ({ node, ...props }) => (
-                              <td
-                                {...props}
-                                className="border border-gray-300 px-2 py-1 text-xs text-gray-700"
-                              />
-                            ),
-                            // Customize horizontal rule
-                            hr: ({ node, ...props }) => (
-                              <hr {...props} className="my-3 border-gray-300" />
-                            ),
-                            // Customize image styling
-                            img: (props) => <MarkdownImage {...props} size="md" />,
-                          }}
-                        >
-                          {announcement.content}
-                        </ReactMarkdown>
-                      </div>
+                        {announcement.content}
+                      </ReactMarkdown>
                     </div>
+                  </div>
 
-                    {/* Read More Button - Only show if content is truncated */}
-                    {truncatedStates[index] && (
-                      <div className="mb-4">
+                  {/* Read more only shows when the content is truncated */}
+                  {(announcement.department || truncatedStates[index]) && (
+                    <div className="mt-auto flex flex-wrap items-center justify-between gap-3">
+                      {announcement.department && (
+                        <DepartmentBadge departmentCode={announcement.department} />
+                      )}
+                      {truncatedStates[index] && (
                         <Link
                           href={`/announcements/${announcement.id}`}
-                          className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#4b207f] px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-[#4b207f]/90"
+                          className="text-denim hover:text-ink ml-auto flex h-8 items-center gap-1.5 text-[15px] font-medium underline-offset-4 hover:underline"
                           onClick={(e) => {
                             e.stopPropagation();
                           }}
                         >
-                          <span>Leer más</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={2}
-                            stroke="currentColor"
-                            className="h-4 w-4"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                            />
-                          </svg>
+                          Leer más
+                          <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
                         </Link>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
-          )}
 
-          {/* Enhanced Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-3">
-              <button
-                onClick={() => setCurrentPage(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="rounded-xl border border-gray-300 px-6 py-3 font-medium text-gray-700 transition-all duration-300 hover:bg-white/80 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <div className="flex items-center gap-2">
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                  Anterior
-                </div>
-              </button>
-
-              <div className="flex gap-2">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`rounded-xl px-4 py-3 font-medium transition-all duration-300 ${
-                      currentPage === page
-                        ? 'bg-[#4b207f] text-white shadow-lg'
-                        : 'border border-gray-300 text-gray-700 hover:bg-white/80 hover:shadow-lg'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() => setCurrentPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="rounded-xl border border-gray-300 px-6 py-3 font-medium text-gray-700 transition-all duration-300 hover:bg-white/80 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <div className="flex items-center gap-2">
-                  Siguiente
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </div>
-              </button>
-            </div>
-          )}
-
-          {/* Empty State */}
-          {announcements.length === 0 && (
-            <div className="text-center">
-              <div className="mb-8 inline-flex h-24 w-24 items-center justify-center rounded-full bg-gray-100">
-                <svg
-                  className="h-12 w-12 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+            {totalPages > 1 && (
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"
-                  />
-                </svg>
+                  <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
+                  Anterior
+                </Button>
+
+                <div className="flex flex-wrap justify-center gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant="secondary"
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-11 px-0 ${currentPage === page ? 'border-ink bg-warm-soft hover:bg-warm-soft border-[1.5px] font-semibold' : ''}`}
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </div>
+
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Siguiente
+                  <ChevronRight className="h-4 w-4" strokeWidth={1.5} />
+                </Button>
               </div>
-              <h3 className="mb-4 text-2xl font-bold text-gray-900">No hay anuncios disponibles</h3>
-              <p className="text-gray-600">
-                No se encontraron anuncios para mostrar en este momento.
-              </p>
-            </div>
-          )}
-        </div>
+            )}
+          </>
+        )}
       </main>
 
       <Footer />

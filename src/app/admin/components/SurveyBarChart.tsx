@@ -48,15 +48,15 @@ export default function SurveyBarChart({ data, total, color, stacked = false }: 
               {
                 label: 'A veces',
                 data: data.map((d) => d.sometimes ?? 0),
-                backgroundColor: '#a7c99b',
+                backgroundColor: '#ffd08a',
               },
             ]
           : []),
-        { label: 'No', data: data.map((d) => d.no), backgroundColor: '#9ca3af' },
+        { label: 'No', data: data.map((d) => d.no), backgroundColor: '#b9b3a9' },
         {
           label: 'Sin responder',
           data: data.map((d) => d.unanswered),
-          backgroundColor: '#e5e7eb',
+          backgroundColor: '#e8e3da',
         },
       ]
     : [{ label: 'Personas', data: data.map((d) => d.yes), backgroundColor: color }];

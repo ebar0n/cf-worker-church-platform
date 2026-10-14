@@ -8,6 +8,8 @@ import { parseDateOnly } from '@/lib/age-classification';
 import DepartmentSelector from './DepartmentSelector';
 import AnnouncementModal from './AnnouncementModal';
 import { MarkdownImage } from '@/app/components/MarkdownImage';
+import { Button } from '@/app/components/ui/button';
+import { Calendar, Loader2, Megaphone, Plus } from 'lucide-react';
 
 interface Announcement {
   id: number;
@@ -169,58 +171,44 @@ export default function AnnouncementsAdmin({ adminEmail }: { adminEmail: string 
     return (
       <AdminLayout adminEmail={adminEmail}>
         <div className="flex justify-center py-8">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-[#4b207f] border-t-transparent"></div>
+          <Loader2 className="text-ink h-8 w-8 animate-spin" strokeWidth={1.5} />
         </div>
       </AdminLayout>
     );
   }
 
+  // Selected filter reads as a kit choice card
+  const filterClass = (status: FilterStatus) =>
+    `h-11 rounded-xl border px-4 text-sm font-medium transition-colors ${
+      filterStatus === status
+        ? 'border-ink bg-warm-soft text-ink'
+        : 'border-gray-300 bg-white text-ink-soft hover:bg-gray-100'
+    }`;
+
   return (
     <AdminLayout adminEmail={adminEmail}>
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-[#4b207f]">Gestión de Anuncios</h2>
-        <button
-          onClick={() => setShowModal(true)}
-          className="rounded-lg bg-[#4b207f] px-4 py-2 text-white hover:bg-[#4b207f]/90"
-        >
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-ink text-[40px] leading-[1.04]">Gestión de Anuncios</h1>
+          <p className="text-ink-soft">Publica y edita los anuncios que aparecen en el sitio.</p>
+        </div>
+        <Button onClick={() => setShowModal(true)} className="self-start sm:self-auto">
+          <Plus className="h-5 w-5" strokeWidth={1.5} />
           Nuevo Anuncio
-        </button>
+        </Button>
       </div>
 
       {/* Filter Section */}
-      <div className="mb-6 flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">Filtrar por estado:</span>
-        </div>
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <span className="text-ink text-sm font-medium">Filtrar por estado:</span>
         <div className="flex gap-2">
-          <button
-            onClick={() => setFilterStatus('active')}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              filterStatus === 'active'
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
+          <button onClick={() => setFilterStatus('active')} className={filterClass('active')}>
             Activos
           </button>
-          <button
-            onClick={() => setFilterStatus('all')}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              filterStatus === 'all'
-                ? 'bg-[#4b207f] text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
+          <button onClick={() => setFilterStatus('all')} className={filterClass('all')}>
             Todos
           </button>
-          <button
-            onClick={() => setFilterStatus('inactive')}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              filterStatus === 'inactive'
-                ? 'bg-gray-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
+          <button onClick={() => setFilterStatus('inactive')} className={filterClass('inactive')}>
             Inactivos
           </button>
         </div>
@@ -242,20 +230,20 @@ export default function AnnouncementsAdmin({ adminEmail }: { adminEmail: string 
         {announcements.map((announcement) => (
           <div
             key={announcement.id}
-            className={`rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 ${
+            className={`border-line rounded-2xl border bg-white p-5 md:p-6 ${
               !announcement.isActive ? 'opacity-75' : ''
             }`}
           >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="mb-2 flex items-center gap-2">
-                  <h3 className="text-lg font-semibold text-[#4b207f]">{announcement.title}</h3>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 flex-1">
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <h3 className="text-ink text-2xl leading-tight">{announcement.title}</h3>
                   {announcement.isActive ? (
-                    <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
+                    <span className="rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-800">
                       Activo
                     </span>
                   ) : (
-                    <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
+                    <span className="text-ink-soft rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium">
                       Inactivo
                     </span>
                   )}
@@ -268,29 +256,29 @@ export default function AnnouncementsAdmin({ adminEmail }: { adminEmail: string 
                       a: ({ node, ...props }) => (
                         <a
                           {...props}
-                          className="text-[#4b207f] underline transition-colors duration-200 hover:text-[#e36520]"
+                          className="text-denim hover:text-ink underline transition-colors duration-200"
                           target="_blank"
                           rel="noopener noreferrer"
                         />
                       ),
                       // Customize heading styles
                       h1: ({ node, ...props }) => (
-                        <h1 {...props} className="mb-2 text-lg font-bold text-[#4b207f]" />
+                        <h1 {...props} className="text-ink mb-2 text-lg font-bold" />
                       ),
                       h2: ({ node, ...props }) => (
-                        <h2 {...props} className="mb-2 text-base font-bold text-[#4b207f]" />
+                        <h2 {...props} className="text-ink mb-2 text-base font-bold" />
                       ),
                       h3: ({ node, ...props }) => (
-                        <h3 {...props} className="mb-2 text-sm font-bold text-[#4b207f]" />
+                        <h3 {...props} className="text-ink mb-2 text-sm font-bold" />
                       ),
                       h4: ({ node, ...props }) => (
-                        <h4 {...props} className="mb-2 text-sm font-bold text-[#4b207f]" />
+                        <h4 {...props} className="text-ink mb-2 text-sm font-bold" />
                       ),
                       h5: ({ node, ...props }) => (
-                        <h5 {...props} className="mb-2 text-sm font-bold text-[#4b207f]" />
+                        <h5 {...props} className="text-ink mb-2 text-sm font-bold" />
                       ),
                       h6: ({ node, ...props }) => (
-                        <h6 {...props} className="mb-2 text-sm font-bold text-[#4b207f]" />
+                        <h6 {...props} className="text-ink mb-2 text-sm font-bold" />
                       ),
                       // Customize paragraph styling
                       p: ({ node, ...props }) => <p {...props} className="mb-2 text-sm" />,
@@ -335,7 +323,7 @@ export default function AnnouncementsAdmin({ adminEmail }: { adminEmail: string 
                       blockquote: ({ node, ...props }) => (
                         <blockquote
                           {...props}
-                          className="mb-2 border-l-4 border-[#4b207f] bg-gray-50 pl-3 text-sm italic text-gray-700"
+                          className="border-warm mb-2 border-l-4 bg-gray-50 pl-3 text-sm italic text-gray-700"
                         />
                       ),
                       // Customize table styling
@@ -375,42 +363,46 @@ export default function AnnouncementsAdmin({ adminEmail }: { adminEmail: string 
                     {announcement.content}
                   </ReactMarkdown>
                 </div>
-                <div className="text-sm text-gray-500">
+                <div className="text-ink-soft flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium">
+                  <Calendar className="h-4 w-4" strokeWidth={1.5} />
                   <span>
                     Fecha:{' '}
                     {parseDateOnly(announcement.announcementDate).toLocaleDateString('es-ES')}
                   </span>
-                  <span className="mx-2">•</span>
+                  <span>•</span>
                   <span>
                     Creado: {new Date(announcement.createdAt).toLocaleDateString('es-ES')}
                   </span>
                 </div>
               </div>
               <div className="flex gap-2">
-                <button
-                  onClick={() => handleEdit(announcement)}
-                  className="rounded-lg border border-[#4b207f] px-3 py-1 text-sm text-[#4b207f] hover:bg-[#4b207f]/10"
-                >
+                <Button variant="secondary" onClick={() => handleEdit(announcement)}>
                   Editar
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   onClick={() => handleDelete(announcement.id)}
-                  className="rounded-lg border border-red-500 px-3 py-1 text-sm text-red-500 hover:bg-red-50"
+                  className="text-[#b3261e] hover:bg-red-50"
                 >
                   Eliminar
-                </button>
+                </Button>
               </div>
             </div>
           </div>
         ))}
 
         {announcements.length === 0 && (
-          <div className="py-8 text-center text-gray-500">
-            {filterStatus === 'all'
-              ? 'No hay anuncios registrados'
-              : filterStatus === 'active'
-                ? 'No hay anuncios activos'
-                : 'No hay anuncios inactivos'}
+          <div className="flex items-center gap-4 rounded-2xl border border-dashed border-gray-300 p-5">
+            <span className="bg-warm-soft flex h-11 w-11 flex-none items-center justify-center rounded-xl">
+              <Megaphone className="text-ink h-5 w-5" strokeWidth={1.5} />
+            </span>
+            <p className="text-ink text-[15px] font-semibold">
+              {filterStatus === 'all'
+                ? 'No hay anuncios registrados'
+                : filterStatus === 'active'
+                  ? 'No hay anuncios activos'
+                  : 'No hay anuncios inactivos'}
+            </p>
           </div>
         )}
       </div>

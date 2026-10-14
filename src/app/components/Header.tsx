@@ -1,79 +1,143 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { ClipboardList, LogIn, Menu } from 'lucide-react';
 import ReloadInAppButton from './ReloadInAppButton';
 
-export default function Header() {
+const NAV = [
+  { key: 'inicio', href: '/', label: 'Inicio' },
+  { key: 'anuncios', href: '/announcements', label: 'Anuncios' },
+  { key: 'horarios', href: '/#horarios', label: 'Horarios' },
+  { key: 'contacto', href: '/#contacto', label: 'Contacto' },
+] as const;
+
+type Section = (typeof NAV)[number]['key'];
+
+/**
+ * Site header. `overlay` sits transparent over the home hero; the default is
+ * the solid bar for interior pages. The mobile menu is a native <details>, so
+ * it works without client JS.
+ */
+export default function Header({
+  variant = 'solid',
+  current,
+}: {
+  variant?: 'overlay' | 'solid';
+  current?: Section;
+}) {
+  const overlay = variant === 'overlay';
+
   return (
-    <>
-      <header className="fixed left-0 top-0 z-30 flex h-20 w-full items-center justify-between bg-[#4b207f] px-6 shadow-md">
-        <a href="/" className="flex items-center gap-4">
+    <header
+      className={
+        overlay
+          ? 'text-paper absolute inset-x-0 top-0 z-20'
+          : 'border-line bg-paper/95 text-ink sticky top-0 z-30 border-b backdrop-blur-md'
+      }
+    >
+      <div
+        className={`mx-auto flex w-full max-w-[75rem] items-center justify-between px-5 md:px-8 xl:px-0 ${overlay ? 'h-[68px] lg:h-[88px]' : 'h-16 lg:h-20'}`}
+      >
+        <Link href="/" className="flex items-center gap-2.5 text-inherit no-underline lg:gap-3">
           <Image
             src="/church-logo.png"
-            alt="Logo Iglesia Adventista"
-            width={48}
-            height={48}
-            className="rounded-full border-2 border-white object-cover shadow"
-            priority
+            alt=""
+            width={96}
+            height={96}
+            className={`h-[38px] w-[38px] rounded-full object-cover lg:h-10 lg:w-10 ${overlay ? 'border-paper/90 border-2 lg:h-11 lg:w-11' : ''}`}
           />
-          <span
-            className="pt-1 text-xl font-bold tracking-wide text-white md:text-2xl"
-            style={{ fontFamily: 'Advent Pro, Arial, sans-serif' }}
-          >
-            Iglesia Adventista del 7mo día
+          <span className="font-heading text-2xl font-bold tracking-[-0.01em] lg:text-[26px]">
+            El Jordán
           </span>
-        </a>
-        {/* Two entry points on purpose: the site is installed as an app that
-            starts at "/", and volunteers need to reach the surveys without
-            passing through the rest of the admin. Icons only — labels crowded
-            the header on a phone. */}
-        <nav className="flex items-center gap-1">
+        </Link>
+
+        <nav aria-label="Principal" className="hidden gap-9 text-[15px] font-medium lg:flex">
+          {NAV.map(({ key, href, label }) => (
+            <Link
+              key={key}
+              href={href}
+              aria-current={key === current ? 'page' : undefined}
+              className={`aria-[current=page]:border-warm border-b-2 border-transparent py-2 text-inherit no-underline transition-colors duration-200 ${overlay ? 'hover:border-paper/60' : 'hover:border-gray-300'}`}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="hidden items-center gap-1 lg:flex">
           {/* Only renders in the installed app, which has no reload button */}
           <ReloadInAppButton />
+          {/* Volunteers reach the surveys without going through the admin */}
           <Link
             href="/admin/surveys"
             title="Encuestas de salud"
             aria-label="Encuestas de salud"
-            className="rounded-lg p-3 text-white transition-colors hover:bg-white/10"
+            className={`flex h-10 w-10 items-center justify-center rounded-xl text-inherit transition-colors duration-200 ${overlay ? 'hover:bg-paper/15' : 'text-ink-soft hover:bg-gray-100'}`}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="h-5 w-5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"
-              />
-            </svg>
+            <ClipboardList className="h-5 w-5" strokeWidth={1.5} />
           </Link>
           <Link
             href="/admin"
             title="Administración"
             aria-label="Administración"
-            className="rounded-lg p-3 text-white transition-colors hover:bg-white/10"
+            className={`flex h-10 w-10 items-center justify-center rounded-xl text-inherit transition-colors duration-200 ${overlay ? 'hover:bg-paper/15' : 'text-ink-soft hover:bg-gray-100'}`}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="h-5 w-5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M11.25 9V5.25A2.25 2.25 0 0113.5 3h6A2.25 2.25 0 0121.75 5.25v13.5A2.25 2.25 0 0119.5 21h-6a2.25 2.25 0 01-2.25-2.25V15m-3-3h8.25m0 0l-3-3m3 3l-3 3"
-              />
-            </svg>
+            <LogIn className="h-5 w-5" strokeWidth={1.5} />
           </Link>
-        </nav>
-      </header>
-      <div className="h-20" /> {/* Spacer for fixed header */}
-    </>
+          <Link
+            href="/friend"
+            className="bg-warm text-ink hover:bg-warm-hover ml-3 flex h-11 items-center rounded-xl px-5 text-[15px] font-medium no-underline transition duration-200 hover:-translate-y-px"
+          >
+            Quiero ser contactado
+          </Link>
+        </div>
+
+        <div className="flex items-center gap-1 lg:hidden">
+          <ReloadInAppButton />
+          <details className="relative">
+            <summary
+              aria-label="Menú"
+              className={`flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-xl border [&::-webkit-details-marker]:hidden ${overlay ? 'border-paper/40 bg-ink/30 backdrop-blur-md' : 'border-line bg-white'}`}
+            >
+              <Menu className="h-5 w-5" strokeWidth={1.5} />
+            </summary>
+            <nav
+              aria-label="Principal"
+              className="border-line bg-paper text-ink absolute right-0 top-14 flex w-64 flex-col rounded-2xl border p-2 text-[15px] shadow-[0_8px_24px_rgb(28_27_25/0.12)]"
+            >
+              {NAV.map(({ key, href, label }) => (
+                <Link
+                  key={key}
+                  href={href}
+                  aria-current={key === current ? 'page' : undefined}
+                  className="text-ink hover:bg-warm-soft rounded-xl px-4 py-3 no-underline aria-[current=page]:font-semibold"
+                >
+                  {label}
+                </Link>
+              ))}
+              <Link
+                href="/admin/surveys"
+                className="text-ink hover:bg-warm-soft flex items-center gap-3 rounded-xl px-4 py-3 no-underline"
+              >
+                <ClipboardList className="h-[18px] w-[18px]" strokeWidth={1.5} />
+                Encuestas de salud
+              </Link>
+              <Link
+                href="/admin"
+                className="text-ink hover:bg-warm-soft flex items-center gap-3 rounded-xl px-4 py-3 no-underline"
+              >
+                <LogIn className="h-[18px] w-[18px]" strokeWidth={1.5} />
+                Administración
+              </Link>
+              <Link
+                href="/friend"
+                className="bg-warm text-ink hover:bg-warm-hover mt-1 flex h-12 items-center justify-center rounded-xl font-medium no-underline"
+              >
+                Quiero ser contactado
+              </Link>
+            </nav>
+          </details>
+        </div>
+      </div>
+    </header>
   );
 }

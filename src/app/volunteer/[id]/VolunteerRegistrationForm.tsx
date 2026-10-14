@@ -3,6 +3,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import {
+  AlertCircle,
+  ArrowDown,
+  Calendar,
+  ChevronDown,
+  CircleCheck,
+  Info,
+  Loader2,
+  Quote,
+} from 'lucide-react';
+import { Button, buttonVariants } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
 import { calculateAge, parseDateOnly } from '@/lib/age-classification';
 
 interface VolunteerEvent {
@@ -384,58 +396,57 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="w-full max-w-lg">
-          <div className="relative overflow-hidden rounded-3xl bg-white p-8 text-center shadow-2xl sm:p-12">
-            {/* Logo Vida y Esperanza */}
-            <div className="mb-8 flex justify-center">
-              <div className="relative">
-                <div className="absolute inset-0 animate-pulse rounded-full bg-green-400/20 blur-xl"></div>
-                <img
-                  src="/logo-vida-y-esperanza.jpg"
-                  alt="Vida y Esperanza"
-                  className="relative h-32 w-auto drop-shadow-2xl sm:h-40 lg:h-48"
-                />
-              </div>
-            </div>
-            <h2 className="mb-4 text-2xl font-bold text-gray-900 sm:text-3xl">
-              {alreadyRegistered ? '¡Actualización Exitosa!' : '¡Registro Completado!'}
-            </h2>
-            <p className="mb-2 text-base text-gray-700 sm:text-lg">
-              {alreadyRegistered
-                ? 'Tus datos se han actualizado correctamente.'
-                : 'Te has registrado como voluntario para este evento.'}
-            </p>
-            <p className="mb-6 text-sm text-gray-500">
-              Nos pondremos en contacto contigo pronto para confirmar los detalles.
-            </p>
+      <div className="mx-auto w-full max-w-lg px-5 py-14 lg:py-24">
+        <div className="border-line rounded-2xl border bg-white p-6 text-center sm:p-10">
+          {/* Logo Vida y Esperanza */}
+          <div className="mb-6 flex justify-center">
+            <img
+              src="/logo-vida-y-esperanza.jpg"
+              alt="Vida y Esperanza"
+              className="h-32 w-auto sm:h-40"
+            />
+          </div>
+          <h2 className="mb-3 text-[32px] leading-[1.1] sm:text-[40px]">
+            {alreadyRegistered ? '¡Actualización Exitosa!' : '¡Registro Completado!'}
+          </h2>
+          <p className="mb-2 text-base sm:text-lg">
+            {alreadyRegistered
+              ? 'Tus datos se han actualizado correctamente.'
+              : 'Te has registrado como voluntario para este evento.'}
+          </p>
+          <p className="text-ink-soft mb-6 text-sm">
+            Nos pondremos en contacto contigo pronto para confirmar los detalles.
+          </p>
 
-            {/* WhatsApp Group Button */}
-            <div className="mt-6 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 p-6">
-              <div className="mb-3 flex items-center justify-center gap-2">
-                <svg className="h-6 w-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-                </svg>
-                <h3 className="text-lg font-semibold text-gray-900">Únete al Grupo de WhatsApp</h3>
-              </div>
-              <p className="mb-4 text-sm text-gray-600">
-                Mantente informado y conecta con otros voluntarios
-              </p>
-              <a
-                href={
-                  event.whatsappGroupUrl ||
-                  `https://wa.me/573153455511?text=${encodeURIComponent(`Hola, me registré como voluntario para: ${event.title}`)}`
-                }
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-3 font-semibold text-white shadow-lg transition-all hover:scale-105 hover:from-green-700 hover:to-emerald-700 hover:shadow-xl sm:w-auto"
-              >
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-                </svg>
-                Unirme al Grupo
-              </a>
+          {/* WhatsApp Group Button */}
+          <div className="bg-warm-soft rounded-xl p-6">
+            <div className="mb-2 flex items-center justify-center gap-2">
+              <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+              </svg>
+              <h3 className="text-xl">Únete al Grupo de WhatsApp</h3>
             </div>
+            <p className="text-ink-soft mb-4 text-sm">
+              Mantente informado y conecta con otros voluntarios
+            </p>
+            <a
+              href={
+                event.whatsappGroupUrl ||
+                `https://wa.me/573153455511?text=${encodeURIComponent(`Hola, me registré como voluntario para: ${event.title}`)}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({
+                variant: 'dark',
+                size: 'lg',
+                className: 'w-full sm:w-auto',
+              })}
+            >
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+              </svg>
+              Unirme al Grupo
+            </a>
           </div>
         </div>
       </div>
@@ -448,246 +459,183 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
 
   return (
     <div>
-      {/* Event Hero Section - Full page */}
-      <div className="relative flex min-h-screen items-center overflow-hidden bg-gradient-to-br from-[#4b207f] via-[#5c2a96] to-[#6b3aa6] px-4 pb-16 pt-6 sm:px-6 sm:pb-20 sm:pt-8 lg:px-8">
-        {/* Animated background blobs */}
-        <div className="absolute -right-40 -top-40 h-80 w-80 animate-pulse rounded-full bg-white/5 blur-3xl"></div>
-        <div
-          className="absolute -bottom-40 -left-40 h-80 w-80 animate-pulse rounded-full bg-white/5 blur-3xl"
-          style={{ animationDelay: '1s' }}
-        ></div>
-
-        <div className="relative mx-auto w-full max-w-4xl">
+      {/* Event Hero Section */}
+      <section className="mx-auto grid w-full max-w-[75rem] gap-8 px-5 pb-12 pt-10 md:px-8 lg:grid-cols-12 lg:gap-6 lg:pb-20 lg:pt-16 xl:px-0">
+        <div className="flex min-w-0 flex-col gap-5 lg:col-span-7">
           {/* Tags */}
-          <div className="mb-4 flex items-center justify-center gap-2 sm:mb-6">
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-white/90">
-              <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-              </svg>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-ink-soft m-0 flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[.06em]">
+              <span className="bg-warm h-0.5 w-6" />
               Programa de Voluntariado
-            </span>
-            <span className="text-white/40">•</span>
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-400">
-              <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                  clipRule="evenodd"
-                />
-              </svg>
+            </p>
+            <span className="border-line inline-flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 text-[13px] font-medium">
+              <span className="bg-warm h-1.5 w-1.5 rounded-full" />
               Vida y Esperanza
             </span>
           </div>
 
-          {/* Logo */}
-          <div className="mb-6 flex justify-center sm:mb-8">
-            <div className="transform transition-transform hover:scale-105">
-              <img
-                src="/logo-vida-y-esperanza.jpg"
-                alt="Vida y Esperanza"
-                className="h-28 w-auto drop-shadow-2xl sm:h-36 lg:h-44"
-              />
-            </div>
+          {/* Title */}
+          <h1 className="text-[40px] leading-[1.04] lg:text-[64px]">{event.title}</h1>
+
+          {/* Date */}
+          <p className="text-ink-soft flex items-center gap-2 text-sm font-medium">
+            <Calendar className="h-4 w-4 flex-none" strokeWidth={1.5} />
+            {new Date(
+              new Date(event.eventDate).getTime() + new Date().getTimezoneOffset() * 60000
+            ).toLocaleDateString('es-ES', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+          </p>
+
+          {/* Description */}
+          <div className="text-ink-soft text-lg leading-relaxed lg:text-xl">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                a: ({ node, ...props }) => (
+                  <a
+                    {...props}
+                    className="text-denim hover:text-ink underline underline-offset-2 transition-colors"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  />
+                ),
+                strong: ({ node, ...props }) => (
+                  <strong {...props} className="text-ink font-semibold" />
+                ),
+                em: ({ node, ...props }) => <em {...props} className="italic" />,
+                p: ({ node, ...props }) => <p {...props} className="mb-3" />,
+                ul: ({ node, ...props }) => <ul {...props} className="mb-3 space-y-2" />,
+                ol: ({ node, ...props }) => <ol {...props} className="mb-3 space-y-2" />,
+                li: ({ node, ...props }) => (
+                  <li {...props}>
+                    <span className="bg-warm mr-3 inline-block h-1.5 w-1.5 rounded-full align-middle" />
+                    {props.children}
+                  </li>
+                ),
+                h1: ({ node, ...props }) => (
+                  <h1 {...props} className="text-ink mb-3 text-[28px] leading-tight" />
+                ),
+                h2: ({ node, ...props }) => (
+                  <h2 {...props} className="text-ink mb-3 text-2xl leading-tight" />
+                ),
+                h3: ({ node, ...props }) => (
+                  <h3 {...props} className="text-ink mb-2 text-xl leading-tight" />
+                ),
+                blockquote: ({ node, ...props }) => (
+                  <blockquote {...props} className="border-warm my-4 border-l-2 py-1 pl-4 italic" />
+                ),
+                code: ({ node, inline, ...props }: any) => {
+                  if (inline) {
+                    return (
+                      <code
+                        {...props}
+                        className="text-ink rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm"
+                      />
+                    );
+                  }
+                  return (
+                    <code
+                      {...props}
+                      className="text-ink block overflow-x-auto rounded-xl bg-gray-100 p-4 font-mono text-sm"
+                    />
+                  );
+                },
+              }}
+            >
+              {event.description}
+            </ReactMarkdown>
           </div>
 
-          <div className="text-center">
-            {/* Title */}
-            <h1 className="mb-6 text-2xl font-bold leading-tight text-white sm:mb-8 sm:text-3xl lg:text-4xl">
-              {event.title}
-            </h1>
-
-            {/* Description with gradient background */}
-            <div className="mx-auto mb-6 max-w-3xl rounded-2xl bg-gradient-to-br from-white/10 via-white/5 to-transparent p-6 backdrop-blur-sm sm:p-8 lg:p-10">
-              <div className="prose prose-base prose-invert sm:prose-lg mx-auto max-w-none text-center">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    a: ({ node, ...props }) => (
-                      <a
-                        {...props}
-                        className="text-white underline decoration-white/30 transition-colors hover:text-green-300 hover:decoration-green-300"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      />
-                    ),
-                    strong: ({ node, ...props }) => (
-                      <strong {...props} className="font-bold text-white" />
-                    ),
-                    em: ({ node, ...props }) => <em {...props} className="italic text-white/95" />,
-                    p: ({ node, ...props }) => (
-                      <p
-                        {...props}
-                        className="mb-3 text-base leading-relaxed text-white/95 sm:text-lg"
-                      />
-                    ),
-                    ul: ({ node, ...props }) => (
-                      <ul {...props} className="mb-3 ml-0 list-none space-y-2 text-white/95" />
-                    ),
-                    ol: ({ node, ...props }) => (
-                      <ol {...props} className="mb-3 ml-0 list-none space-y-2 text-white/95" />
-                    ),
-                    li: ({ node, ...props }) => (
-                      <li {...props} className="text-white/95">
-                        <span className="mr-2">•</span>
-                        {props.children}
-                      </li>
-                    ),
-                    h1: ({ node, ...props }) => (
-                      <h1 {...props} className="mb-4 text-xl font-bold text-white sm:text-2xl" />
-                    ),
-                    h2: ({ node, ...props }) => (
-                      <h2 {...props} className="mb-3 text-lg font-bold text-white sm:text-xl" />
-                    ),
-                    h3: ({ node, ...props }) => (
-                      <h3 {...props} className="mb-2 text-base font-bold text-white sm:text-lg" />
-                    ),
-                    blockquote: ({ node, ...props }) => (
-                      <blockquote
-                        {...props}
-                        className="my-4 border-l-4 border-green-400/50 bg-white/5 py-3 pl-4 pr-3 italic text-white/90"
-                      />
-                    ),
-                    code: ({ node, inline, ...props }: any) => {
-                      if (inline) {
-                        return (
-                          <code
-                            {...props}
-                            className="rounded bg-white/20 px-2 py-0.5 font-mono text-sm text-white"
-                          />
-                        );
-                      }
-                      return (
-                        <code
-                          {...props}
-                          className="block overflow-x-auto rounded bg-white/20 p-4 font-mono text-sm text-white"
-                        />
-                      );
-                    },
-                  }}
-                >
-                  {event.description}
-                </ReactMarkdown>
-              </div>
-            </div>
-
-            {/* Date Badge */}
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-md sm:gap-3 sm:px-5 sm:py-2.5">
-              <svg
-                className="h-4 w-4 text-white sm:h-5 sm:w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              <span className="text-xs font-semibold text-white sm:text-sm lg:text-base">
-                {new Date(
-                  new Date(event.eventDate).getTime() + new Date().getTimezoneOffset() * 60000
-                ).toLocaleDateString('es-ES', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </span>
-            </div>
-
-            {/* Services */}
-            {services.length > 0 && (
-              <div className="mb-6">
-                <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-white/70 sm:text-sm">
-                  Áreas de servicio disponibles
-                </p>
-                <div className="flex flex-wrap justify-center gap-2">
-                  {services.map((service: string, index: number) => (
-                    <span
-                      key={index}
-                      className="rounded-full bg-white/15 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md transition-all hover:bg-white/25 sm:px-4 sm:py-2 sm:text-sm"
-                    >
-                      {service}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Biblical Quote */}
-            <div className="mx-auto max-w-2xl rounded-xl border border-white/20 bg-white/10 p-4 backdrop-blur-md sm:p-6">
-              <svg
-                className="mb-2 h-6 w-6 text-white/60 sm:mb-3 sm:h-7 sm:w-7"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-              </svg>
-              <p className="mb-2 text-sm italic leading-relaxed text-white/95 sm:text-base">
-                &quot;Hijitos míos, no amemos de palabra ni de lengua, sino de hecho y en
-                verdad.&quot;
+          {/* Services */}
+          {services.length > 0 && (
+            <div>
+              <p className="text-ink-soft mb-3 text-[13px] font-semibold uppercase tracking-[.06em]">
+                Áreas de servicio disponibles
               </p>
-              <p className="text-xs font-semibold text-white/70 sm:text-sm">1 Juan 3:18</p>
+              <div className="flex flex-wrap gap-2">
+                {services.map((service: string, index: number) => (
+                  <span
+                    key={index}
+                    className="border-line rounded-full border bg-white px-3 py-1.5 text-[13px] font-medium"
+                  >
+                    {service}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
-      </div>
 
-      {/* Floating CTA Button - Liquid Glass */}
+        <aside className="flex flex-col gap-4 lg:col-span-4 lg:col-start-9">
+          {/* Logo */}
+          {/* The JPG carries its own white margin, so the card barely pads it */}
+          <div className="border-line flex justify-center overflow-hidden rounded-2xl border bg-white p-2">
+            <img
+              src="/logo-vida-y-esperanza.jpg"
+              alt="Vida y Esperanza"
+              className="h-auto w-full max-w-[340px]"
+            />
+          </div>
+
+          {/* Biblical Quote */}
+          <div className="bg-warm-soft rounded-2xl p-6">
+            <Quote className="mb-3 h-6 w-6" strokeWidth={1.5} />
+            <p className="mb-2 text-base italic leading-relaxed">
+              &quot;Hijitos míos, no amemos de palabra ni de lengua, sino de hecho y en
+              verdad.&quot;
+            </p>
+            <p className="text-ink-soft text-sm font-semibold">1 Juan 3:18</p>
+          </div>
+        </aside>
+      </section>
+
+      {/* Floating CTA Button */}
       <div
-        className={`pointer-events-none fixed inset-0 z-[9999] transition-opacity duration-500 ${showFloatingButton ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+        className={`pointer-events-none fixed inset-0 z-[9999] transition-[opacity,visibility] duration-500 ${showFloatingButton ? 'opacity-100' : 'invisible opacity-0'}`}
       >
-        <div className="pointer-events-auto absolute bottom-6 right-6 sm:bottom-8 sm:right-8">
-          <button
+        <div className="pointer-events-auto absolute bottom-6 right-5 sm:bottom-8 sm:right-8">
+          <Button
             onClick={scrollToForm}
-            className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/10 px-5 py-3 shadow-lg backdrop-blur-xl transition-all duration-500 hover:scale-105 hover:border-white/30 hover:bg-white/15 hover:shadow-xl sm:px-6 sm:py-3.5"
+            size="lg"
+            className="group shadow-[0_8px_24px_rgb(28_27_25/0.12)]"
           >
-            {/* Subtle gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-50"></div>
-
-            {/* Animated shimmer effect */}
-            <div className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-1000 group-hover:translate-x-[100%]"></div>
-
-            {/* Button content */}
-            <div className="relative flex items-center gap-2">
-              <span className="text-sm font-semibold text-white sm:text-base">
-                Quiero ser parte
-              </span>
-              <svg
-                className="h-4 w-4 animate-bounce text-white transition-transform duration-300 group-hover:translate-y-1 sm:h-5 sm:w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-              </svg>
-            </div>
-          </button>
+            Quiero ser parte
+            <ArrowDown
+              className="h-5 w-5 transition-transform duration-300 group-hover:translate-y-0.5"
+              strokeWidth={1.5}
+            />
+          </Button>
         </div>
       </div>
 
       {/* Registration Form */}
-      <div id="registration-form" className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl">
-          <div className="border-b border-gray-200 bg-gradient-to-r from-[#4b207f] to-[#5c2a96] px-6 py-6 sm:px-8 sm:py-8">
-            <h2 className="text-2xl font-bold text-white sm:text-3xl">Formulario de Registro</h2>
-            <p className="mt-2 text-sm text-white/90 sm:text-base">
+      <div
+        id="registration-form"
+        className="mx-auto w-full max-w-[880px] scroll-mt-20 px-5 pb-14 md:px-8 lg:scroll-mt-24 lg:pb-28 xl:px-0"
+      >
+        <div className="border-line overflow-hidden rounded-2xl border bg-white">
+          <div className="px-6 pt-6 sm:px-10 sm:pt-10">
+            <h2 className="text-[32px] leading-[1.15] sm:text-[40px]">Formulario de Registro</h2>
+            <p className="text-ink-soft mt-1.5 text-base">
               Únete al programa de voluntariado de Vida y Esperanza
             </p>
           </div>
 
-          <div className="p-6 sm:p-8 lg:p-10">
+          <div className="p-6 sm:p-10">
             {alreadyRegistered && (
-              <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-blue-700">
+              <div className="bg-warm-soft mb-6 flex items-start gap-3 rounded-xl p-4 text-[15px]">
+                <Info className="mt-0.5 h-5 w-5 flex-none" strokeWidth={1.5} />
                 Ya estás registrado para este evento. Puedes actualizar tu información si lo deseas.
               </div>
             )}
 
             {error && (
-              <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
+              <div className="border-line mb-6 flex items-start gap-3 rounded-xl border bg-white p-4 text-[15px] text-[#b3261e]">
+                <AlertCircle className="mt-0.5 h-5 w-5 flex-none" strokeWidth={1.5} />
                 {error}
               </div>
             )}
@@ -695,11 +643,11 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Document ID */}
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Documento de Identidad <span className="text-red-500">*</span>
+                <label className="mb-2 block text-sm font-medium">
+                  Documento de Identidad <span className="text-[#b3261e]">*</span>
                 </label>
                 <div className="relative">
-                  <input
+                  <Input
                     type="text"
                     value={formData.documentID}
                     onChange={(e) => {
@@ -710,90 +658,40 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                       setAlreadyRegistered(false);
                     }}
                     onBlur={handleDocumentBlur}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 pr-12 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
+                    className="pr-12"
                     placeholder="Ingresa tu documento"
                     disabled={checkingDocument}
                   />
                   {/* Status Icons */}
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3.5">
                     {checkingDocument && (
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#4b207f] border-t-transparent"></div>
+                      <Loader2 className="text-ink h-5 w-5 animate-spin" strokeWidth={1.5} />
                     )}
                     {!checkingDocument && memberFound === true && (
-                      <svg
-                        className="h-6 w-6 text-green-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
+                      <CircleCheck className="h-5 w-5 text-green-700" strokeWidth={1.5} />
                     )}
                     {!checkingDocument && memberFound === false && (
-                      <svg
-                        className="h-6 w-6 text-yellow-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                        />
-                      </svg>
+                      <Info className="text-ink-soft h-5 w-5" strokeWidth={1.5} />
                     )}
                   </div>
                 </div>
 
                 {/* Status Messages */}
                 {checkingDocument && (
-                  <p className="mt-2 flex items-center text-sm text-gray-600">
-                    <svg className="mr-1.5 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
+                  <p className="text-ink-soft mt-2 flex items-center gap-1.5 text-[13px]">
+                    <Loader2 className="h-4 w-4 flex-none animate-spin" strokeWidth={1.5} />
                     Buscando información...
                   </p>
                 )}
                 {!checkingDocument && memberFound === true && (
-                  <p className="mt-2 flex items-center text-sm text-green-600">
-                    <svg className="mr-1.5 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                  <p className="mt-2 flex items-center gap-1.5 text-[13px] text-green-700">
+                    <CircleCheck className="h-4 w-4 flex-none" strokeWidth={1.5} />
                     ¡Miembro encontrado! Tus datos se han precargado
                   </p>
                 )}
                 {!checkingDocument && memberFound === false && (
-                  <p className="mt-2 flex items-center text-sm text-yellow-600">
-                    <svg className="mr-1.5 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                  <p className="text-ink-soft mt-2 flex items-center gap-1.5 text-[13px]">
+                    <Info className="h-4 w-4 flex-none" strokeWidth={1.5} />
                     Documento no encontrado. Se creará un nuevo registro con tus datos
                   </p>
                 )}
@@ -802,49 +700,44 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
               {/* Personal Info - Only show after document is entered */}
               {formData.documentID && (
                 <div className="animate-fade-in space-y-4">
-                  <div className="rounded-lg border border-gray-200 bg-gray-50/50 p-4">
-                    <h3 className="mb-3 text-sm font-semibold text-gray-700">
-                      Información Personal
-                    </h3>
-                    <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="border-line bg-paper rounded-xl border p-4 sm:p-5">
+                    <h3 className="mb-4 text-xl">Información Personal</h3>
+                    <div className="grid gap-4 sm:grid-cols-2">
                       {/* Name */}
                       <div>
-                        <label className="mb-1.5 block text-xs font-medium text-gray-600">
-                          Nombre Completo <span className="text-red-500">*</span>
+                        <label className="mb-2 block text-sm font-medium">
+                          Nombre Completo <span className="text-[#b3261e]">*</span>
                         </label>
-                        <input
+                        <Input
                           type="text"
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
                           placeholder="Tu nombre completo"
                         />
                       </div>
 
                       {/* Phone */}
                       <div>
-                        <label className="mb-1.5 block text-xs font-medium text-gray-600">
-                          Teléfono <span className="text-red-500">*</span>
+                        <label className="mb-2 block text-sm font-medium">
+                          Teléfono <span className="text-[#b3261e]">*</span>
                         </label>
-                        <input
+                        <Input
                           type="tel"
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
                           placeholder="Tu número"
                         />
                       </div>
 
                       {/* Birth Date */}
                       <div className="sm:col-span-2">
-                        <label className="mb-1.5 block text-xs font-medium text-gray-600">
-                          Fecha de Nacimiento <span className="text-red-500">*</span>
+                        <label className="mb-2 block text-sm font-medium">
+                          Fecha de Nacimiento <span className="text-[#b3261e]">*</span>
                         </label>
-                        <input
+                        <Input
                           type="date"
                           value={formData.birthDate}
                           onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
                           max={(() => {
                             // Local date parts: toISOString() is UTC, a day
                             // ahead from 7 p.m. in Bogotá
@@ -852,7 +745,9 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                             return `${d.getFullYear() - 16}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                           })()}
                         />
-                        <p className="mt-1 text-xs text-gray-500">Debes tener al menos 16 años</p>
+                        <p className="text-ink-soft mt-1.5 text-[13px]">
+                          Debes tener al menos 16 años
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -861,8 +756,8 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
 
               {/* Service Selection */}
               <div className="relative">
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  ¿En qué servicio deseas participar? <span className="text-red-500">*</span>
+                <label className="mb-2 block text-sm font-medium">
+                  ¿En qué servicio deseas participar? <span className="text-[#b3261e]">*</span>
                 </label>
 
                 {/* Custom Dropdown */}
@@ -870,32 +765,23 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                   <button
                     type="button"
                     onClick={() => setShowServiceDropdown(!showServiceDropdown)}
-                    className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-3 pr-10 text-left focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
+                    className="focus-visible:border-denim h-12 w-full rounded-xl border border-gray-300 bg-white pl-4 pr-11 text-left text-base transition-colors"
                   >
-                    <span className={formData.selectedService ? 'text-gray-900' : 'text-gray-500'}>
+                    <span className={formData.selectedService ? 'text-ink' : 'text-gray-500'}>
                       {formData.selectedService || 'Selecciona un servicio'}
                     </span>
-                    <svg
-                      className={`absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400 transition-transform ${
+                    <ChevronDown
+                      className={`text-ink-soft absolute right-3.5 top-1/2 h-5 w-5 -translate-y-1/2 transition-transform ${
                         showServiceDropdown ? 'rotate-180' : ''
                       }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
+                      strokeWidth={1.5}
+                    />
                   </button>
 
                   {/* Dropdown Options */}
                   {showServiceDropdown && (
-                    <div className="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg">
-                      <div className="max-h-60 overflow-auto rounded-lg">
+                    <div className="border-line absolute z-10 mt-1.5 w-full rounded-xl border bg-white shadow-[0_8px_24px_rgb(28_27_25/0.12)]">
+                      <div className="max-h-60 overflow-auto rounded-xl py-1">
                         {services
                           .slice()
                           .sort((a: string, b: string) => {
@@ -930,16 +816,15 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
 
                             if (isFull) {
                               statusText = 'COMPLETADO';
-                              colorClasses =
-                                'bg-gray-50 text-gray-600 cursor-not-allowed opacity-70';
+                              colorClasses = 'bg-gray-100 text-gray-500 cursor-not-allowed';
                               statusDot = 'bg-gray-400';
                             } else if (isLimited && available !== null && available <= 3) {
                               statusText = `¡Últimos cupos! (${available})`;
-                              colorClasses = 'hover:bg-gray-50 text-gray-900';
-                              statusDot = 'bg-green-500';
+                              colorClasses = 'hover:bg-gray-50 text-ink';
+                              statusDot = 'bg-green-600';
                             } else {
-                              colorClasses = 'hover:bg-gray-50 text-gray-900';
-                              statusDot = 'bg-green-500';
+                              colorClasses = 'hover:bg-gray-50 text-ink';
+                              statusDot = 'bg-green-600';
                             }
 
                             return (
@@ -954,18 +839,20 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                                   }
                                 }}
                                 className={`w-full px-4 py-3 text-left transition-colors ${colorClasses} ${
-                                  formData.selectedService === service ? 'bg-[#4b207f]/10' : ''
+                                  formData.selectedService === service ? 'bg-warm-soft' : ''
                                 }`}
                               >
                                 <div className="flex items-center gap-3">
                                   {/* Status dot */}
-                                  <div className={`h-3 w-3 rounded-full ${statusDot}`}></div>
+                                  <div
+                                    className={`h-2 w-2 flex-none rounded-full ${statusDot}`}
+                                  ></div>
                                   <div className="flex-1">
                                     <div className="font-medium">{displayText}</div>
                                     {statusText && (
                                       <div
                                         className={`mt-0.5 text-xs ${
-                                          isFull ? 'opacity-75' : 'font-semibold text-green-700'
+                                          isFull ? '' : 'font-semibold text-green-700'
                                         }`}
                                       >
                                         {statusText}
@@ -992,8 +879,8 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
 
               {/* Transport */}
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">Transporte</label>
-                <div className="flex items-center">
+                <label className="mb-2 block text-sm font-medium">Transporte</label>
+                <div className="has-checked:border-ink has-checked:bg-warm-soft flex min-h-[52px] items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 transition-colors">
                   <input
                     type="checkbox"
                     id="hasTransport"
@@ -1005,9 +892,9 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                         transportSlots: '',
                       })
                     }
-                    className="h-4 w-4 rounded border-gray-300 text-[#4b207f] focus:ring-[#4b207f]"
+                    className="accent-ink h-5 w-5 flex-none cursor-pointer"
                   />
-                  <label htmlFor="hasTransport" className="ml-2 text-sm text-gray-700">
+                  <label htmlFor="hasTransport" className="flex-1 cursor-pointer py-3 text-base">
                     ¿Cuentas con transporte propio para el evento?
                   </label>
                 </div>
@@ -1015,18 +902,17 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
 
               {/* Transport Slots - Conditional */}
               {formData.hasTransport && (
-                <div className="ml-6 rounded-lg bg-gray-50 p-4">
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                <div className="border-line bg-paper rounded-xl border p-4 sm:ml-8">
+                  <label className="mb-2 block text-sm font-medium">
                     ¿Cuántos cupos tienes disponibles para llevar a otros voluntarios?{' '}
-                    <span className="text-red-500">*</span>
+                    <span className="text-[#b3261e]">*</span>
                   </label>
-                  <input
+                  <Input
                     type="number"
                     min="0"
                     max="10"
                     value={formData.transportSlots}
                     onChange={(e) => setFormData({ ...formData, transportSlots: e.target.value })}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
                     placeholder="Número de cupos"
                   />
                 </div>
@@ -1045,7 +931,7 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                       value="normal"
                       checked={formData.dietType === 'normal'}
                       onChange={(e) => setFormData({ ...formData, dietType: e.target.value })}
-                      className="h-4 w-4 border-gray-300 text-[#4b207f] focus:ring-[#4b207f]"
+                      className="h-4 w-4 border-gray-300 accent-ink"
                     />
                     <span className="ml-2 text-sm text-gray-700">Normal</span>
                   </label>
@@ -1056,7 +942,7 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                       value="vegetariana"
                       checked={formData.dietType === 'vegetariana'}
                       onChange={(e) => setFormData({ ...formData, dietType: e.target.value })}
-                      className="h-4 w-4 border-gray-300 text-[#4b207f] focus:ring-[#4b207f]"
+                      className="h-4 w-4 border-gray-300 accent-ink"
                     />
                     <span className="ml-2 text-sm text-gray-700">Vegetariana</span>
                   </label>
@@ -1069,29 +955,16 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
               </div>
 
               {/* Submit Button */}
-              <div className="pt-4">
-                <button
+              <div className="pt-2">
+                <Button
                   type="submit"
+                  size="lg"
                   disabled={isSubmitting || !turnstileToken}
-                  className="w-full rounded-lg bg-[#4b207f] px-6 py-4 text-lg font-semibold text-white transition-colors hover:bg-[#4b207f]/90 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full"
                 >
                   {isSubmitting ? (
-                    <span className="flex items-center justify-center">
-                      <svg className="mr-2 h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="h-5 w-5 animate-spin" strokeWidth={1.5} />
                       {alreadyRegistered ? 'Actualizando...' : 'Registrando...'}
                     </span>
                   ) : alreadyRegistered ? (
@@ -1099,7 +972,7 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                   ) : (
                     'Registrarme como Voluntario'
                   )}
-                </button>
+                </Button>
               </div>
             </form>
           </div>

@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import AdminLayout from '@/app/admin/components/AdminLayout';
-import { Button } from '@/app/components/ui/button';
+import { ChevronDown, Loader2, X } from 'lucide-react';
+import { Button, buttonVariants } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
+import { Textarea } from '@/app/components/ui/textarea';
 import { Checkbox } from '@/app/components/ui/checkbox';
 import { Program, Enrollment } from '@/app/types';
 import { DEPARTMENTS, getDepartmentName, usesFamilyEnrollment } from '@/lib/constants';
@@ -338,7 +340,7 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
     return (
       <AdminLayout adminEmail={adminEmail}>
         <div className="flex min-h-screen items-center justify-center">
-          <div className="text-lg">Cargando...</div>
+          <div className="text-ink-soft text-lg">Cargando...</div>
         </div>
       </AdminLayout>
     );
@@ -348,24 +350,22 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
     <AdminLayout adminEmail={adminEmail}>
       <div className="space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-[#4b207f]">Gestión de Programas</h1>
-          <Button
-            onClick={() => setShowProgramForm(true)}
-            className="rounded-lg bg-[#4b207f] px-6 py-2 font-medium text-white hover:bg-[#4b207f]/90"
-          >
-            Nuevo Programa
-          </Button>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-[40px] leading-[1.04]">Gestión de Programas</h1>
+            <p className="text-ink-soft mt-2">
+              Programas de los departamentos, sus inscritos y la página de inscripción.
+            </p>
+          </div>
+          <Button onClick={() => setShowProgramForm(true)}>Nuevo Programa</Button>
         </div>
 
         {/* Filters */}
-        <div className="rounded-lg bg-white p-6 shadow">
-          <h3 className="mb-4 text-lg font-medium text-gray-900">Filtros</h3>
+        <div className="border-line rounded-2xl border bg-white p-5 md:p-6">
+          <h3 className="mb-4 text-xl">Filtros</h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Buscar por nombre
-              </label>
+              <label className={labelClass}>Buscar por nombre</label>
               <Input
                 type="text"
                 placeholder="Buscar programas..."
@@ -375,23 +375,21 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
               />
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Estado</label>
-              <select
+              <label className={labelClass}>Estado</label>
+              <Select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#4b207f]"
               >
                 <option value="all">Todos</option>
                 <option value="active">Activos</option>
                 <option value="inactive">Inactivos</option>
-              </select>
+              </Select>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Departamento</label>
-              <select
+              <label className={labelClass}>Departamento</label>
+              <Select
                 value={departmentFilter}
                 onChange={(e) => setDepartmentFilter(e.target.value)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#4b207f]"
               >
                 <option value="">Todos los departamentos</option>
                 {DEPARTMENTS.map((dept) => (
@@ -399,16 +397,17 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                     {dept.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
             <div className="flex items-end">
               <Button
+                variant="secondary"
                 onClick={() => {
                   setSearchTerm('');
                   setStatusFilter('all');
                   setDepartmentFilter('');
                 }}
-                className="w-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                className="h-12 w-full"
               >
                 Limpiar Filtros
               </Button>
@@ -417,83 +416,61 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
         </div>
 
         {/* Programs Table */}
-        <div className="overflow-hidden rounded-lg bg-white shadow">
-          <div className="border-b border-gray-200 px-6 py-4">
-            <h3 className="text-lg font-medium text-gray-900">
-              Programas Registrados ({filteredPrograms.length})
-            </h3>
+        <div className="border-line overflow-hidden rounded-2xl border bg-white">
+          <div className="border-line border-b px-6 py-4">
+            <h3 className="text-xl">Programas Registrados ({filteredPrograms.length})</h3>
           </div>
 
           {/* Desktop Table View */}
           <div className="hidden overflow-x-auto md:block">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="divide-line min-w-full divide-y">
+              <thead className="text-ink-soft bg-gray-50 text-xs font-semibold uppercase tracking-[.04em]">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    Título
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    Departamento
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    Estado
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    Inscritos
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    URL de Inscripción
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    Acciones
-                  </th>
+                  <th className="px-5 py-3 text-left">Título</th>
+                  <th className="px-5 py-3 text-left">Departamento</th>
+                  <th className="px-5 py-3 text-left">Estado</th>
+                  <th className="px-5 py-3 text-left">Inscritos</th>
+                  <th className="px-5 py-3 text-left">URL de Inscripción</th>
+                  <th className="px-5 py-3 text-left">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
+              <tbody className="divide-line divide-y">
                 {filteredPrograms.map((program) => (
                   <tr key={program.id} className="hover:bg-gray-50">
-                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                    <td className="text-ink whitespace-nowrap px-5 py-4 text-sm font-medium">
                       {program.title}
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                      {getDepartmentName(program.department)}
+                    <td className="whitespace-nowrap px-5 py-4">
+                      <DepartmentTag code={program.department} />
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span
-                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                          program.isActive
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {program.isActive ? 'Activo' : 'Inactivo'}
-                      </span>
+                    <td className="whitespace-nowrap px-5 py-4">
+                      <StatusPill active={program.isActive} />
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                    <td className="text-ink-soft whitespace-nowrap px-5 py-4 text-sm">
                       {program._count?.enrollments || 0}
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                    <td className="whitespace-nowrap px-5 py-4 text-sm">
                       <a
                         href={`/program/${program.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 hover:underline"
+                        className="text-denim hover:text-ink underline underline-offset-4"
                       >
                         /program/{program.id}
                       </a>
                     </td>
-                    <td className="space-x-2 whitespace-nowrap px-6 py-4 text-sm font-medium">
+                    <td className="space-x-2 whitespace-nowrap px-5 py-4">
                       <Button
                         size="sm"
+                        variant="outline"
                         onClick={() => handleViewEnrollments(program)}
-                        className="border border-[#4b207f] bg-white text-[#4b207f] hover:bg-[#4b207f] hover:text-white"
                       >
                         Ver Detalles
                       </Button>
                       <Button
                         size="sm"
+                        variant="secondary"
                         onClick={() => handleEditProgram(program)}
-                        className="border border-blue-600 bg-white text-blue-600 hover:bg-blue-600 hover:text-white"
                       >
                         Editar
                       </Button>
@@ -506,55 +483,35 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
 
           {/* Mobile Card View */}
           <div className="md:hidden">
-            <div className="divide-y divide-gray-200">
+            <div className="divide-line divide-y">
               {filteredPrograms.map((program) => (
-                <div key={program.id} className="p-4 hover:bg-gray-50">
-                  <div className="mb-3 flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="mb-1 text-sm font-medium text-gray-900">{program.title}</h3>
-                      <p className="mb-2 text-sm text-gray-500">
-                        {getDepartmentName(program.department)}
-                      </p>
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
-                        <span
-                          className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                            program.isActive
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
-                        >
-                          {program.isActive ? 'Activo' : 'Inactivo'}
-                        </span>
-                        <span>{program._count?.enrollments || 0} inscritos</span>
-                      </div>
-                    </div>
+                <div key={program.id} className="space-y-3 p-5">
+                  <div>
+                    <h3 className="mb-2 text-xl">{program.title}</h3>
+                    <DepartmentTag code={program.department} />
+                  </div>
+                  <div className="text-ink-soft flex items-center gap-3 text-sm">
+                    <StatusPill active={program.isActive} />
+                    <span>{program._count?.enrollments || 0} inscritos</span>
                   </div>
 
-                  <div className="mb-3">
-                    <p className="text-xs text-gray-500">URL de inscripción:</p>
+                  <div>
+                    <p className="text-ink-soft text-[13px]">URL de inscripción:</p>
                     <a
                       href={`/program/${program.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                      className="text-denim hover:text-ink text-sm underline underline-offset-4"
                     >
                       /program/{program.id}
                     </a>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => handleViewEnrollments(program)}
-                      className="border border-[#4b207f] bg-white text-xs text-[#4b207f] hover:bg-[#4b207f] hover:text-white"
-                    >
+                    <Button variant="outline" onClick={() => handleViewEnrollments(program)}>
                       Ver Detalles
                     </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => handleEditProgram(program)}
-                      className="border border-blue-600 bg-white text-xs text-blue-600 hover:bg-blue-600 hover:text-white"
-                    >
+                    <Button variant="secondary" onClick={() => handleEditProgram(program)}>
                       Editar
                     </Button>
                   </div>
@@ -567,7 +524,7 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
         {/* Program Form Modal */}
         {showProgramForm && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            className="bg-ink/50 fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={() => {
               setShowProgramForm(false);
               setEditingProgram(null);
@@ -580,12 +537,12 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
             }}
           >
             <div
-              className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg"
+              className="border-line flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border bg-white"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-gray-200 p-4 md:p-6">
-                <h2 className="text-xl font-semibold text-[#4b207f]">
+              <div className="border-line flex items-center justify-between border-b px-5 py-4 md:px-6">
+                <h2 className="text-[28px] leading-tight">
                   {editingProgram ? 'Editar Programa' : 'Nuevo Programa'}
                 </h2>
                 <button
@@ -599,27 +556,18 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                       isActive: true,
                     });
                   }}
-                  className="text-gray-500 hover:text-gray-700"
+                  className={closeButtonClass}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="h-6 w-6"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <X className="h-5 w-5" strokeWidth={1.5} />
                 </button>
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto p-4 md:p-6">
-                <form onSubmit={handleProgramSubmit} className="space-y-4">
+              <div className="flex-1 overflow-y-auto p-5 md:p-6">
+                <form onSubmit={handleProgramSubmit} className="space-y-5">
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700">
-                      Título del Programa *
+                    <label className={labelClass}>
+                      Título del Programa <span className="text-[#b3261e]">*</span>
                     </label>
                     <Input
                       type="text"
@@ -633,15 +581,14 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700">
-                      Departamento *
+                    <label className={labelClass}>
+                      Departamento <span className="text-[#b3261e]">*</span>
                     </label>
-                    <select
+                    <Select
                       value={programFormData.department}
                       onChange={(e) =>
                         setProgramFormData((prev) => ({ ...prev, department: e.target.value }))
                       }
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#4b207f]"
                       required
                     >
                       <option value="">Seleccionar departamento</option>
@@ -650,28 +597,25 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                           {dept.name}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700">
-                      Contenido del Programa
-                    </label>
-                    <textarea
+                    <label className={labelClass}>Contenido del Programa</label>
+                    <Textarea
                       value={programFormData.content}
                       onChange={(e) =>
                         setProgramFormData((prev) => ({ ...prev, content: e.target.value }))
                       }
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#4b207f]"
                       rows={4}
                       placeholder="Detalles del programa, directores, organizadores, horarios, ubicación, requisitos, etc."
                     />
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="text-ink-soft mt-2 text-[13px]">
                       Información opcional sobre el programa que se mostrará en la página pública
                     </p>
                   </div>
 
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-3">
                     <Checkbox
                       id="isActive"
                       checked={programFormData.isActive}
@@ -679,14 +623,15 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                         setProgramFormData((prev) => ({ ...prev, isActive: checked as boolean }))
                       }
                     />
-                    <label htmlFor="isActive" className="text-sm text-gray-700">
+                    <label htmlFor="isActive" className="text-ink text-base">
                       Programa activo
                     </label>
                   </div>
 
-                  <div className="flex justify-end space-x-2 pt-4">
+                  <div className="border-line flex justify-end gap-3 border-t pt-5">
                     <Button
                       type="button"
+                      variant="outline"
                       onClick={() => {
                         setShowProgramForm(false);
                         setEditingProgram(null);
@@ -697,15 +642,10 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                           isActive: true,
                         });
                       }}
-                      className="border border-[#4b207f] bg-white text-[#4b207f] hover:bg-[#4b207f] hover:text-white"
                     >
                       Cancelar
                     </Button>
-                    <Button
-                      type="submit"
-                      disabled={savingProgram}
-                      className="bg-[#4b207f] text-white hover:bg-[#4b207f]/90"
-                    >
+                    <Button type="submit" disabled={savingProgram}>
                       {editingProgram ? 'Actualizar' : 'Crear'}
                     </Button>
                   </div>
@@ -718,7 +658,7 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
         {/* Enrollments Modal */}
         {showEnrollmentsModal && selectedProgram && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            className="bg-ink/50 fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={() => {
               setShowEnrollmentsModal(false);
               setEnrollments([]);
@@ -727,37 +667,30 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
             }}
           >
             <div
-              className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-white shadow-lg"
+              className="border-line flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border bg-white"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-gray-200 p-4 md:p-6">
-                <h2 className="text-xl font-semibold text-[#4b207f]">
-                  Inscritos en {selectedProgram.title}
-                </h2>
-                <div className="flex space-x-2">
+              <div className="border-line flex flex-col gap-4 border-b px-5 py-4 md:flex-row md:items-center md:justify-between md:px-6">
+                <h2 className="text-[28px] leading-tight">Inscritos en {selectedProgram.title}</h2>
+                <div className="flex flex-wrap gap-2 md:flex-none">
                   {usesFamilyEnrollment(selectedProgram.department) && (
                     <a
                       href={`/admin/programs/${selectedProgram.id}/roster`}
-                      className="inline-flex items-center rounded-md border border-green-700 bg-white px-4 text-sm font-medium text-green-700 hover:bg-green-700 hover:text-white"
+                      className={buttonVariants({ variant: 'outline' })}
                     >
                       Grupos familiares
                     </a>
                   )}
+                  <Button onClick={() => downloadCSV(selectedProgram)}>Descargar CSV</Button>
                   <Button
-                    onClick={() => downloadCSV(selectedProgram)}
-                    className="bg-green-600 text-white hover:bg-green-700"
-                  >
-                    Descargar CSV
-                  </Button>
-                  <Button
+                    variant="secondary"
                     onClick={() => {
                       setShowEnrollmentsModal(false);
                       setEnrollments([]);
                       setLoadingEnrollments(false);
                       setEnrollmentSearchTerm('');
                     }}
-                    className="border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
                   >
                     Cerrar
                   </Button>
@@ -765,12 +698,12 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto p-4 md:p-6">
+              <div className="flex-1 overflow-y-auto p-5 md:p-6">
                 {/* Enrollment Search */}
-                <div className="mb-4">
-                  <div className="flex items-center space-x-4">
+                <div className="mb-5">
+                  <div className="flex items-end gap-3">
                     <div className="flex-1">
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
+                      <label className={labelClass}>
                         Buscar por nombre o documento (niños, padres, responsables)
                       </label>
                       <Input
@@ -781,69 +714,42 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                         className="w-full"
                       />
                     </div>
-                    <div className="flex items-end">
-                      <Button
-                        onClick={() => setEnrollmentSearchTerm('')}
-                        className="border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-                      >
-                        Limpiar
-                      </Button>
-                    </div>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setEnrollmentSearchTerm('')}
+                      className="h-12"
+                    >
+                      Limpiar
+                    </Button>
                   </div>
                   {enrollmentSearchTerm && (
-                    <p className="mt-2 text-sm text-gray-500">
+                    <p className="text-ink-soft mt-2 text-sm">
                       Mostrando {filteredEnrollments.length} de {enrollments.length} inscritos
                     </p>
                   )}
                 </div>
 
                 {loadingEnrollments ? (
-                  <div className="py-8 text-center text-gray-500">
-                    <div className="inline-flex items-center">
-                      <svg
-                        className="mr-2 h-4 w-4 animate-spin text-gray-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
+                  <div className="text-ink-soft py-8 text-center">
+                    <div className="inline-flex items-center gap-2">
+                      <Loader2 className="text-ink h-4 w-4 animate-spin" strokeWidth={1.5} />
                       Cargando inscritos...
                     </div>
                   </div>
                 ) : (
                   <>
                     {/* Desktop Table View */}
-                    <div className="hidden overflow-x-auto lg:block">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                    <div className="border-line hidden overflow-hidden rounded-2xl border lg:block">
+                      <table className="divide-line min-w-full divide-y">
+                        <thead className="text-ink-soft bg-gray-50 text-xs font-semibold uppercase tracking-[.04em]">
                           <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                              Participante
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                              Tipo
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                              Responsables/Contacto
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                              Fecha de Inscripción
-                            </th>
+                            <th className="px-6 py-3 text-left">Participante</th>
+                            <th className="px-6 py-3 text-left">Tipo</th>
+                            <th className="px-6 py-3 text-left">Responsables/Contacto</th>
+                            <th className="px-6 py-3 text-left">Fecha de Inscripción</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200 bg-white">
+                        <tbody className="divide-line divide-y bg-white">
                           {filteredEnrollments.map((enrollment: any) => {
                             const participant = enrollment.child || enrollment.member;
                             return (
@@ -853,76 +759,40 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                               >
                                 <td className="whitespace-nowrap px-6 py-4">
                                   <div>
-                                    <div className="text-sm font-medium text-gray-900">
+                                    <div className="text-ink text-sm font-medium">
                                       {participant?.name || 'N/A'}
                                     </div>
-                                    <div className="text-sm text-gray-500">
+                                    <div className="text-ink-soft text-sm">
                                       Doc: {participant?.documentID || 'N/A'}
                                     </div>
                                   </div>
                                 </td>
                                 <td className="whitespace-nowrap px-6 py-4">
-                                  <span
-                                    className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                                      enrollment.child
-                                        ? 'bg-blue-100 text-blue-800'
-                                        : 'bg-green-100 text-green-800'
-                                    }`}
-                                  >
-                                    {enrollment.child ? 'Niño' : 'Adulto'}
-                                  </span>
+                                  <TypePill child={Boolean(enrollment.child)} />
                                 </td>
                                 <td className="px-6 py-4">
                                   {enrollment.child &&
                                   enrollment.child.guardians &&
                                   enrollment.child.guardians.length > 0 ? (
-                                    <div className="space-y-1">
+                                    <div className="space-y-2">
                                       {enrollment.child.guardians.map(
                                         (guardian: any, index: number) => (
-                                          <div key={index} className="flex items-center space-x-2">
-                                            <span
-                                              className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                                                guardian.relationship === 'father'
-                                                  ? 'bg-blue-100 text-blue-800'
-                                                  : guardian.relationship === 'mother'
-                                                    ? 'bg-pink-100 text-pink-800'
-                                                    : 'bg-purple-100 text-purple-800'
-                                              }`}
-                                            >
-                                              {guardian.relationship === 'father'
-                                                ? 'Padre'
-                                                : guardian.relationship === 'mother'
-                                                  ? 'Madre'
-                                                  : guardian.relationship === 'guardian'
-                                                    ? 'Tutor'
-                                                    : guardian.relationship}
-                                            </span>
-                                            <div className="min-w-0 flex-1">
-                                              <p className="truncate text-sm text-gray-900">
-                                                {guardian.name}
-                                              </p>
-                                              <p className="font-mono text-xs text-gray-500">
-                                                {guardian.phone || 'Sin teléfono'}
-                                              </p>
-                                            </div>
-                                          </div>
+                                          <Guardian key={index} guardian={guardian} />
                                         )
                                       )}
                                     </div>
                                   ) : enrollment.member ? (
                                     <div>
-                                      <p className="text-sm text-gray-900">
-                                        {enrollment.member.name}
-                                      </p>
-                                      <p className="font-mono text-xs text-gray-500">
+                                      <p className="text-ink text-sm">{enrollment.member.name}</p>
+                                      <p className="text-ink-soft font-mono text-xs">
                                         {enrollment.member.phone || 'Sin teléfono'}
                                       </p>
                                     </div>
                                   ) : (
-                                    <span className="text-sm text-gray-500">Sin información</span>
+                                    <span className="text-ink-soft text-sm">Sin información</span>
                                   )}
                                 </td>
-                                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                <td className="text-ink-soft whitespace-nowrap px-6 py-4 text-sm">
                                   {new Date(enrollment.createdAt).toLocaleDateString('es-ES')}
                                 </td>
                               </tr>
@@ -933,32 +803,24 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                     </div>
 
                     {/* Mobile Card View */}
-                    <div className="space-y-4 lg:hidden">
+                    <div className="space-y-3 lg:hidden">
                       {filteredEnrollments.map((enrollment: any) => {
                         const participant = enrollment.child || enrollment.member;
                         return (
                           <div
                             key={`${enrollment.child ? 'child' : 'adult'}-${enrollment.id}`}
-                            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+                            className="border-line rounded-2xl border bg-white p-4"
                           >
-                            <div className="mb-3 flex items-start justify-between">
+                            <div className="mb-3 flex items-start justify-between gap-3">
                               <div className="flex-1">
-                                <h3 className="text-sm font-medium text-gray-900">
+                                <h3 className="text-ink font-sans text-sm font-medium tracking-normal">
                                   {participant?.name || 'N/A'}
                                 </h3>
-                                <p className="mt-1 text-xs text-gray-500">
+                                <p className="text-ink-soft mt-1 text-xs">
                                   Doc: {participant?.documentID || 'N/A'}
                                 </p>
                               </div>
-                              <span
-                                className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                                  enrollment.child
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-green-100 text-green-800'
-                                }`}
-                              >
-                                {enrollment.child ? 'Niño' : 'Adulto'}
-                              </span>
+                              <TypePill child={Boolean(enrollment.child)} />
                             </div>
 
                             {/* Responsables Section */}
@@ -966,60 +828,34 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                             enrollment.child.guardians &&
                             enrollment.child.guardians.length > 0 ? (
                               <div className="mb-3">
-                                <h4 className="mb-2 text-xs font-medium text-gray-700">
+                                <h4 className="text-ink-soft mb-2 font-sans text-xs font-medium tracking-normal">
                                   Responsables:
                                 </h4>
                                 <div className="space-y-2">
                                   {enrollment.child.guardians.map(
                                     (guardian: any, index: number) => (
-                                      <div key={index} className="flex items-center space-x-2">
-                                        <span
-                                          className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                                            guardian.relationship === 'father'
-                                              ? 'bg-blue-100 text-blue-800'
-                                              : guardian.relationship === 'mother'
-                                                ? 'bg-pink-100 text-pink-800'
-                                                : 'bg-purple-100 text-purple-800'
-                                          }`}
-                                        >
-                                          {guardian.relationship === 'father'
-                                            ? 'Padre'
-                                            : guardian.relationship === 'mother'
-                                              ? 'Madre'
-                                              : guardian.relationship === 'guardian'
-                                                ? 'Tutor'
-                                                : guardian.relationship}
-                                        </span>
-                                        <div className="min-w-0 flex-1">
-                                          <p className="truncate text-sm text-gray-900">
-                                            {guardian.name}
-                                          </p>
-                                          <p className="font-mono text-xs text-gray-500">
-                                            {guardian.phone || 'Sin teléfono'}
-                                          </p>
-                                        </div>
-                                      </div>
+                                      <Guardian key={index} guardian={guardian} />
                                     )
                                   )}
                                 </div>
                               </div>
                             ) : enrollment.member ? (
                               <div className="mb-3">
-                                <h4 className="mb-1 text-xs font-medium text-gray-700">
+                                <h4 className="text-ink-soft mb-1 font-sans text-xs font-medium tracking-normal">
                                   Contacto:
                                 </h4>
-                                <p className="text-sm text-gray-900">{enrollment.member.name}</p>
-                                <p className="font-mono text-xs text-gray-500">
+                                <p className="text-ink text-sm">{enrollment.member.name}</p>
+                                <p className="text-ink-soft font-mono text-xs">
                                   {enrollment.member.phone || 'Sin teléfono'}
                                 </p>
                               </div>
                             ) : (
                               <div className="mb-3">
-                                <p className="text-xs text-gray-500">Sin información de contacto</p>
+                                <p className="text-ink-soft text-xs">Sin información de contacto</p>
                               </div>
                             )}
 
-                            <div className="text-xs text-gray-500">
+                            <div className="text-ink-soft text-xs">
                               Inscrito: {new Date(enrollment.createdAt).toLocaleDateString('es-ES')}
                             </div>
                           </div>
@@ -1028,7 +864,7 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                     </div>
 
                     {filteredEnrollments.length === 0 && (
-                      <div className="py-8 text-center text-gray-500">
+                      <div className="text-ink-soft py-8 text-center">
                         {enrollmentSearchTerm
                           ? `No se encontraron inscritos con el nombre "${enrollmentSearchTerm}"`
                           : 'No hay inscritos en este programa aún.'}
@@ -1039,23 +875,94 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
               </div>
 
               {/* Footer with Close Button */}
-              <div className="flex justify-end border-t border-gray-200 p-4 md:p-6">
-                <button
+              <div className="border-line flex justify-end border-t px-5 py-4 md:px-6">
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setShowEnrollmentsModal(false);
                     setEnrollments([]);
                     setLoadingEnrollments(false);
                     setEnrollmentSearchTerm('');
                   }}
-                  className="rounded-lg bg-[#4b207f] px-4 py-2 text-white hover:bg-[#4b207f]/90"
                 >
                   Cerrar
-                </button>
+                </Button>
               </div>
             </div>
           </div>
         )}
       </div>
     </AdminLayout>
+  );
+}
+
+const labelClass = 'text-ink mb-2 block text-sm font-medium';
+const closeButtonClass =
+  'text-ink-soft hover:text-ink flex h-10 w-10 items-center justify-center rounded-xl hover:bg-gray-100';
+
+// Kit select: the field box with a lucide chevron in place of the native arrow
+function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <div className="relative">
+      <select
+        {...props}
+        className="text-ink focus-visible:border-denim focus-visible:outline-denim/25 h-12 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-4 pr-11 text-base focus-visible:outline-2 focus-visible:outline-offset-2"
+      />
+      <ChevronDown
+        className="text-ink-soft pointer-events-none absolute right-3.5 top-3.5 h-5 w-5"
+        strokeWidth={1.5}
+      />
+    </div>
+  );
+}
+
+function DepartmentTag({ code }: { code: string }) {
+  return (
+    <span className="border-line text-ink inline-flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 text-[13px] font-medium">
+      <span className="bg-warm h-1.5 w-1.5 rounded-full" />
+      {getDepartmentName(code)}
+    </span>
+  );
+}
+
+const pillClass = 'inline-flex rounded-full px-2.5 py-1 text-xs font-medium';
+
+function StatusPill({ active }: { active: boolean }) {
+  return (
+    <span
+      className={`${pillClass} ${active ? 'bg-green-50 text-green-800' : 'text-ink-soft bg-gray-100'}`}
+    >
+      {active ? 'Activo' : 'Inactivo'}
+    </span>
+  );
+}
+
+function TypePill({ child }: { child: boolean }) {
+  return (
+    <span
+      className={`${pillClass} ${child ? 'bg-warm-soft text-ink' : 'text-ink-soft bg-gray-100'}`}
+    >
+      {child ? 'Niño' : 'Adulto'}
+    </span>
+  );
+}
+
+function Guardian({ guardian }: { guardian: any }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className={`${pillClass} text-ink-soft bg-gray-100`}>
+        {guardian.relationship === 'father'
+          ? 'Padre'
+          : guardian.relationship === 'mother'
+            ? 'Madre'
+            : guardian.relationship === 'guardian'
+              ? 'Tutor'
+              : guardian.relationship}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-ink truncate text-sm">{guardian.name}</p>
+        <p className="text-ink-soft font-mono text-xs">{guardian.phone || 'Sin teléfono'}</p>
+      </div>
+    </div>
   );
 }
