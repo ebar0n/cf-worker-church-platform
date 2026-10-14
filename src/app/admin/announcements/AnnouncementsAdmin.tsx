@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import AdminLayout from '@/app/admin/components/AdminLayout';
 import { DEPARTMENTS } from '@/lib/constants';
+import { parseDateOnly } from '@/lib/age-classification';
 import DepartmentSelector from './DepartmentSelector';
 import AnnouncementModal from './AnnouncementModal';
 import { MarkdownImage } from '@/app/components/MarkdownImage';
@@ -366,7 +367,8 @@ export default function AnnouncementsAdmin({ adminEmail }: { adminEmail: string 
                 </div>
                 <div className="text-sm text-gray-500">
                   <span>
-                    Fecha: {new Date(announcement.announcementDate).toLocaleDateString('es-ES')}
+                    Fecha:{' '}
+                    {parseDateOnly(announcement.announcementDate).toLocaleDateString('es-ES')}
                   </span>
                   <span className="mx-2">•</span>
                   <span>

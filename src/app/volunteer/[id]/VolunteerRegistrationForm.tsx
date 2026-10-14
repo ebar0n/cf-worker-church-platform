@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { calculateAge, parseDateOnly } from '@/lib/age-classification';
 
 interface VolunteerEvent {
   id: number;
@@ -323,14 +324,7 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
       }
 
       // Validate age (must be 16 or older)
-      const birthDate = new Date(formData.birthDate);
-      const today = new Date();
-      const age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      const dayDiff = today.getDate() - birthDate.getDate();
-      const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
-
-      if (actualAge < 16) {
+      if (calculateAge(parseDateOnly(formData.birthDate), new Date()) < 16) {
         setError('Debes tener al menos 16 años para participar como voluntario');
         setIsSubmitting(false);
         return;

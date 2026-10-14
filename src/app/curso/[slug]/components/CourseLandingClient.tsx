@@ -6,6 +6,7 @@ import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Checkbox } from '@/app/components/ui/checkbox';
 import { Course } from '@/app/types';
+import { calculateAge as calculateAgeAt, parseDateOnly } from '@/lib/age-classification';
 import ReactMarkdown from 'react-markdown';
 
 interface CourseWithMeta extends Course {
@@ -299,16 +300,8 @@ export default function CourseLandingClient() {
     }
   };
 
-  const calculateAge = (birthDate: string): number => {
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    return age;
-  };
+  const calculateAge = (birthDate: string): number =>
+    calculateAgeAt(parseDateOnly(birthDate), new Date());
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('es-CO', {
@@ -320,8 +313,7 @@ export default function CourseLandingClient() {
 
   const formatDate = (date: string | Date | null | undefined) => {
     if (!date) return null;
-    const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleDateString('es-CO', {
+    return parseDateOnly(date).toLocaleDateString('es-CO', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

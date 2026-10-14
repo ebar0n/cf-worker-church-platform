@@ -6,6 +6,7 @@ import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Checkbox } from '@/app/components/ui/checkbox';
 import { Course, CourseEnrollment, CourseEnrollmentStatus } from '@/app/types';
+import { calculateAge as calculateAgeAt, parseDateOnly } from '@/lib/age-classification';
 
 interface CoursesAdminProps {
   adminEmail: string;
@@ -388,23 +389,15 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
 
   const formatDate = (date: string | Date | null | undefined) => {
     if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString('es-CO', {
+    return parseDateOnly(date).toLocaleDateString('es-CO', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     });
   };
 
-  const calculateAge = (birthDate: string | Date) => {
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    return age;
-  };
+  const calculateAge = (birthDate: string | Date) =>
+    calculateAgeAt(parseDateOnly(birthDate), new Date());
 
   const getStatusBadge = (status: CourseEnrollmentStatus) => {
     const styles = {
