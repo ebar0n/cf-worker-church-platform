@@ -44,18 +44,18 @@ export function calculateAge(birthDate: Date, referenceDate: Date): number {
 
 // Date-only values ("2019-03-05", or D1's "2019-03-05T00:00:00.000Z") are
 // calendar dates: read them as local components so a UTC-5 browser does not
-// move the birthday to the previous day.
-function parseBirthDate(birthDate: Date | string): Date {
-  if (typeof birthDate !== 'string') return birthDate;
-  const match = /^(\d{4})-(\d{2})-(\d{2})(?:T00:00(?::00(?:\.0+)?)?Z?)?$/.exec(birthDate);
-  return match ? new Date(+match[1], +match[2] - 1, +match[3]) : new Date(birthDate);
+// move them to the previous day (birthdays, course start/end dates).
+export function parseDateOnly(value: Date | string): Date {
+  if (typeof value !== 'string') return value;
+  const match = /^(\d{4})-(\d{2})-(\d{2})(?:T00:00(?::00(?:\.0+)?)?Z?)?$/.exec(value);
+  return match ? new Date(+match[1], +match[2] - 1, +match[3]) : new Date(value);
 }
 
 export function classify(
   birthDate: Date | string,
   referenceDate: Date = new Date()
 ): AgeClassification {
-  const birth = parseBirthDate(birthDate);
+  const birth = parseDateOnly(birthDate);
   if (Number.isNaN(birth.getTime())) {
     throw new Error('Invalid birthDate');
   }

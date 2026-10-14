@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { classify, calculateAge, isAdult, MIN_ADULT_AGE } from '@/lib/age-classification';
+import {
+  classify,
+  calculateAge,
+  isAdult,
+  MIN_ADULT_AGE,
+  parseDateOnly,
+} from '@/lib/age-classification';
 
 // Fixed reference date so tests never depend on the clock
 const REF = new Date('2026-07-15T12:00:00Z');
@@ -99,5 +105,22 @@ describe('isAdult', () => {
   it(`requires ${MIN_ADULT_AGE} years to create a group`, () => {
     expect(isAdult(bornYearsAgo(15), REF)).toBe(false);
     expect(isAdult(bornYearsAgo(16), REF)).toBe(true);
+  });
+});
+
+describe('parseDateOnly', () => {
+  // Local components, not UTC: in Bogotá (UTC-5) new Date('2026-10-19')
+  // would read as October 18.
+  it('keeps the calendar day of date-only values', () => {
+    for (const value of ['2026-10-19', '2026-10-19T00:00:00.000Z']) {
+      const d = parseDateOnly(value);
+      expect([d.getFullYear(), d.getMonth(), d.getDate()]).toEqual([2026, 9, 19]);
+    }
+  });
+
+  it('leaves real timestamps to Date', () => {
+    expect(parseDateOnly('2026-10-14T02:16:30.514Z').toISOString()).toBe(
+      '2026-10-14T02:16:30.514Z'
+    );
   });
 });
