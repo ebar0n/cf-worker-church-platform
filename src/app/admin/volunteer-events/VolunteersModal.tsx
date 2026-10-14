@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { downloadCsv } from '@/lib/csv';
 
 interface VolunteerRegistration {
   id: number;
@@ -86,17 +87,7 @@ export default function VolunteersModal({
       new Date(volunteer.createdAt).toLocaleDateString('es-ES'),
     ]);
 
-    const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `voluntarios_${eventTitle.replace(/[^a-zA-Z0-9]/g, '_')}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsv(`voluntarios_${eventTitle.replace(/[^a-zA-Z0-9]/g, '_')}.csv`, [headers, ...rows]);
   };
 
   const handleDeleteVolunteer = async (volunteerId: number) => {
@@ -110,11 +101,16 @@ export default function VolunteersModal({
         }
       );
 
-      if (!response.ok) throw new Error('Failed to delete volunteer');
+      if (!response.ok) {
+        const data = (await response.json().catch(() => ({}))) as { error?: string };
+        alert(data.error || 'Error al eliminar el registro');
+        return;
+      }
 
       await fetchVolunteers();
     } catch (error) {
       console.error('Error deleting volunteer:', error);
+      alert('Error al eliminar el registro');
     }
   };
 

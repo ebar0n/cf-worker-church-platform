@@ -81,6 +81,22 @@ describe('volunteer registration', () => {
     expect(data.selectedService).toBe('Transporte');
   });
 
+  it('rejects a service the event does not offer', async () => {
+    const res = await postJson(`/api/volunteer-events/${eventId}/register`, {
+      ...registration,
+      selectedService: 'Inexistente',
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it('does not report an update for a document that is not registered', async () => {
+    const res = await putJson(`/api/volunteer-events/${eventId}/register`, {
+      ...registration,
+      memberDocumentID: '000',
+    });
+    expect(res.status).toBe(404);
+  });
+
   it('rejects volunteers under 16', async () => {
     const res = await postJson(`/api/volunteer-events/${eventId}/register`, {
       ...registration,
