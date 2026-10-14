@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import AccessLogoutButton from '@/app/admin/components/AccessLogoutButton';
@@ -12,7 +12,6 @@ export default function AdminLayout({
   adminEmail: string;
 }) {
   const pathname = usePathname();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActive = (path: string) => pathname === path;
 
@@ -28,105 +27,44 @@ export default function AdminLayout({
   ];
 
   return (
-    <div className="min-h-screen bg-[#f7f6f3] font-sans">
-      {/* Header fijo */}
-      <header className="fixed left-0 top-0 z-40 flex h-20 w-full items-center justify-between bg-[#4b207f] px-4 shadow-md md:px-8">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 text-white md:hidden"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="h-6 w-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-              />
-            </svg>
-          </button>
-          <Link
-            href="/admin"
-            className="text-xl font-bold tracking-tight text-white hover:text-white/90 md:text-2xl"
-          >
-            Admin Dashboard
+    <div className="bg-paper text-ink min-h-screen font-sans">
+      <header className="border-line sticky top-0 z-40 border-b bg-white">
+        <div className="mx-auto flex h-16 w-full max-w-[75rem] items-center justify-between gap-4 px-5 md:px-8 xl:px-0">
+          <Link href="/admin" className="text-ink flex items-center gap-2.5 no-underline">
+            <img src="/church-logo.png" alt="" className="h-9 w-9 rounded-full object-cover" />
+            <span className="font-heading text-2xl font-bold tracking-[-0.01em]">El Jordán</span>
+            <span className="text-ink-soft rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium">
+              Admin
+            </span>
           </Link>
-          {adminEmail && (
-            <span className="ml-6 hidden text-lg text-white/80 md:inline">Hola, {adminEmail}</span>
-          )}
+          <div className="flex min-w-0 items-center gap-3">
+            {adminEmail && (
+              <span className="text-ink-soft hidden truncate text-sm md:inline">{adminEmail}</span>
+            )}
+            <AccessLogoutButton className="border-line text-ink flex h-11 min-w-11 items-center justify-center gap-2 rounded-xl border bg-white px-3 text-sm font-medium transition-colors hover:bg-gray-100" />
+          </div>
         </div>
-        <AccessLogoutButton className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-white hover:bg-white/20 disabled:opacity-60 md:px-4" />
+        {/* Section tabs scroll sideways on phones instead of hiding in a menu */}
+        <nav
+          aria-label="Secciones"
+          className="no-scrollbar mx-auto flex w-full max-w-[75rem] gap-6 overflow-x-auto px-5 md:px-8 xl:px-0"
+        >
+          {menuItems.map((item) => (
+            <Link
+              key={item.path}
+              href={item.path}
+              aria-current={isActive(item.path) ? 'page' : undefined}
+              className="text-ink-soft hover:text-ink aria-[current=page]:border-warm aria-[current=page]:text-ink shrink-0 whitespace-nowrap border-b-2 border-transparent py-3 text-[15px] font-medium no-underline transition-colors"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
       </header>
 
-      <div className="mx-auto flex max-w-7xl pt-20">
-        {/* Menú lateral - Desktop */}
-        <nav className="hidden w-56 flex-shrink-0 py-8 pr-6 md:block">
-          <ul className="flex flex-col gap-2">
-            {menuItems.map((item) => (
-              <li key={item.path}>
-                <Link
-                  href={item.path}
-                  className={`block rounded-xl border border-transparent px-4 py-2 text-base font-semibold transition-colors duration-200
-                    ${
-                      isActive(item.path)
-                        ? 'border-[#4b207f] bg-[#4b207f] text-white shadow-md'
-                        : 'bg-[#ede9f6] text-[#4b207f] hover:bg-[#e36520]/90 hover:text-white hover:shadow-md'
-                    }
-                  `}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        {/* Menú móvil */}
-        <div
-          className={`fixed inset-0 z-30 bg-black/50 transition-opacity md:hidden ${
-            isMobileMenuOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
-          }`}
-          onClick={() => setIsMobileMenuOpen(false)}
-        >
-          <nav
-            className={`fixed left-0 top-20 h-[calc(100vh-5rem)] w-64 bg-white p-6 shadow-lg transition-transform duration-300 ease-in-out ${
-              isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-            }`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-6">
-              <span className="text-lg text-[#4b207f]">{adminEmail}</span>
-            </div>
-            <ul className="flex flex-col gap-2">
-              {menuItems.map((item) => (
-                <li key={item.path}>
-                  <Link
-                    href={item.path}
-                    className={`block rounded-xl border border-transparent px-4 py-2 text-base font-semibold transition-colors duration-200
-                      ${
-                        isActive(item.path)
-                          ? 'border-[#4b207f] bg-[#4b207f] text-white shadow-md'
-                          : 'bg-[#ede9f6] text-[#4b207f] hover:bg-[#e36520]/90 hover:text-white hover:shadow-md'
-                      }
-                    `}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
-
-        <main className="flex-1 px-2 py-8 md:px-8">{children}</main>
-      </div>
+      <main className="mx-auto w-full max-w-[75rem] px-5 py-8 md:px-8 md:py-10 xl:px-0">
+        {children}
+      </main>
     </div>
   );
 }

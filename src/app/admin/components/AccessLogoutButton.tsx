@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { LogOut } from 'lucide-react';
+import { Button } from '@/app/components/ui/button';
 
 /**
  * Closes the Cloudflare Access session, which is what "Salir" has to mean on a
@@ -61,20 +63,7 @@ export default function AccessLogoutButton({
   return (
     <>
       <button type="button" onClick={() => setConfirming(true)} className={className}>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="h-5 w-5"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
-          />
-        </svg>
+        <LogOut className="h-5 w-5" strokeWidth={1.5} />
         <span className="hidden md:inline">Salir</span>
       </button>
 
@@ -84,46 +73,40 @@ export default function AccessLogoutButton({
           aria-modal="true"
           aria-label="Cerrar sesión"
           onClick={() => setConfirming(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="bg-ink/50 fixed inset-0 z-50 flex items-center justify-center p-4"
         >
           <div
             onClick={(event) => event.stopPropagation()}
-            className="w-full max-w-sm rounded-lg bg-white p-5 text-left shadow-xl"
+            className="border-line w-full max-w-sm rounded-2xl border bg-white p-6 text-left"
           >
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-ink text-2xl leading-tight">
               ¿Cerrar la sesión de este dispositivo?
             </h2>
-            <p className="mt-1 text-sm text-gray-600">Volver a entrar pide un código nuevo.</p>
+            <p className="text-ink-soft mt-2 text-sm">Volver a entrar pide un código nuevo.</p>
 
             {warning && (
-              <p className="mt-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              <p className="border-warm/40 bg-warm-soft text-ink mt-4 rounded-xl border px-3 py-2 text-sm">
                 {warning}. Sin sesión no se pueden enviar.
               </p>
             )}
 
-            <div className="mt-5 flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={logout}
-                disabled={leaving}
-                className="h-12 rounded-lg bg-[#4b207f] text-base font-medium text-white hover:bg-[#3b1965] disabled:opacity-60"
-              >
+            <div className="mt-6 flex flex-col gap-2">
+              <Button type="button" size="lg" onClick={logout} disabled={leaving}>
                 {leaving ? 'Cerrando…' : 'Cerrar sesión'}
-              </button>
-              <a
-                href="/"
-                className="flex h-12 items-center justify-center rounded-lg border border-gray-300 bg-white text-base text-gray-700 hover:bg-gray-50"
-              >
-                Solo ir al inicio
-              </a>
-              <button
+              </Button>
+              <Button asChild variant="outline" size="lg">
+                <a href="/">Solo ir al inicio</a>
+              </Button>
+              <Button
                 type="button"
+                variant="ghost"
+                size="lg"
                 onClick={() => setConfirming(false)}
                 disabled={leaving}
-                className="h-12 rounded-lg text-base text-gray-600 hover:bg-gray-100"
+                className="text-ink-soft"
               >
                 Cancelar
-              </button>
+              </Button>
             </div>
           </div>
         </div>

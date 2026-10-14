@@ -25,8 +25,9 @@ export default function AreaChartCustom({ data }: { data: YearChartData[] }) {
         label: 'Miembros',
         data: data.map((d) => d.count),
         fill: true,
-        backgroundColor: 'rgba(75, 32, 127, 0.2)', // Morado institucional con transparencia
-        borderColor: '#4b207f',
+        backgroundColor: 'rgba(255, 169, 45, 0.18)', // warm
+        borderColor: '#1c1b19', // ink
+        pointBackgroundColor: '#1c1b19',
         tension: 0.4,
       },
     ],
@@ -38,7 +39,8 @@ export default function AreaChartCustom({ data }: { data: YearChartData[] }) {
       legend: { display: false },
     },
     scales: {
-      y: { beginAtZero: true },
+      x: { grid: { display: false }, ticks: { color: '#5c5852' } },
+      y: { beginAtZero: true, grid: { color: '#e8e3da' }, ticks: { color: '#5c5852' } },
     },
   };
 
