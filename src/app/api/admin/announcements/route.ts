@@ -55,29 +55,29 @@ export async function POST(request: NextRequest) {
 
     const now = new Date().toISOString();
 
-    // Start a transaction to ensure data consistency
-    const transaction = await env.DB.batch([
-      // First, deactivate all announcements with dates older than the new announcement
-      env.DB.prepare(
-        `
+    // Deactivate all announcements with dates older than the new announcement
+    const deactivateOlder = env.DB.prepare(
+      `
         UPDATE Announcement
         SET isActive = 0, updatedAt = ?
         WHERE announcementDate < ? AND isActive = 1
       `
-      ).bind(now, announcementDate),
+    ).bind(now, announcementDate);
 
-      // Then, insert the new announcement
-      env.DB.prepare(
-        `
+    const insert = env.DB.prepare(
+      `
         INSERT INTO Announcement (title, content, announcementDate, department, isActive, createdAt, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `
-      ).bind(title, content, announcementDate, department || null, isActive ? 1 : 0, now, now),
-    ]);
+    ).bind(title, content, announcementDate, department || null, isActive ? 1 : 0, now, now);
+
+    // Run both in one transaction to ensure data consistency. Only a live
+    // announcement replaces the older ones: saving a draft must not switch them off.
+    const transaction = await env.DB.batch(isActive ? [deactivateOlder, insert] : [insert]);
 
     // Get the newly created announcement
     const announcement = await env.DB.prepare('SELECT * FROM Announcement WHERE id = ?')
-      .bind(transaction[1].meta.last_row_id)
+      .bind(transaction[transaction.length - 1].meta.last_row_id)
       .first();
 
     return NextResponse.json(announcement, { status: 201 });

@@ -7,7 +7,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { slug } = await params;
 
   try {
-    // Get course by slug (only active courses) with enrollment counts split by member status
+    // Get course by slug (only active courses) with enrollment counts split by member status.
+    // Rejected enrollments don't hold a spot.
     const course = await env.DB.prepare(
       `
       SELECT
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         SUM(CASE WHEN ce.isMember = 1 THEN 1 ELSE 0 END) as memberCount,
         SUM(CASE WHEN ce.isMember = 0 OR ce.isMember IS NULL THEN 1 ELSE 0 END) as nonMemberCount
       FROM Course c
-      LEFT JOIN CourseEnrollment ce ON c.id = ce.courseId
+      LEFT JOIN CourseEnrollment ce ON c.id = ce.courseId AND ce.status != 'rejected'
       WHERE c.slug = ? AND c.isActive = 1
       GROUP BY c.id
     `

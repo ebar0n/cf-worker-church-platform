@@ -40,9 +40,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Announcement not found' }, { status: 404 });
     }
 
-    // If the announcement is being activated and the date is newer than the current one,
-    // deactivate all announcements with older dates
-    if (isActive && announcementDate > currentAnnouncement.announcementDate) {
+    // If the announcement is being activated (a draft going live, or its date moving
+    // forward), deactivate all announcements with older dates
+    if (
+      isActive &&
+      (!currentAnnouncement.isActive || announcementDate > currentAnnouncement.announcementDate)
+    ) {
       await env.DB.prepare(
         `
         UPDATE Announcement
