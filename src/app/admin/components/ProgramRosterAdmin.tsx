@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { AlertCircle, ArrowLeft, ChevronDown, ChevronUp, FileDown, Users } from 'lucide-react';
 import AdminLayout from '@/app/admin/components/AdminLayout';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
@@ -60,19 +61,10 @@ const RELATIONSHIP_LABELS: Record<string, string> = {
 const relationshipLabel = (relationship?: string) =>
   RELATIONSHIP_LABELS[relationship || ''] || relationship || 'Responsable';
 
-const CATEGORY_COLORS: Record<string, string> = {
-  Principiante: 'bg-gray-100 text-gray-700',
-  Aventurero: 'bg-amber-100 text-amber-800',
-  Conquistador: 'bg-green-100 text-green-800',
-  'Guía Mayor': 'bg-purple-100 text-purple-800',
-};
-
 function Badge({ classification }: { classification: Classification | null }) {
   if (!classification) return null;
   return (
-    <span
-      className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${CATEGORY_COLORS[classification.category] || 'bg-gray-100'}`}
-    >
+    <span className="text-ink-soft inline-block rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium">
       {classification.category}
       {classification.className ? ` · ${classification.className}` : ''} ({classification.age})
     </span>
@@ -222,7 +214,7 @@ export default function ProgramRosterAdmin({
   };
 
   const PersonDetails = ({ person }: { person: Person }) => (
-    <div className="grid grid-cols-2 gap-x-6 gap-y-1 rounded-lg bg-gray-50 p-3 text-sm md:grid-cols-3">
+    <div className="bg-paper text-ink grid grid-cols-2 gap-x-6 gap-y-1.5 rounded-xl p-4 text-sm md:grid-cols-3">
       <p>
         <span className="font-medium">Sangre:</span> {person.bloodType || '—'}
       </p>
@@ -250,7 +242,7 @@ export default function ProgramRosterAdmin({
             href={person.idDocumentUrl}
             target="_blank"
             rel="noreferrer"
-            className="text-xs font-semibold text-[#4b207f] underline"
+            className="text-denim hover:text-ink text-[13px] font-medium underline underline-offset-4"
           >
             Ver documento de identidad
           </a>
@@ -260,16 +252,17 @@ export default function ProgramRosterAdmin({
             href={person.epsCertificateUrl}
             target="_blank"
             rel="noreferrer"
-            className="text-xs font-semibold text-[#4b207f] underline"
+            className="text-denim hover:text-ink text-[13px] font-medium underline underline-offset-4"
           >
             Ver certificado EPS
           </a>
         )}
-        <label className="ml-auto flex items-center gap-1 text-xs text-gray-700">
+        <label className="text-ink ml-auto flex min-h-11 cursor-pointer items-center gap-2.5 text-[13px] font-medium">
           <input
             type="checkbox"
             checked={Boolean(person.physicalFormReceivedAt)}
             onChange={(e) => togglePhysicalForm(person.documentID, e.target.checked)}
+            className="accent-ink h-5 w-5"
           />
           Formato físico recibido
         </label>
@@ -280,7 +273,7 @@ export default function ProgramRosterAdmin({
   // Compact identity row. Family details are opened at the family level (as a
   // group view), so this row does not expand on its own.
   const MemberSummary = ({ person, label }: { person: Person; label: string }) => (
-    <div className="flex flex-wrap items-center gap-2 border-t border-gray-100 py-2">
+    <div className="border-line flex flex-wrap items-center gap-3 border-t py-3">
       {person.photoUrl ? (
         /* eslint-disable-next-line @next/next/no-img-element */
         <img
@@ -289,19 +282,19 @@ export default function ProgramRosterAdmin({
           className="h-9 w-9 rounded-full object-cover"
         />
       ) : (
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-200 text-xs text-gray-500">
+        <div className="text-ink-soft flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-xs font-medium">
           {person.name.charAt(0)}
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-gray-800">
+        <p className="text-ink break-words text-sm font-medium">
           {person.name}{' '}
-          <span className="font-normal text-gray-500">
+          <span className="text-ink-soft font-normal">
             · {person.documentID}
             {label ? ` · ${label}` : ''}
           </span>
         </p>
-        <div className="mt-0.5 flex flex-wrap gap-1">
+        <div className="mt-1 flex flex-wrap gap-1">
           <Badge classification={person.classification} />
         </div>
       </div>
@@ -312,9 +305,9 @@ export default function ProgramRosterAdmin({
   // family group detail view.
   const MemberDetail = ({ person, label }: { person: Person; label: string }) => (
     <div>
-      <p className="mb-1 text-sm font-semibold text-gray-700">
+      <p className="text-ink mb-2 text-sm font-semibold">
         {person.name}
-        {label ? <span className="font-normal text-gray-500"> · {label}</span> : null}
+        {label ? <span className="text-ink-soft font-normal"> · {label}</span> : null}
       </p>
       <PersonDetails person={person} />
     </div>
@@ -324,9 +317,9 @@ export default function ProgramRosterAdmin({
   const PersonRow = ({ person, label }: { person: Person; label: string }) => {
     const key = person.documentID;
     return (
-      <div className="border-t border-gray-100 py-2">
+      <div className="border-warm/40 border-t py-3">
         <div
-          className="flex cursor-pointer flex-wrap items-center gap-2"
+          className="flex cursor-pointer flex-wrap items-center gap-3"
           onClick={() => setExpanded(expanded === key ? null : key)}
         >
           {person.photoUrl ? (
@@ -337,23 +330,27 @@ export default function ProgramRosterAdmin({
               className="h-9 w-9 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-200 text-xs text-gray-500">
+            <div className="text-ink-soft flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-xs font-medium">
               {person.name.charAt(0)}
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-gray-800">
+            <p className="text-ink break-words text-sm font-medium">
               {person.name}{' '}
-              <span className="font-normal text-gray-500">
+              <span className="text-ink-soft font-normal">
                 · {person.documentID}
                 {label ? ` · ${label}` : ''}
               </span>
             </p>
-            <div className="mt-0.5 flex flex-wrap gap-1">
+            <div className="mt-1 flex flex-wrap gap-1">
               <Badge classification={person.classification} />
             </div>
           </div>
-          <span className="text-xs text-gray-400">{expanded === key ? '▲' : '▼'}</span>
+          {expanded === key ? (
+            <ChevronUp className="text-ink-soft h-4 w-4" strokeWidth={1.5} />
+          ) : (
+            <ChevronDown className="text-ink-soft h-4 w-4" strokeWidth={1.5} />
+          )}
         </div>
         {expanded === key && (
           <div className="mt-2">
@@ -367,15 +364,17 @@ export default function ProgramRosterAdmin({
   return (
     <AdminLayout adminEmail={adminEmail}>
       <div className="mx-auto max-w-5xl">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <a href="/admin/programs" className="text-sm text-[#4b207f] underline">
-              ← Programas
+            <a
+              href="/admin/programs"
+              className="text-denim hover:text-ink mb-3 inline-flex items-center gap-1.5 text-sm font-medium"
+            >
+              <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
+              Programas
             </a>
-            <h1 className="text-2xl font-bold text-gray-800">
-              {roster?.program.title || 'Programa'}
-            </h1>
-            <p className="text-sm text-gray-600">
+            <h1 className="text-[40px] leading-[1.04]">{roster?.program.title || 'Programa'}</h1>
+            <p className="text-ink-soft mt-2">
               {roster
                 ? `${roster.families.length} familias · ${roster.families.reduce(
                     (n, f) => n + f.adults.length,
@@ -387,7 +386,7 @@ export default function ProgramRosterAdmin({
                 : ''}
             </p>
           </div>
-          <Button onClick={exportCsv} disabled={!roster} className="bg-[#4b207f] text-white">
+          <Button onClick={exportCsv} disabled={!roster}>
             Exportar CSV
           </Button>
         </div>
@@ -399,42 +398,53 @@ export default function ProgramRosterAdmin({
           className="mb-6"
         />
 
-        {loading && <p className="text-gray-600">Cargando...</p>}
-        {error && <p className="text-red-600">{error}</p>}
+        {loading && <p className="text-ink-soft">Cargando...</p>}
+        {error && (
+          <p className="border-line mb-4 flex items-center gap-2 rounded-xl border bg-white px-4 py-3 text-sm text-[#b3261e]">
+            <AlertCircle className="h-4 w-4 flex-none" strokeWidth={1.5} />
+            {error}
+          </p>
+        )}
 
         <div className="space-y-4">
           {filteredFamilies.map((family) => {
             const open = expanded === family.id;
             const pending = familyPendingItems(family);
             return (
-              <div key={family.id} className="rounded-xl bg-white p-4 shadow">
+              <div key={family.id} className="border-line rounded-2xl border bg-white p-5">
                 <div className="mb-1 flex items-center justify-between gap-2">
-                  <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                  <h2 className="text-[22px] leading-tight">
                     Familia ·{' '}
                     {family.adults.map((a) => a.name.split(' ')[0]).join(' / ') || 'Sin nombre'}
                   </h2>
                   <button
                     onClick={() => setExpanded(open ? null : family.id)}
-                    className="shrink-0 text-xs font-semibold text-[#4b207f]"
+                    className="text-denim hover:text-ink flex shrink-0 items-center gap-1 text-sm font-medium"
                   >
-                    {open ? 'Ocultar detalles ▲' : 'Ver detalles ▼'}
+                    {open ? 'Ocultar detalles' : 'Ver detalles'}
+                    {open ? (
+                      <ChevronUp className="h-4 w-4" strokeWidth={1.5} />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" strokeWidth={1.5} />
+                    )}
                   </button>
                 </div>
 
                 <div className="my-3 flex flex-wrap items-center gap-3">
                   <Button
+                    variant="outline"
                     onClick={() => downloadFamilyPdf(family)}
                     disabled={downloadingPdf === family.id}
-                    className="bg-[#4b207f] text-white"
                   >
+                    <FileDown className="h-4 w-4" strokeWidth={1.5} />
                     {downloadingPdf === family.id ? 'Generando PDF...' : 'Descargar PDF familiar'}
                   </Button>
-                  <span className="text-xs text-gray-600">
+                  <span className="text-ink-soft text-[13px]">
                     Portada, hojas de vida, anexos y autorizaciones para firma.
                   </span>
                 </div>
                 {pending.length > 0 && (
-                  <details className="mb-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+                  <details className="bg-warm-soft text-ink mb-3 rounded-xl px-4 py-3 text-sm">
                     <summary className="cursor-pointer font-medium">
                       Información pendiente ({pending.length})
                     </summary>
@@ -454,7 +464,7 @@ export default function ProgramRosterAdmin({
                   />
                 ))}
                 {family.children.length > 0 && (
-                  <div className="ml-6 border-l-2 border-gray-100 pl-4">
+                  <div className="border-line ml-4 border-l-2 pl-4">
                     {family.children.map((child) => (
                       <MemberSummary
                         key={`${family.id}-${child.documentID}`}
@@ -466,8 +476,8 @@ export default function ProgramRosterAdmin({
                 )}
 
                 {open && (
-                  <div className="mt-3 space-y-3 border-t border-gray-200 pt-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                  <div className="border-line mt-3 space-y-4 border-t pt-4">
+                    <p className="text-ink-soft text-[13px] font-semibold uppercase tracking-[.06em]">
                       Detalle del grupo familiar
                     </p>
                     {family.adults.map((adult) => (
@@ -491,8 +501,8 @@ export default function ProgramRosterAdmin({
           })}
 
           {filteredUnassigned.length > 0 && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <h2 className="mb-2 text-sm font-semibold text-amber-800">
+            <div className="border-warm bg-warm-soft rounded-2xl border p-5">
+              <h2 className="mb-2 text-[22px] leading-tight">
                 Niños sin tutor inscrito en el programa
               </h2>
               {filteredUnassigned.map((child) => (
@@ -502,11 +512,16 @@ export default function ProgramRosterAdmin({
           )}
 
           {!loading && filteredFamilies.length === 0 && filteredUnassigned.length === 0 && (
-            <p className="py-8 text-center text-gray-500">
-              {search
-                ? 'Sin resultados para la búsqueda.'
-                : 'Aún no hay inscritos en este programa.'}
-            </p>
+            <div className="flex items-center gap-4 rounded-2xl border border-dashed border-gray-300 p-5">
+              <div className="bg-warm-soft flex h-11 w-11 flex-none items-center justify-center rounded-xl">
+                <Users className="h-5 w-5" strokeWidth={1.5} />
+              </div>
+              <p className="text-[15px] font-semibold">
+                {search
+                  ? 'Sin resultados para la búsqueda.'
+                  : 'Aún no hay inscritos en este programa.'}
+              </p>
+            </div>
           )}
         </div>
       </div>

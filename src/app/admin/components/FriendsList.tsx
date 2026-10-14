@@ -2,6 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/app/admin/components/AdminLayout';
 import TableWithPagination from '@/app/admin/components/TableWithPagination';
+import {
+  ChevronDown,
+  CircleCheck,
+  Download,
+  Eye,
+  Search,
+  SlidersHorizontal,
+  X,
+} from 'lucide-react';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
 import { downloadCsv } from '@/lib/csv';
 
 interface FriendsListProps {
@@ -134,111 +145,86 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
 
   return (
     <AdminLayout adminEmail={adminEmail}>
-      <h2 className="mb-6 text-center text-2xl font-bold text-[#4b207f] md:text-left">
-        Solicitudes registradas
-      </h2>
+      <h2 className="mb-6 text-[32px] leading-tight md:text-[40px]">Solicitudes registradas</h2>
 
       {/* Search and Filters */}
       <div className="mb-4 space-y-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="relative flex-1">
-            <input
+            <Input
               type="text"
               placeholder="Buscar por nombre o teléfono..."
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 focus:border-[#4b207f] focus:outline-none"
+              className="pl-11"
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
             />
-            <svg
-              className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
+            <Search
+              className="text-ink-soft pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2"
+              strokeWidth={1.5}
+            />
           </div>
-          <div className="flex items-center justify-center gap-3 md:justify-end">
-            <button
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="flex h-10 items-center gap-2 rounded-lg border border-[#4b207f] px-4 py-2 text-[#4b207f] hover:bg-[#4b207f]/10"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="h-5 w-5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z"
-                />
-              </svg>
+          <div className="grid gap-3 sm:flex sm:items-center md:justify-end">
+            <Button variant="outline" onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}>
+              <SlidersHorizontal className="h-5 w-5" strokeWidth={1.5} />
               Filtros avanzados
-            </button>
-            <button
-              onClick={exportToCSV}
-              className="flex h-10 items-center gap-2 rounded-lg bg-[#4b207f] px-4 py-2 text-white hover:bg-[#4b207f]/90"
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                />
-              </svg>
+            </Button>
+            <Button onClick={exportToCSV}>
+              <Download className="h-5 w-5" strokeWidth={1.5} />
               Exportar CSV
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Advanced Filters */}
         {showAdvancedFilters && (
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <div className="mb-4">
-              <h3 className="mb-3 text-lg font-semibold text-[#4b207f]">Filtros avanzados</h3>
+          <div className="border-line rounded-2xl border bg-white p-5">
+            <div>
+              <h3 className="mb-4 text-xl leading-tight">Filtros avanzados</h3>
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                  <label className="text-ink mb-2 block text-sm font-medium">
                     Tipo de solicitud
                   </label>
-                  <select
-                    value={requestType}
-                    onChange={(e) => {
-                      setRequestType(e.target.value as RequestType);
-                      handleFilterChange();
-                    }}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-[#4b207f] focus:outline-none"
-                  >
-                    <option value="todos">Todos</option>
-                    <option value="oracion">Oración</option>
-                    <option value="visita">Visita</option>
-                    <option value="informacion">Información</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={requestType}
+                      onChange={(e) => {
+                        setRequestType(e.target.value as RequestType);
+                        handleFilterChange();
+                      }}
+                      className="focus-visible:border-denim focus-visible:outline-denim/25 h-12 w-full appearance-none rounded-xl border border-gray-300 bg-white px-4 pr-10 text-base focus-visible:outline-2 focus-visible:outline-offset-2"
+                    >
+                      <option value="todos">Todos</option>
+                      <option value="oracion">Oración</option>
+                      <option value="visita">Visita</option>
+                      <option value="informacion">Información</option>
+                    </select>
+                    <ChevronDown
+                      className="text-ink-soft pointer-events-none absolute right-3.5 top-1/2 h-5 w-5 -translate-y-1/2"
+                      strokeWidth={1.5}
+                    />
+                  </div>
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">Estado</label>
-                  <select
-                    value={readStatus}
-                    onChange={(e) => {
-                      setReadStatus(e.target.value as ReadStatus);
-                      handleFilterChange();
-                    }}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-[#4b207f] focus:outline-none"
-                  >
-                    <option value="todos">Todos</option>
-                    <option value="leido">Leídos</option>
-                    <option value="no-leido">No leídos</option>
-                  </select>
+                  <label className="text-ink mb-2 block text-sm font-medium">Estado</label>
+                  <div className="relative">
+                    <select
+                      value={readStatus}
+                      onChange={(e) => {
+                        setReadStatus(e.target.value as ReadStatus);
+                        handleFilterChange();
+                      }}
+                      className="focus-visible:border-denim focus-visible:outline-denim/25 h-12 w-full appearance-none rounded-xl border border-gray-300 bg-white px-4 pr-10 text-base focus-visible:outline-2 focus-visible:outline-offset-2"
+                    >
+                      <option value="todos">Todos</option>
+                      <option value="leido">Leídos</option>
+                      <option value="no-leido">No leídos</option>
+                    </select>
+                    <ChevronDown
+                      className="text-ink-soft pointer-events-none absolute right-3.5 top-1/2 h-5 w-5 -translate-y-1/2"
+                      strokeWidth={1.5}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -247,31 +233,31 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
       </div>
 
       {/* Desktop Table */}
-      <div className="hidden md:block">
-        <table className="w-full divide-y divide-gray-200 rounded-xl bg-white shadow-md">
-          <thead className="bg-[#ede9f6]">
+      <div className="border-line hidden overflow-x-auto rounded-2xl border bg-white md:block">
+        <table className="divide-line w-full divide-y text-sm">
+          <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#4b207f]">
+              <th className="text-ink-soft px-4 py-3 text-left text-xs font-semibold uppercase tracking-[.04em]">
                 Nombre
               </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#4b207f]">
+              <th className="text-ink-soft px-4 py-3 text-left text-xs font-semibold uppercase tracking-[.04em]">
                 Teléfono
               </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#4b207f]">
+              <th className="text-ink-soft px-4 py-3 text-left text-xs font-semibold uppercase tracking-[.04em]">
                 Fecha de registro
               </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#4b207f]">
+              <th className="text-ink-soft px-4 py-3 text-left text-xs font-semibold uppercase tracking-[.04em]">
                 Tipo de solicitud
               </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#4b207f]">
+              <th className="text-ink-soft px-4 py-3 text-left text-xs font-semibold uppercase tracking-[.04em]">
                 Acciones
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-line divide-y">
             {paginatedFriends.map((f) => (
-              <tr key={f.id} className={`hover:bg-gray-50 ${!f.isRead ? 'bg-[#f5f0ff]' : ''}`}>
-                <td className="px-4 py-3 font-medium text-[#4b207f]">{f.name}</td>
+              <tr key={f.id} className={!f.isRead ? 'bg-warm-soft' : 'hover:bg-gray-50'}>
+                <td className="text-ink px-4 py-3 font-medium">{f.name}</td>
                 <td className="px-4 py-3">{f.phone}</td>
                 <td className="px-4 py-3">
                   {new Date(f.createdAt).toLocaleString('es-ES', {
@@ -285,56 +271,25 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
                   })}
                 </td>
                 <td className="px-4 py-3 capitalize">{f.reason}</td>
-                <td className="px-4 py-3">
-                  <div className="flex gap-3">
+                <td className="px-4 py-2">
+                  <div className="flex gap-1">
                     <button
                       onClick={() => handleOpenDetails(f)}
-                      className="p-2 text-[#4b207f] transition-colors hover:text-[#e36520]"
+                      className="text-ink-soft hover:text-ink flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:bg-gray-100"
                       title="Ver detalles"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="h-5 w-5"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
+                      <Eye className="h-5 w-5" strokeWidth={1.5} />
                     </button>
                     <button
                       onClick={() => toggleReadStatus(f.id)}
-                      className={`p-2 transition-colors ${
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:bg-gray-100 ${
                         f.isRead
-                          ? 'text-yellow-600 hover:text-yellow-800'
-                          : 'text-green-700 hover:text-green-900'
+                          ? 'text-ink-soft hover:text-ink'
+                          : 'text-green-700 hover:text-green-800'
                       }`}
                       title={f.isRead ? 'Marcar como no leído' : 'Marcar como leído'}
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="h-5 w-5"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
+                      <CircleCheck className="h-5 w-5" strokeWidth={1.5} />
                     </button>
                   </div>
                 </td>
@@ -349,17 +304,15 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
         {paginatedFriends.map((f) => (
           <div
             key={f.id}
-            className={`rounded-xl border ${
-              !f.isRead
-                ? 'border-[#e6e0ff] bg-[#f5f0ff] shadow-[0_2px_4px_rgba(75,32,127,0.1)]'
-                : 'border-[#ede9f6] bg-white shadow-sm'
-            } p-4`}
+            className={`border-line rounded-2xl border p-4 ${
+              !f.isRead ? 'bg-warm-soft' : 'bg-white'
+            }`}
           >
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-lg font-bold text-[#4b207f]">{f.name}</span>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <span className="text-ink text-base font-semibold">{f.name}</span>
               <span
-                className={`rounded px-2 py-1 text-xs ${
-                  !f.isRead ? 'bg-[#e6e0ff] text-[#4b207f]' : 'bg-[#ede9f6] text-[#4b207f]'
+                className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                  !f.isRead ? 'text-ink bg-white' : 'text-ink-soft bg-gray-100'
                 }`}
               >
                 {f.reason}
@@ -380,55 +333,22 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
                 hour12: true,
               })}
             </div>
-            <div className="flex gap-3">
+            <div className="mt-2 flex justify-end gap-1">
               <button
                 onClick={() => handleOpenDetails(f)}
-                className="p-2 text-[#4b207f] transition-colors hover:text-[#e36520]"
+                className="text-ink-soft hover:text-ink flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:bg-gray-100"
                 title="Ver detalles"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="h-5 w-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
+                <Eye className="h-5 w-5" strokeWidth={1.5} />
               </button>
               <button
                 onClick={() => toggleReadStatus(f.id)}
-                className={`p-2 transition-colors ${
-                  f.isRead
-                    ? 'text-yellow-600 hover:text-yellow-800'
-                    : 'text-green-700 hover:text-green-900'
+                className={`flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:bg-gray-100 ${
+                  f.isRead ? 'text-ink-soft hover:text-ink' : 'text-green-700 hover:text-green-800'
                 }`}
                 title={f.isRead ? 'Marcar como no leído' : 'Marcar como leído'}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="h-5 w-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+                <CircleCheck className="h-5 w-5" strokeWidth={1.5} />
               </button>
             </div>
           </div>
@@ -437,51 +357,46 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="mt-4 flex justify-center gap-2">
-          <button
+        <div className="mt-6 flex items-center justify-center gap-2">
+          <Button
+            variant="secondary"
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="rounded-lg border border-gray-300 px-3 py-1 text-sm disabled:opacity-50"
           >
             Anterior
-          </button>
-          <span className="flex items-center px-3 py-1 text-sm">
+          </Button>
+          <span className="text-ink-soft flex items-center px-3 text-sm">
             Página {currentPage} de {totalPages}
           </span>
-          <button
+          <Button
+            variant="secondary"
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="rounded-lg border border-gray-300 px-3 py-1 text-sm disabled:opacity-50"
           >
             Siguiente
-          </button>
+          </Button>
         </div>
       )}
 
       {/* Modal de detalles */}
       {selectedFriend && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="bg-ink/50 fixed inset-0 z-50 flex items-center justify-center p-4"
           onClick={handleCloseDetails}
         >
           <div
-            className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg"
+            className="border-line flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border bg-white"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-gray-200 p-4 md:p-6">
-              <h3 className="text-xl font-semibold text-[#4b207f]">Detalles de la solicitud</h3>
-              <button onClick={handleCloseDetails} className="text-gray-500 hover:text-gray-700">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="h-6 w-6"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+            <div className="border-line flex items-center justify-between gap-4 border-b p-4 md:p-6">
+              <h3 className="text-[28px] leading-tight">Detalles de la solicitud</h3>
+              <button
+                onClick={handleCloseDetails}
+                aria-label="Cerrar"
+                className="text-ink-soft hover:text-ink flex h-10 w-10 flex-none items-center justify-center rounded-xl transition-colors hover:bg-gray-100"
+              >
+                <X className="h-5 w-5" strokeWidth={1.5} />
               </button>
             </div>
 
@@ -515,10 +430,8 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
                 <div>
                   <span className="font-semibold">Estado:</span>{' '}
                   <span
-                    className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                      selectedFriend.isRead
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-yellow-100 text-yellow-800'
+                    className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
+                      selectedFriend.isRead ? 'bg-green-50 text-green-800' : 'bg-warm-soft text-ink'
                     }`}
                   >
                     {selectedFriend.isRead ? 'Leído' : 'Nuevo'}
@@ -532,13 +445,10 @@ export default function FriendsList({ adminEmail }: FriendsListProps) {
             </div>
 
             {/* Footer with Close Button */}
-            <div className="flex justify-end border-t border-gray-200 p-4 md:p-6">
-              <button
-                onClick={handleCloseDetails}
-                className="rounded-lg bg-[#4b207f] px-4 py-2 text-white hover:bg-[#4b207f]/90"
-              >
+            <div className="border-line flex justify-end border-t p-4 md:p-6">
+              <Button variant="outline" onClick={handleCloseDetails}>
                 Cerrar
-              </button>
+              </Button>
             </div>
           </div>
         </div>

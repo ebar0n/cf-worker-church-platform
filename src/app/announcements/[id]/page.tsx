@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { getDepartmentImage, getDepartmentName, getDepartmentColor } from '@/lib/constants';
+import { getDepartmentImage, getDepartmentName } from '@/lib/constants';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import AnnouncementDetailPageClient from './components/AnnouncementDetailPageClient';
 
@@ -61,9 +61,6 @@ export async function generateMetadata({
     const departmentImage = formattedAnnouncement.department
       ? getDepartmentImage(formattedAnnouncement.department)
       : '/church-logo.png';
-    const departmentColor = formattedAnnouncement.department
-      ? getDepartmentColor(formattedAnnouncement.department)
-      : '#4b207f';
 
     // Create description from content or default
     const description = formattedAnnouncement.content
@@ -107,9 +104,6 @@ export async function generateMetadata({
         title: formattedAnnouncement.title,
         description,
         images: [departmentImage],
-      },
-      other: {
-        'theme-color': departmentColor,
       },
     };
 

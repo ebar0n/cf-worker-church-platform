@@ -15,16 +15,8 @@ export default async function HealthSurveysPage({
   // needs to see which account their records are being attributed to.
   const volunteerEmail = headersList.get('cf-access-authenticated-user-email') || '';
 
-  return (
-    <>
-      {/* The view paints the viewport #f7f6f3 while the site's body stays white,
-          so the rubber-band scroll on macOS/iOS exposed a white strip that read
-          as a blank section below the list; painting the canvas the same color is
-          what closes it. The bounce itself is left alone on purpose: in the
-          installed app it is the only reload gesture there is, and a half-filled
-          form now survives a reload as a draft. */}
-      <style>{`body { background: #f7f6f3; }`}</style>
-      <HealthSurveysAdmin eventId={parseInt(eventId)} volunteerEmail={volunteerEmail} />
-    </>
-  );
+  // The view is paper, the body's own color: a different canvas showed up as a
+  // blank strip in the macOS/iOS rubber-band scroll (the installed app's only
+  // reload gesture, left alone on purpose).
+  return <HealthSurveysAdmin eventId={parseInt(eventId)} volunteerEmail={volunteerEmail} />;
 }

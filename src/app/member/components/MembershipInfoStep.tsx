@@ -1,4 +1,8 @@
 import React from 'react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import Select from './Select';
 
 // Constantes para los valores de iglesia
 const JORDAN_CHURCH_VALUE = 'Jordan - Distrito Jordan - Asociación Sur Colombiana';
@@ -110,91 +114,87 @@ export default function MembershipInfoStep({
     }
   };
   return (
-    <div className="flex flex-col gap-6">
-      <div className="text-center">
-        <h2 className="mb-2 text-2xl font-bold text-[#5e3929]">Datos de Feligresía</h2>
-        <p className="text-[#5e3929] opacity-80">
+    <div className="flex flex-col gap-6 md:gap-8">
+      <div className="flex flex-col gap-1.5">
+        <h2 className="text-[28px] leading-[1.15] md:text-[32px]">Datos de Feligresía</h2>
+        <p className="text-ink-soft text-[15px] md:text-base">
           Información sobre tu membresía y aceptación en la iglesia
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-5 md:grid-cols-2 md:gap-6">
         <div className="flex flex-col gap-2">
-          <label htmlFor="baptismYear" className="text-sm font-medium text-[#5e3929]">
+          <label htmlFor="baptismYear" className="text-sm font-medium">
             Año de bautismo
           </label>
-          <input
+          <Input
             type="number"
             id="baptismYear"
             name="baptismYear"
             value={formData.baptismYear || ''}
             onChange={handleChange}
             onBlur={onBlur}
-            className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
             placeholder="Ej: 2015"
           />
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="currentAcceptanceYear" className="text-sm font-medium text-[#5e3929]">
+          <label htmlFor="currentAcceptanceYear" className="text-sm font-medium">
             Año de aceptación en la iglesia actual
           </label>
-          <input
+          <Input
             type="number"
             id="currentAcceptanceYear"
             name="currentAcceptanceYear"
             value={formData.currentAcceptanceYear || ''}
             onChange={handleChange}
             onBlur={onBlur}
-            className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
             placeholder="Ej: 2020"
           />
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="currentAcceptanceMethod" className="text-sm font-medium text-[#5e3929]">
+          <label htmlFor="currentAcceptanceMethod" className="text-sm font-medium">
             Método de aceptación en la iglesia actual
           </label>
-          <select
+          <Select
             id="currentAcceptanceMethod"
             name="currentAcceptanceMethod"
             value={formData.currentAcceptanceMethod}
             onChange={handleChange}
             onBlur={onBlur}
-            className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
           >
             <option value="">Selecciona el método</option>
             <option value="BAPTISM">Bautismo</option>
             <option value="PROFESSION_OF_FAITH">Profesión de fe</option>
             <option value="TRANSFER">Traslado</option>
-          </select>
+          </Select>
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="currentMembershipChurch" className="text-sm font-medium text-[#5e3929]">
+          <label htmlFor="currentMembershipChurch" className="text-sm font-medium">
             Iglesia donde tiene su feligresía actualmente
           </label>
-          <select
+          <Select
             id="currentMembershipChurch"
             name="currentMembershipChurch"
             value={selectValue}
             onChange={handleChange}
             onBlur={onBlur}
-            className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
           >
             <option value="">Selecciona tu iglesia de feligresía</option>
             <option value="Jordan">Jordan - Distrito Jordan - Asociación Sur Colombiana</option>
             <option value="other">Otra iglesia</option>
-          </select>
+          </Select>
         </div>
       </div>
 
       {selectValue === 'other' && (
         <div className="flex flex-col gap-2">
-          <label htmlFor="otherChurch" className="text-sm font-medium text-[#5e3929]">
+          <label htmlFor="otherChurch" className="text-sm font-medium">
             Especifica tu iglesia de feligresía
           </label>
-          <input
+          <Input
             type="text"
             id="otherChurch"
             name="otherChurch"
@@ -203,14 +203,13 @@ export default function MembershipInfoStep({
             }
             onChange={handleChange}
             onBlur={onBlur}
-            className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
             placeholder="Ej: Iglesia Central - Distrito Norte - Asociación Central"
           />
         </div>
       )}
 
       {selectValue === 'other' && (
-        <div className="flex items-center gap-3 rounded-lg border border-[#d4c5b9] bg-[#f8f6f4] p-4">
+        <div className="bg-warm-soft flex items-center gap-3 rounded-xl p-4">
           <input
             type="checkbox"
             id="transferAuthorization"
@@ -218,29 +217,23 @@ export default function MembershipInfoStep({
             checked={formData.transferAuthorization}
             onChange={handleChange}
             onBlur={onBlur}
-            className="rounded border-[#d4c5b9] text-[#4b207f] focus:ring-[#4b207f]"
+            className="accent-ink h-5 w-5 flex-none"
           />
-          <label htmlFor="transferAuthorization" className="text-sm text-[#5e3929]">
+          <label htmlFor="transferAuthorization" className="text-base">
             Autorizo el traslado de mi feligresía a la Iglesia Jordan
           </label>
         </div>
       )}
 
-      <div className="flex justify-between gap-4 pt-4">
-        <button
-          type="button"
-          onClick={onPrev}
-          className="flex-1 rounded-lg border border-[#4b207f] px-6 py-2 text-[#4b207f] hover:bg-[#4b207f] hover:text-white md:flex-none md:px-8"
-        >
+      <div className="border-line flex items-center justify-between gap-3 border-t pt-6">
+        <Button type="button" variant="outline" size="lg" onClick={onPrev}>
+          <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
           Atrás
-        </button>
-        <button
-          type="button"
-          onClick={onNext}
-          className="flex-1 rounded-lg bg-[#4b207f] px-6 py-2 text-white hover:bg-[#3a1a5f] md:flex-none md:px-8"
-        >
+        </Button>
+        <Button type="button" size="lg" onClick={onNext} className="flex-1 md:flex-none">
           Siguiente
-        </button>
+          <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
+        </Button>
       </div>
     </div>
   );

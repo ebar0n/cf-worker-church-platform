@@ -4,8 +4,29 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { DEPARTMENTS } from '@/lib/constants';
 import DepartmentSelector from './DepartmentSelector';
-import styles from './AnnouncementModal.module.css';
 import { MarkdownImage } from '@/app/components/MarkdownImage';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import {
+  Bold,
+  CircleHelp,
+  Code,
+  Heading,
+  ImageIcon,
+  Italic,
+  LinkIcon,
+  List,
+  ListChecks,
+  ListOrdered,
+  Loader2,
+  Quote,
+  Strikethrough,
+  Table,
+  X,
+} from 'lucide-react';
+
+const TOOL_BUTTON =
+  'text-ink flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-200';
 
 interface Announcement {
   id: number;
@@ -71,37 +92,22 @@ export default function AnnouncementModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
+      <div className="bg-ink/50 fixed inset-0 transition-opacity" onClick={onClose} />
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-2 sm:p-4">
         <div
-          className="relative mx-2 w-full max-w-5xl rounded-2xl bg-white shadow-2xl"
+          className="border-line relative mx-2 w-full max-w-5xl rounded-2xl border bg-white"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-gray-200 p-4 sm:p-6 lg:p-8">
-            <h3 className="text-2xl font-bold text-[#4b207f]">
+          <div className="border-line flex items-center justify-between border-b p-4 sm:p-6 lg:px-8">
+            <h2 className="text-ink text-[28px] leading-tight">
               {editingAnnouncement ? 'Editar Anuncio' : 'Nuevo Anuncio'}
-            </h3>
-            <button
-              onClick={onClose}
-              className="rounded-lg p-2 transition-colors hover:bg-gray-100"
-            >
-              <svg
-                className="h-6 w-6 text-gray-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+            </h2>
+            <Button variant="ghost" size="icon" onClick={onClose} aria-label="Cerrar">
+              <X className="h-5 w-5" strokeWidth={1.5} />
+            </Button>
           </div>
 
           {/* Form */}
@@ -110,12 +116,11 @@ export default function AnnouncementModal({
             <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">Título *</label>
-                <input
+                <Input
                   type="text"
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
                   placeholder="Título del anuncio"
                 />
               </div>
@@ -124,12 +129,11 @@ export default function AnnouncementModal({
                 <label className="mb-2 block text-sm font-medium text-gray-700">
                   Fecha del Anuncio *
                 </label>
-                <input
+                <Input
                   type="date"
                   required
                   value={formData.announcementDate}
                   onChange={(e) => setFormData({ ...formData, announcementDate: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
                 />
               </div>
             </div>
@@ -146,13 +150,13 @@ export default function AnnouncementModal({
                 />
               </div>
 
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center gap-3 md:pt-7">
                 <input
                   type="checkbox"
                   id="isActive"
                   checked={formData.isActive}
                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                  className="h-4 w-4 rounded border-gray-300 text-[#4b207f] focus:ring-[#4b207f]"
+                  className="accent-ink h-5 w-5"
                 />
                 <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
                   Anuncio activo
@@ -166,9 +170,9 @@ export default function AnnouncementModal({
                 Contenido (Markdown) *
               </label>
               <div data-color-mode="light" className="markdown-editor-container">
-                <div className="rounded-lg border border-gray-300 focus-within:border-[#4b207f] focus-within:ring-2 focus-within:ring-[#4b207f]/20">
+                <div className="focus-within:border-denim focus-within:outline-denim/25 overflow-hidden rounded-xl border border-gray-300 focus-within:outline-2 focus-within:outline-offset-2">
                   {/* Custom Toolbar with original icons */}
-                  <div className="flex items-center gap-1 border-b border-gray-200 bg-gray-50 p-2">
+                  <div className="border-line flex flex-wrap items-center gap-1 border-b bg-gray-50 p-2">
                     <button
                       type="button"
                       onClick={() => {
@@ -186,10 +190,10 @@ export default function AnnouncementModal({
                           setFormData({ ...formData, content: newText });
                         }
                       }}
-                      className="rounded px-2 py-1 text-sm font-bold hover:bg-gray-200"
+                      className={TOOL_BUTTON}
                       title="Bold"
                     >
-                      B
+                      <Bold className="h-4 w-4" strokeWidth={1.5} />
                     </button>
                     <button
                       type="button"
@@ -208,10 +212,10 @@ export default function AnnouncementModal({
                           setFormData({ ...formData, content: newText });
                         }
                       }}
-                      className="rounded px-2 py-1 text-sm italic hover:bg-gray-200"
+                      className={TOOL_BUTTON}
                       title="Italic"
                     >
-                      I
+                      <Italic className="h-4 w-4" strokeWidth={1.5} />
                     </button>
                     <button
                       type="button"
@@ -230,10 +234,10 @@ export default function AnnouncementModal({
                           setFormData({ ...formData, content: newText });
                         }
                       }}
-                      className="rounded px-2 py-1 text-sm line-through hover:bg-gray-200"
+                      className={TOOL_BUTTON}
                       title="Strikethrough"
                     >
-                      S
+                      <Strikethrough className="h-4 w-4" strokeWidth={1.5} />
                     </button>
                     <div className="mx-1 h-4 w-px bg-gray-300"></div>
                     <button
@@ -251,10 +255,10 @@ export default function AnnouncementModal({
                           setFormData({ ...formData, content: newText });
                         }
                       }}
-                      className="rounded px-2 py-1 text-sm hover:bg-gray-200"
+                      className={TOOL_BUTTON}
                       title="Heading"
                     >
-                      T
+                      <Heading className="h-4 w-4" strokeWidth={1.5} />
                     </button>
                     <button
                       type="button"
@@ -273,10 +277,10 @@ export default function AnnouncementModal({
                           setFormData({ ...formData, content: newText });
                         }
                       }}
-                      className="rounded px-2 py-1 text-sm hover:bg-gray-200"
+                      className={TOOL_BUTTON}
                       title="Quote"
                     >
-                      &quot;
+                      <Quote className="h-4 w-4" strokeWidth={1.5} />
                     </button>
                     <button
                       type="button"
@@ -295,10 +299,10 @@ export default function AnnouncementModal({
                           setFormData({ ...formData, content: newText });
                         }
                       }}
-                      className="rounded px-2 py-1 text-sm hover:bg-gray-200"
+                      className={TOOL_BUTTON}
                       title="Code"
                     >
-                      &lt;/&gt;
+                      <Code className="h-4 w-4" strokeWidth={1.5} />
                     </button>
                     <div className="mx-1 h-4 w-px bg-gray-300"></div>
                     <button
@@ -318,10 +322,10 @@ export default function AnnouncementModal({
                           setFormData({ ...formData, content: newText });
                         }
                       }}
-                      className="rounded px-2 py-1 text-sm hover:bg-gray-200"
+                      className={TOOL_BUTTON}
                       title="Link"
                     >
-                      🔗
+                      <LinkIcon className="h-4 w-4" strokeWidth={1.5} />
                     </button>
                     <button
                       type="button"
@@ -338,10 +342,10 @@ export default function AnnouncementModal({
                           setFormData({ ...formData, content: newText });
                         }
                       }}
-                      className="rounded px-2 py-1 text-sm hover:bg-gray-200"
+                      className={TOOL_BUTTON}
                       title="Image"
                     >
-                      🖼️
+                      <ImageIcon className="h-4 w-4" strokeWidth={1.5} />
                     </button>
                     <div className="mx-1 h-4 w-px bg-gray-300"></div>
                     <button
@@ -359,10 +363,10 @@ export default function AnnouncementModal({
                           setFormData({ ...formData, content: newText });
                         }
                       }}
-                      className="rounded px-2 py-1 text-sm hover:bg-gray-200"
+                      className={TOOL_BUTTON}
                       title="Unordered List"
                     >
-                      •
+                      <List className="h-4 w-4" strokeWidth={1.5} />
                     </button>
                     <button
                       type="button"
@@ -379,10 +383,10 @@ export default function AnnouncementModal({
                           setFormData({ ...formData, content: newText });
                         }
                       }}
-                      className="rounded px-2 py-1 text-sm hover:bg-gray-200"
+                      className={TOOL_BUTTON}
                       title="Ordered List"
                     >
-                      1.
+                      <ListOrdered className="h-4 w-4" strokeWidth={1.5} />
                     </button>
                     <button
                       type="button"
@@ -399,10 +403,10 @@ export default function AnnouncementModal({
                           setFormData({ ...formData, content: newText });
                         }
                       }}
-                      className="rounded px-2 py-1 text-sm hover:bg-gray-200"
+                      className={TOOL_BUTTON}
                       title="Checklist"
                     >
-                      ☑️
+                      <ListChecks className="h-4 w-4" strokeWidth={1.5} />
                     </button>
                     <div className="mx-1 h-4 w-px bg-gray-300"></div>
                     <button
@@ -423,19 +427,19 @@ export default function AnnouncementModal({
                           setFormData({ ...formData, content: newText });
                         }
                       }}
-                      className="rounded px-2 py-1 text-sm hover:bg-gray-200"
+                      className={TOOL_BUTTON}
                       title="Table"
                     >
-                      ⊞
+                      <Table className="h-4 w-4" strokeWidth={1.5} />
                     </button>
                     <div className="mx-1 h-4 w-px bg-gray-300"></div>
                     <button
                       type="button"
                       onClick={() => setShowHelp(true)}
-                      className="rounded px-2 py-1 text-sm hover:bg-gray-200"
+                      className={TOOL_BUTTON}
                       title="Ayuda de Markdown"
                     >
-                      ?
+                      <CircleHelp className="h-4 w-4" strokeWidth={1.5} />
                     </button>
                   </div>
 
@@ -448,7 +452,7 @@ export default function AnnouncementModal({
                     height={300}
                     preview="edit"
                     hideToolbar={true}
-                    className="border-0"
+                    className="rounded-none! border-0! shadow-none!"
                     textareaProps={{
                       placeholder:
                         'Escribe el contenido del anuncio usando Markdown...\n\n# Título principal\n## Subtítulo\n\n**Texto en negrita** y *texto en cursiva*\n\n[Enlaces](https://ejemplo.com)\n\n- Listas\n- Con viñetas',
@@ -460,11 +464,11 @@ export default function AnnouncementModal({
 
             {/* Custom Preview */}
             {formData.content && (
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                <h4 className="mb-3 text-sm font-medium text-gray-700">
+              <div className="border-line rounded-2xl border bg-gray-50 p-4">
+                <h4 className="text-ink-soft mb-3 font-sans text-sm font-medium tracking-normal">
                   Vista previa del contenido:
                 </h4>
-                <div className="max-h-48 overflow-y-auto rounded bg-white p-4 text-sm">
+                <div className="border-line max-h-48 overflow-y-auto rounded-xl border bg-white p-4 text-sm">
                   <div className="prose prose-sm max-w-none">
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
@@ -473,29 +477,29 @@ export default function AnnouncementModal({
                         a: ({ node, ...props }) => (
                           <a
                             {...props}
-                            className="text-[#4b207f] underline transition-colors duration-200 hover:text-[#e36520]"
+                            className="text-denim hover:text-ink underline transition-colors duration-200"
                             target="_blank"
                             rel="noopener noreferrer"
                           />
                         ),
                         // Customize heading styles
                         h1: ({ node, ...props }) => (
-                          <h1 {...props} className="mb-2 text-lg font-bold text-[#4b207f]" />
+                          <h1 {...props} className="text-ink mb-2 text-lg font-bold" />
                         ),
                         h2: ({ node, ...props }) => (
-                          <h2 {...props} className="mb-2 text-base font-bold text-[#4b207f]" />
+                          <h2 {...props} className="text-ink mb-2 text-base font-bold" />
                         ),
                         h3: ({ node, ...props }) => (
-                          <h3 {...props} className="mb-2 text-sm font-bold text-[#4b207f]" />
+                          <h3 {...props} className="text-ink mb-2 text-sm font-bold" />
                         ),
                         h4: ({ node, ...props }) => (
-                          <h4 {...props} className="mb-2 text-sm font-bold text-[#4b207f]" />
+                          <h4 {...props} className="text-ink mb-2 text-sm font-bold" />
                         ),
                         h5: ({ node, ...props }) => (
-                          <h5 {...props} className="mb-2 text-sm font-bold text-[#4b207f]" />
+                          <h5 {...props} className="text-ink mb-2 text-sm font-bold" />
                         ),
                         h6: ({ node, ...props }) => (
-                          <h6 {...props} className="mb-2 text-sm font-bold text-[#4b207f]" />
+                          <h6 {...props} className="text-ink mb-2 text-sm font-bold" />
                         ),
                         // Customize paragraph styling
                         p: ({ node, ...props }) => <p {...props} className="mb-2 text-sm" />,
@@ -540,7 +544,7 @@ export default function AnnouncementModal({
                         blockquote: ({ node, ...props }) => (
                           <blockquote
                             {...props}
-                            className="mb-2 border-l-4 border-[#4b207f] bg-gray-50 pl-3 text-sm italic text-gray-700"
+                            className="border-warm mb-2 border-l-4 bg-gray-50 pl-3 text-sm italic text-gray-700"
                           />
                         ),
                         // Customize table styling
@@ -585,44 +589,22 @@ export default function AnnouncementModal({
             )}
 
             {/* Action Buttons */}
-            <div className="flex justify-end space-x-3 border-t border-gray-200 pt-6">
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-lg border border-gray-300 bg-white px-6 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-              >
+            <div className="border-line flex justify-end gap-3 border-t pt-6">
+              <Button type="button" variant="outline" onClick={onClose}>
                 Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="rounded-lg bg-[#4b207f] px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-[#4b207f]/90 disabled:opacity-50"
-              >
+              </Button>
+              <Button type="submit" disabled={isLoading}>
                 {isLoading ? (
-                  <div className="flex items-center">
-                    <svg className="mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" strokeWidth={1.5} />
                     Guardando...
-                  </div>
+                  </>
                 ) : editingAnnouncement ? (
                   'Actualizar'
                 ) : (
                   'Crear'
                 )}
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -630,27 +612,25 @@ export default function AnnouncementModal({
 
       {/* Help Modal */}
       {showHelp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="mx-4 max-w-2xl rounded-lg bg-white p-6 shadow-xl">
+        <div className="bg-ink/50 fixed inset-0 z-50 flex items-center justify-center">
+          <div className="border-line mx-4 max-w-2xl rounded-2xl border bg-white p-6">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-[#4b207f]">Guía de Markdown</h3>
-              <button onClick={() => setShowHelp(false)} className="rounded p-1 hover:bg-gray-100">
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
+              <h3 className="text-ink text-[28px] leading-tight">Guía de Markdown</h3>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowHelp(false)}
+                aria-label="Cerrar"
+              >
+                <X className="h-5 w-5" strokeWidth={1.5} />
+              </Button>
             </div>
 
             <div className="max-h-96 overflow-y-auto">
               <div className="space-y-4">
                 <div>
-                  <h4 className="mb-2 font-semibold text-gray-800">Títulos</h4>
-                  <div className="rounded bg-gray-50 p-3 font-mono text-sm">
+                  <h4 className="text-ink mb-2 text-lg">Títulos</h4>
+                  <div className="border-line rounded-xl border bg-gray-50 p-3 font-mono text-sm">
                     # Título principal
                     <br />
                     ## Subtítulo
@@ -664,8 +644,8 @@ export default function AnnouncementModal({
                 </div>
 
                 <div>
-                  <h4 className="mb-2 font-semibold text-gray-800">Formato de texto</h4>
-                  <div className="rounded bg-gray-50 p-3 font-mono text-sm">
+                  <h4 className="text-ink mb-2 text-lg">Formato de texto</h4>
+                  <div className="border-line rounded-xl border bg-gray-50 p-3 font-mono text-sm">
                     **Texto en negrita**
                     <br />
                     *Texto en cursiva*
@@ -681,8 +661,8 @@ export default function AnnouncementModal({
                 </div>
 
                 <div>
-                  <h4 className="mb-2 font-semibold text-gray-800">Enlaces</h4>
-                  <div className="rounded bg-gray-50 p-3 font-mono text-sm">
+                  <h4 className="text-ink mb-2 text-lg">Enlaces</h4>
+                  <div className="border-line rounded-xl border bg-gray-50 p-3 font-mono text-sm">
                     [Texto del enlace](https://ejemplo.com)
                     <br />
                     [Enlace con título](https://ejemplo.com &quot;Título del enlace&quot;)
@@ -696,8 +676,8 @@ export default function AnnouncementModal({
                 </div>
 
                 <div>
-                  <h4 className="mb-2 font-semibold text-gray-800">Imágenes</h4>
-                  <div className="rounded bg-gray-50 p-3 font-mono text-sm">
+                  <h4 className="text-ink mb-2 text-lg">Imágenes</h4>
+                  <div className="border-line rounded-xl border bg-gray-50 p-3 font-mono text-sm">
                     ![Texto alternativo](url-imagen)
                     <br />
                     ![Texto alternativo](url-imagen &quot;Título de la imagen&quot;)
@@ -709,8 +689,8 @@ export default function AnnouncementModal({
                 </div>
 
                 <div>
-                  <h4 className="mb-2 font-semibold text-gray-800">Listas</h4>
-                  <div className="rounded bg-gray-50 p-3 font-mono text-sm">
+                  <h4 className="text-ink mb-2 text-lg">Listas</h4>
+                  <div className="border-line rounded-xl border bg-gray-50 p-3 font-mono text-sm">
                     - Lista con viñetas
                     <br />
                     * Lista con asteriscos
@@ -732,8 +712,8 @@ export default function AnnouncementModal({
                 </div>
 
                 <div>
-                  <h4 className="mb-2 font-semibold text-gray-800">Citas y bloques</h4>
-                  <div className="rounded bg-gray-50 p-3 font-mono text-sm">
+                  <h4 className="text-ink mb-2 text-lg">Citas y bloques</h4>
+                  <div className="border-line rounded-xl border bg-gray-50 p-3 font-mono text-sm">
                     &gt; Cita simple
                     <br />
                     &gt; Cita con **formato**
@@ -758,8 +738,8 @@ export default function AnnouncementModal({
                 </div>
 
                 <div>
-                  <h4 className="mb-2 font-semibold text-gray-800">Tablas</h4>
-                  <div className="rounded bg-gray-50 p-3 font-mono text-sm">
+                  <h4 className="text-ink mb-2 text-lg">Tablas</h4>
+                  <div className="border-line rounded-xl border bg-gray-50 p-3 font-mono text-sm">
                     | Encabezado 1 | Encabezado 2 | Encabezado 3 |<br />
                     |:-------------|:------------:|-------------:|
                     <br />
@@ -770,8 +750,8 @@ export default function AnnouncementModal({
                 </div>
 
                 <div>
-                  <h4 className="mb-2 font-semibold text-gray-800">Elementos especiales</h4>
-                  <div className="rounded bg-gray-50 p-3 font-mono text-sm">
+                  <h4 className="text-ink mb-2 text-lg">Elementos especiales</h4>
+                  <div className="border-line rounded-xl border bg-gray-50 p-3 font-mono text-sm">
                     --- (Línea horizontal)
                     <br />
                     *** (Línea horizontal)
@@ -791,8 +771,8 @@ export default function AnnouncementModal({
                 </div>
 
                 <div>
-                  <h4 className="mb-2 font-semibold text-gray-800">Escape de caracteres</h4>
-                  <div className="rounded bg-gray-50 p-3 font-mono text-sm">
+                  <h4 className="text-ink mb-2 text-lg">Escape de caracteres</h4>
+                  <div className="border-line rounded-xl border bg-gray-50 p-3 font-mono text-sm">
                     \*Texto con asteriscos\*
                     <br />
                     \[Enlace no clickeable\]
@@ -808,12 +788,9 @@ export default function AnnouncementModal({
             </div>
 
             <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => setShowHelp(false)}
-                className="rounded bg-[#4b207f] px-4 py-2 text-white hover:bg-[#4b207f]/90"
-              >
+              <Button variant="outline" onClick={() => setShowHelp(false)}>
                 Cerrar
-              </button>
+              </Button>
             </div>
           </div>
         </div>

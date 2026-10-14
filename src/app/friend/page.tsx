@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
-import React from 'react';
+import { UserRound } from 'lucide-react';
+import Footer from '@/app/components/Footer';
 import Header from '@/app/components/Header';
 import FriendForm from '@/app/friend/components/FriendForm';
 
@@ -34,39 +35,37 @@ export const metadata: Metadata = {
       '¡Queremos conocerte y orar por ti! Déjanos tus datos y nos pondremos en contacto contigo muy pronto.',
     images: ['https://iglesiajordanibague.org/form-friend-whatsapp.jpg'],
   },
-  other: {
-    'theme-color': '#4b207f',
-  },
 };
 
 export default function FriendContactForm() {
   return (
-    <div className="min-h-screen bg-[#f8f6f2]">
+    <div className="flex min-h-screen flex-col">
       <Header />
-      <div className="mx-auto mt-8 flex w-full max-w-lg flex-col gap-8 rounded-2xl bg-white p-8 shadow-lg">
-        <div className="text-center">
-          <h1 className="mb-2 text-3xl font-bold text-[#4b207f] md:text-4xl">
+      <main className="mx-auto flex w-full max-w-[880px] flex-1 flex-col gap-8 px-5 py-14 md:px-8 lg:gap-10 lg:py-24">
+        <div className="flex flex-col gap-4">
+          <h1 className="m-0 text-[40px] leading-[1.04] lg:text-[56px]">
             ¿Quieres que oremos por ti o te visitemos?
           </h1>
-          <p className="text-lg text-[#5e3929]">
+          <p className="text-ink-soft m-0 text-lg lg:text-xl">
             ¡Queremos conocerte y orar por ti! Déjanos tus datos y nos pondremos en contacto contigo
             muy pronto.
           </p>
-          <div className="mt-4 rounded-lg bg-blue-50 p-4">
-            <p className="text-sm text-blue-800">
-              <strong>¿Eres miembro de la iglesia?</strong> Te invitamos a{' '}
-              <a
-                href="/member"
-                className="font-semibold text-blue-600 underline hover:text-blue-800"
-              >
-                actualizar tus datos
-              </a>{' '}
-              en nuestro registro de miembros para mantenernos conectados.
-            </p>
-          </div>
         </div>
-        <FriendForm />
-      </div>
+        <div className="bg-warm-soft flex gap-3 rounded-xl p-4 lg:px-5">
+          <UserRound className="mt-0.5 h-5 w-5 flex-none" strokeWidth={1.5} />
+          <p className="m-0 text-[15px] leading-relaxed">
+            <strong className="font-semibold">¿Eres miembro de la iglesia?</strong> Te invitamos a{' '}
+            <a href="/member" className="text-denim hover:text-ink font-medium underline">
+              actualizar tus datos
+            </a>{' '}
+            en nuestro registro de miembros para mantenernos conectados.
+          </p>
+        </div>
+        <div className="border-line rounded-2xl border bg-white p-6 lg:p-10">
+          <FriendForm />
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 }

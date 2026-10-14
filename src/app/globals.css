@@ -1,45 +1,39 @@
 @import 'tailwindcss';
 
+/* Light theme only (dark mode is disabled on purpose) */
 :root {
-  /* Primary Colors */
-  --color-emperor: #4b207f;
-  --color-earth: #5e3929;
-  --color-grapevine: #7f264a;
-  --color-denim: #2f557f;
-  --color-campfire: #e36520;
-  --color-tree-frog: #448d21;
-  --color-ming: #3e8391;
-
-  /* Secondary Colors */
-  --color-warm: #ffa92d;
-  --color-cool: #4d7549;
-
-  /* Ejemplo de uso para background y foreground */
-  --background: #ffffff; /* Fondo blanco por defecto */
-  --foreground: var(--color-emperor); /* O el color que prefieras para el texto */
+  --background: #faf8f4;
+  --foreground: #1c1b19;
 }
-
-/* Dark mode disabled - always use light theme */
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --background: var(--color-earth);
-    --foreground: var(--color-emperor);
-  }
-} */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'Advent Pro', Arial, Helvetica, sans-serif;
-  --font-mono: 'Advent Pro', monospace;
-  /* Loaded with next/font only on the home, so it resolves just there */
+  /* next/font variables set on <html> in layout.tsx */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-heading: var(--font-advent), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Home v2 palette (El Jordán redesign). Additive: interior pages keep the
-   default Tailwind colors until their own redesign lands. Warm is the only
-   accent and is never used for text on light backgrounds. */
+/* El Jordán palette (claude.ai/design redesign). Warm is the only accent:
+   buttons, underlines, big icons; never text on a light background. Denim
+   is for links and focus only. */
 @theme {
+  /* Tailwind's gray scale remapped to the design's warm neutrals, so every
+     gray-* utility across the site follows the palette:
+     50 paper · 100 disabled fill · 200 line · 300 field border ·
+     500 disabled text · 600 ink-soft · 900 ink */
+  --color-gray-50: #faf8f4;
+  --color-gray-100: #f4f1ec;
+  --color-gray-200: #e8e3da;
+  --color-gray-300: #d9d2c6;
+  --color-gray-400: #b9b3a9;
+  --color-gray-500: #8a847b;
+  --color-gray-600: #5c5852;
+  --color-gray-700: #46423d;
+  --color-gray-800: #36332f;
+  --color-gray-900: #1c1b19;
+  --color-gray-950: #121110;
+
   --color-warm: #ffa92d;
   --color-warm-hover: #f29a17;
   --color-warm-soft: #fff4e3;
@@ -107,10 +101,35 @@
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+  }
+
+  /* Advent Pro for every heading; utilities still override size and weight */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-denim);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--color-warm-soft);
+  }
 }
 
 @layer utilities {
@@ -185,38 +204,38 @@ body {
 
 /* Markdown Editor Styles */
 .w-md-editor {
-  border-radius: 0.5rem !important;
-  border: 1px solid #d1d5db !important;
+  border-radius: 12px !important;
+  border: 1px solid #d9d2c6 !important;
   overflow: hidden;
 }
 
 .w-md-editor:focus-within {
-  border-color: #4b207f !important;
-  box-shadow: 0 0 0 2px rgba(75, 32, 127, 0.2) !important;
+  border-color: #2f557f !important;
+  box-shadow: 0 0 0 2px rgba(47, 85, 127, 0.25) !important;
 }
 
 .w-md-editor-toolbar {
-  background-color: #f9fafb !important;
-  border-bottom: 1px solid #e5e7eb !important;
+  background-color: #faf8f4 !important;
+  border-bottom: 1px solid #e8e3da !important;
   padding: 8px 12px !important;
 }
 
 .w-md-editor-toolbar-divider {
-  background-color: #d1d5db !important;
+  background-color: #d9d2c6 !important;
 }
 
 .w-md-editor-toolbar button {
-  color: #374151 !important;
+  color: #1c1b19 !important;
   border-radius: 4px !important;
   padding: 4px 6px !important;
 }
 
 .w-md-editor-toolbar button:hover {
-  background-color: #e5e7eb !important;
+  background-color: #e8e3da !important;
 }
 
 .w-md-editor-toolbar button.active {
-  background-color: #4b207f !important;
+  background-color: #1c1b19 !important;
   color: white !important;
 }
 
@@ -236,22 +255,22 @@ body {
   border: none !important;
   outline: none !important;
   resize: none !important;
-  color: #374151 !important;
+  color: #1c1b19 !important;
 }
 
 .w-md-editor-text textarea::placeholder {
-  color: #9ca3af !important;
+  color: #8a847b !important;
 }
 
 .w-md-editor-preview {
   background-color: white !important;
   padding: 16px !important;
-  border-left: 1px solid #e5e7eb !important;
+  border-left: 1px solid #e8e3da !important;
 }
 
 .w-md-editor-preview .wmde-markdown {
   background-color: transparent !important;
-  color: #374151 !important;
+  color: #1c1b19 !important;
 }
 
 .w-md-editor-preview .wmde-markdown h1,
@@ -260,7 +279,7 @@ body {
 .w-md-editor-preview .wmde-markdown h4,
 .w-md-editor-preview .wmde-markdown h5,
 .w-md-editor-preview .wmde-markdown h6 {
-  color: #4b207f !important;
+  color: #1c1b19 !important;
   font-weight: 600 !important;
   margin-top: 16px !important;
   margin-bottom: 8px !important;
@@ -284,12 +303,12 @@ body {
 }
 
 .w-md-editor-preview .wmde-markdown a {
-  color: #4b207f !important;
+  color: #2f557f !important;
   text-decoration: underline !important;
 }
 
 .w-md-editor-preview .wmde-markdown a:hover {
-  color: #e36520 !important;
+  color: #1c1b19 !important;
 }
 
 .w-md-editor-preview .wmde-markdown strong {
@@ -311,7 +330,7 @@ body {
 }
 
 .w-md-editor-preview .wmde-markdown code {
-  background-color: #f3f4f6 !important;
+  background-color: #f4f1ec !important;
   padding: 2px 4px !important;
   border-radius: 3px !important;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
@@ -319,7 +338,7 @@ body {
 }
 
 .w-md-editor-preview .wmde-markdown pre {
-  background-color: #f3f4f6 !important;
+  background-color: #f4f1ec !important;
   padding: 12px !important;
   border-radius: 6px !important;
   overflow-x: auto !important;
@@ -332,10 +351,10 @@ body {
 }
 
 .w-md-editor-preview .wmde-markdown blockquote {
-  border-left: 4px solid #4b207f !important;
+  border-left: 4px solid #ffa92d !important;
   padding-left: 12px !important;
   margin-left: 0 !important;
-  color: #6b7280 !important;
+  color: #5c5852 !important;
   font-style: italic !important;
 }
 

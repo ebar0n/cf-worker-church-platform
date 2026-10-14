@@ -1,4 +1,14 @@
 import React, { useState } from 'react';
+import { AlertCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import Select from './Select';
+
+const CONTACT_METHODS = [
+  { value: 'phone', label: 'Teléfono' },
+  { value: 'email', label: 'Correo electrónico' },
+  { value: 'whatsapp', label: 'WhatsApp' },
+];
 
 interface PersonalInfoStepProps {
   formData: {
@@ -49,109 +59,118 @@ export default function PersonalInfoStep({
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="text-center">
-        <h2 className="mb-2 text-2xl font-bold text-[#5e3929]">Información Personal</h2>
-        <p className="text-[#5e3929] opacity-80">Datos básicos de identificación y contacto</p>
+    <div className="flex flex-col gap-6 md:gap-8">
+      <div className="flex flex-col gap-1.5">
+        <h2 className="text-[28px] leading-[1.15] md:text-[32px]">Información Personal</h2>
+        <p className="text-ink-soft text-[15px] md:text-base">
+          Datos básicos de identificación y contacto
+        </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-5 md:grid-cols-2 md:gap-6">
         <div className="flex flex-col gap-2">
-          <label htmlFor="name" className="text-sm font-medium text-[#5e3929]">
-            Nombre completo <span className="text-red-500">*</span>
+          <label htmlFor="name" className="text-sm font-medium">
+            Nombre completo <span className="text-[#b3261e]">*</span>
           </label>
-          <input
+          <Input
             type="text"
             id="name"
             name="name"
             value={formData.name}
             onChange={onChange}
             onBlur={onBlur}
-            className={`w-full rounded-lg border ${errors.name ? 'border-red-500' : 'border-[#d4c5b9]'} px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none`}
+            aria-invalid={!!errors.name}
             placeholder="Tu nombre completo"
             required
           />
-          {errors.name && <span className="text-sm text-red-500">{errors.name}</span>}
+          {errors.name && (
+            <span className="flex items-center gap-1.5 text-sm text-[#b3261e]">
+              <AlertCircle className="h-4 w-4" strokeWidth={1.5} />
+              {errors.name}
+            </span>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="gender" className="text-sm font-medium text-[#5e3929]">
+          <label htmlFor="gender" className="text-sm font-medium">
             Género
           </label>
-          <select
+          <Select
             id="gender"
             name="gender"
             value={formData.gender}
             onChange={onChange}
             onBlur={onBlur}
-            className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
           >
             <option value="">Selecciona tu género</option>
             <option value="M">Masculino</option>
             <option value="F">Femenino</option>
-          </select>
+          </Select>
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="phone" className="text-sm font-medium text-[#5e3929]">
-            Teléfono <span className="text-red-500">*</span>
+          <label htmlFor="phone" className="text-sm font-medium">
+            Teléfono <span className="text-[#b3261e]">*</span>
           </label>
-          <input
+          <Input
             type="tel"
             id="phone"
             name="phone"
             value={formData.phone}
             onChange={onChange}
             onBlur={onBlur}
-            className={`w-full rounded-lg border ${errors.phone ? 'border-red-500' : 'border-[#d4c5b9]'} px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none`}
+            aria-invalid={!!errors.phone}
             placeholder="Tu número de teléfono"
             required
           />
-          {errors.phone && <span className="text-sm text-red-500">{errors.phone}</span>}
+          {errors.phone && (
+            <span className="flex items-center gap-1.5 text-sm text-[#b3261e]">
+              <AlertCircle className="h-4 w-4" strokeWidth={1.5} />
+              {errors.phone}
+            </span>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="birthDate" className="text-sm font-medium text-[#5e3929]">
+          <label htmlFor="birthDate" className="text-sm font-medium">
             Fecha de nacimiento
           </label>
-          <input
+          <Input
             type="date"
             id="birthDate"
             name="birthDate"
             value={formData.birthDate}
             onChange={onChange}
             onBlur={onBlur}
-            className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:hover:opacity-100"
+            className="[&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:hover:opacity-100"
           />
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="address" className="text-sm font-medium text-[#5e3929]">
+          <label htmlFor="address" className="text-sm font-medium">
             Dirección
           </label>
-          <input
+          <Input
             type="text"
             id="address"
             name="address"
             value={formData.address}
             onChange={onChange}
             onBlur={onBlur}
-            className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
             placeholder="Tu dirección actual"
           />
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="maritalStatus" className="text-sm font-medium text-[#5e3929]">
+          <label htmlFor="maritalStatus" className="text-sm font-medium">
             Estado civil
           </label>
-          <select
+          <Select
             id="maritalStatus"
             name="maritalStatus"
             value={formData.maritalStatus}
             onChange={onChange}
             onBlur={onBlur}
-            className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
           >
             <option value="">Selecciona tu estado civil</option>
             <option value="soltero">Soltero(a)</option>
@@ -159,60 +178,57 @@ export default function PersonalInfoStep({
             <option value="separado">Separado(a)</option>
             <option value="divorciado">Divorciado(a)</option>
             <option value="viudo">Viudo(a)</option>
-          </select>
+          </Select>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label htmlFor="email" className="text-sm font-medium text-[#5e3929]">
+        <div className="flex flex-col gap-2 md:col-span-2">
+          <label htmlFor="email" className="text-sm font-medium">
             Correo electrónico
           </label>
-          <input
+          <Input
             type="email"
             id="email"
             name="email"
             value={formData.email}
             onChange={onChange}
             onBlur={onBlur}
-            className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
             placeholder="Tu correo electrónico"
           />
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label htmlFor="preferredContactMethod" className="text-sm font-medium text-[#5e3929]">
-            Método de contacto preferido
-          </label>
-          <select
-            id="preferredContactMethod"
-            name="preferredContactMethod"
-            value={formData.preferredContactMethod}
-            onChange={onChange}
-            onBlur={onBlur}
-            className="w-full rounded-lg border border-[#d4c5b9] px-4 py-2 text-[#5e3929] focus:border-[#4b207f] focus:outline-none"
-          >
-            <option value="">Selecciona tu método preferido</option>
-            <option value="phone">Teléfono</option>
-            <option value="email">Correo electrónico</option>
-            <option value="whatsapp">WhatsApp</option>
-          </select>
-        </div>
+        <fieldset className="flex flex-col gap-2.5 md:col-span-2">
+          <legend className="mb-2.5 text-sm font-medium">Método de contacto preferido</legend>
+          <div className="grid gap-2 md:grid-cols-3 md:gap-3">
+            {CONTACT_METHODS.map(({ value, label }) => (
+              <label
+                key={value}
+                className="has-checked:border-ink has-checked:bg-warm-soft has-focus-visible:outline-denim has-checked:border-[1.5px] has-checked:font-medium has-focus-visible:outline-2 has-focus-visible:outline-offset-2 flex h-[52px] cursor-pointer items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 text-base"
+              >
+                <input
+                  type="radio"
+                  name="preferredContactMethod"
+                  value={value}
+                  checked={formData.preferredContactMethod === value}
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  className="accent-ink h-5 w-5 flex-none focus-visible:outline-none"
+                />
+                {label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
       </div>
 
-      <div className="flex justify-between gap-4 pt-4">
-        <button
-          type="button"
-          onClick={onPrev}
-          className="flex-1 rounded-lg border border-[#4b207f] px-6 py-2 text-[#4b207f] hover:bg-[#4b207f] hover:text-white md:flex-none md:px-8"
-        >
+      <div className="border-line flex items-center justify-between gap-3 border-t pt-6">
+        <Button type="button" variant="outline" size="lg" onClick={onPrev}>
+          <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
           Atrás
-        </button>
-        <button
-          type="button"
-          onClick={handleNext}
-          className="flex-1 rounded-lg bg-[#4b207f] px-6 py-2 text-white hover:bg-[#3a1a5f] md:flex-none md:px-8"
-        >
+        </Button>
+        <Button type="button" size="lg" onClick={handleNext} className="flex-1 md:flex-none">
           Siguiente
-        </button>
+          <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
+        </Button>
       </div>
     </div>
   );

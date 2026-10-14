@@ -1,33 +1,20 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import localFont from 'next/font/local';
 import { UserRound } from 'lucide-react';
 import Announcements from '@/app/components/Announcements';
 import Contact from '@/app/components/Contact';
+import Footer from '@/app/components/Footer';
 import Gallery from '@/app/components/Gallery';
+import Header from '@/app/components/Header';
 import Hero from '@/app/components/Hero';
-import HomeFooter from '@/app/components/HomeFooter';
-import HomeHeader from '@/app/components/HomeHeader';
 import RevealOnScroll from '@/app/components/RevealOnScroll';
 import Services from '@/app/components/Services';
 import Welcome from '@/app/components/Welcome';
 
-// Headings font for the home v2 redesign. Loaded here, not globally, so
-// interior pages (which reference 'Advent Pro' without ever loading it) keep
-// rendering exactly as before until their own redesign.
-const adventPro = localFont({
-  src: [
-    { path: '../../public/fonts/adventpro-semibold.ttf', weight: '600' },
-    { path: '../../public/fonts/adventpro-bold.ttf', weight: '700' },
-  ],
-  variable: '--font-advent',
-  display: 'swap',
-});
-
 export default function Home() {
   return (
-    <div className={`${adventPro.variable} bg-paper text-ink relative min-h-screen`}>
-      <HomeHeader />
+    <div className="relative min-h-screen">
+      <Header variant="overlay" current="inicio" />
       <main>
         <Hero />
         <Services />
@@ -69,7 +56,7 @@ export default function Home() {
         <Gallery />
         <Contact />
       </main>
-      <HomeFooter />
+      <Footer />
       <RevealOnScroll />
     </div>
   );

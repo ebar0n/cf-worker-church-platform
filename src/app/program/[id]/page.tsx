@@ -4,6 +4,8 @@ import ProgramLandingPageClient from '@/app/program/[id]/components/ProgramLandi
 import ProgramEnrollmentClient from '@/app/program/[id]/components/ProgramEnrollmentClient';
 import { usesFamilyEnrollment } from '@/lib/constants';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
+import Footer from '@/app/components/Footer';
+import Header from '@/app/components/Header';
 
 interface Program {
   id: number;
@@ -135,7 +137,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
       } | null;
 
       if (program && usesFamilyEnrollment(program.department)) {
-        return (
+        return withSiteChrome(
           <ProgramEnrollmentClient
             programId={program.id}
             programTitle={program.title}
@@ -151,5 +153,15 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
     }
   }
 
-  return <ProgramLandingPageClient />;
+  return withSiteChrome(<ProgramLandingPageClient />);
+}
+
+function withSiteChrome(flow: React.ReactNode) {
+  return (
+    <>
+      <Header />
+      <main>{flow}</main>
+      <Footer />
+    </>
+  );
 }

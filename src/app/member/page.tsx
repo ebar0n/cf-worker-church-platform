@@ -1,4 +1,6 @@
 import { Metadata } from 'next';
+import Footer from '@/app/components/Footer';
+import Header from '@/app/components/Header';
 import MemberFormClient from './components/MemberFormClient';
 
 export const metadata: Metadata = {
@@ -32,11 +34,14 @@ export const metadata: Metadata = {
       'Actualiza tus datos como miembro de nuestra iglesia. Mantén tu información al día para estar conectado con nuestras actividades y ministerios.',
     images: ['https://iglesiajordanibague.org/form-member-whatsapp.jpg'],
   },
-  other: {
-    'theme-color': '#4b207f',
-  },
 };
 
 export default function MemberPage() {
-  return <MemberFormClient />;
+  return (
+    <>
+      <Header />
+      <MemberFormClient />
+      <Footer />
+    </>
+  );
 }

@@ -2,6 +2,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { AlertCircle, CircleCheck } from 'lucide-react';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { Textarea } from '@/app/components/ui/textarea';
 
 const initialState = {
   name: '',
@@ -11,6 +15,14 @@ const initialState = {
   note: '',
   privacyPolicy: false,
 };
+
+const REASONS = [
+  ['oracion', 'Quiero que oren por mí'],
+  ['visita', 'Quiero que me visiten'],
+  ['informacion', 'Quiero más información'],
+] as const;
+
+const REQUIRED = <span className="text-[#b3261e]">*</span>;
 
 export default function FriendForm() {
   const [form, setForm] = useState(initialState);
@@ -152,136 +164,135 @@ export default function FriendForm() {
   // Si la solicitud fue exitosa, mostrar solo el mensaje de éxito y el botón de inicio
   if (success) {
     return (
-      <div className="flex flex-col items-center justify-center gap-6 py-12">
-        <div className="text-center">
-          <div className="mb-4 text-6xl">✅</div>
-          <h2 className="mb-2 text-2xl font-bold text-[#4b207f]">
-            ¡Solicitud enviada correctamente!
-          </h2>
-          <p className="text-gray-600">
+      <div className="flex flex-col items-center gap-6 py-8 text-center lg:py-12">
+        <div className="bg-warm-soft flex h-14 w-14 items-center justify-center rounded-2xl">
+          <CircleCheck className="h-7 w-7" strokeWidth={1.5} />
+        </div>
+        <div className="flex flex-col gap-2">
+          <h2 className="m-0 text-[32px] leading-[1.15]">¡Solicitud enviada correctamente!</h2>
+          <p className="text-ink-soft m-0">
             Hemos recibido tu solicitud. Nos pondremos en contacto contigo pronto.
           </p>
         </div>
-        <Link
-          href="/"
-          className="rounded-full bg-[#4b207f] px-8 py-3 font-medium text-white shadow-md transition-colors hover:bg-[#2f557f]"
-        >
-          Volver al inicio
-        </Link>
+        <Button asChild size="lg">
+          <Link href="/" className="no-underline">
+            Volver al inicio
+          </Link>
+        </Button>
       </div>
     );
   }
 
   return (
-    <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-      <div>
-        <label className="mb-1 block font-semibold text-[#4b207f]">Nombre completo</label>
-        <input
+    <form className="grid gap-6 md:grid-cols-2" onSubmit={handleSubmit}>
+      <label className="flex flex-col gap-2">
+        <span className="text-sm font-medium">Nombre completo {REQUIRED}</span>
+        <Input
           type="text"
           name="name"
           value={form.name}
           onChange={handleChange}
-          className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#4b207f]"
           placeholder="Tu nombre"
           required
         />
-      </div>
-      <div>
-        <label className="mb-1 block font-semibold text-[#4b207f]">Teléfono</label>
-        <input
+      </label>
+      <label className="flex flex-col gap-2">
+        <span className="text-sm font-medium">Teléfono {REQUIRED}</span>
+        <Input
           type="tel"
           name="phone"
           value={form.phone}
           onChange={handleChange}
-          className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#4b207f]"
           placeholder="Tu teléfono"
           required
         />
-      </div>
-      <div>
-        <label className="mb-1 block font-semibold text-[#4b207f]">Dirección (opcional)</label>
-        <input
+      </label>
+      <label className="flex flex-col gap-2 md:col-span-2">
+        <span className="text-sm font-medium">Dirección (opcional)</span>
+        <Input
           type="text"
           name="address"
           value={form.address}
           onChange={handleChange}
-          className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#4b207f]"
           placeholder="Tu dirección"
         />
-      </div>
-      <div>
-        <label className="mb-1 block font-semibold text-[#4b207f]">¿Cómo podemos ayudarte?</label>
-        <select
-          name="reason"
-          value={form.reason}
-          onChange={handleChange}
-          className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#4b207f]"
-          required
-        >
-          <option value="">Selecciona una opción</option>
-          <option value="oracion">Quiero que oren por mí</option>
-          <option value="visita">Quiero que me visiten</option>
-          <option value="informacion">Quiero más información</option>
-        </select>
-      </div>
-      <div>
-        <label className="mb-1 block font-semibold text-[#4b207f]">Nota adicional (opcional)</label>
-        <textarea
+      </label>
+      <fieldset className="m-0 flex min-w-0 flex-col gap-3 border-0 p-0 md:col-span-2">
+        <legend className="mb-2 p-0 text-sm font-medium">¿Cómo podemos ayudarte? {REQUIRED}</legend>
+        {REASONS.map(([value, label]) => (
+          <label
+            key={value}
+            className="has-checked:border-ink has-checked:border-[1.5px] has-checked:bg-warm-soft has-checked:font-medium flex min-h-[52px] cursor-pointer items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-base transition-colors hover:border-gray-400"
+          >
+            <input
+              type="radio"
+              name="reason"
+              value={value}
+              checked={form.reason === value}
+              onChange={handleChange}
+              className="accent-ink h-5 w-5 flex-none"
+              required
+            />
+            {label}
+          </label>
+        ))}
+      </fieldset>
+      <label className="flex flex-col gap-2 md:col-span-2">
+        <span className="text-sm font-medium">Nota adicional (opcional)</span>
+        <Textarea
           name="note"
           value={form.note}
           onChange={handleChange}
-          className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#4b207f]"
           placeholder="Escribe cualquier información adicional que quieras compartir"
           rows={3}
         />
-      </div>
-      <div className="flex items-start gap-2">
+      </label>
+      <label className="flex cursor-pointer items-start gap-3 text-[15px] leading-normal md:col-span-2">
         <input
           type="checkbox"
           name="privacyPolicy"
           checked={form.privacyPolicy}
           onChange={handleChange}
-          className="mt-1 h-4 w-4 rounded border-gray-300 text-[#4b207f] focus:ring-[#4b207f]"
+          className="accent-ink mt-px h-5 w-5 flex-none"
           required
         />
-        <label className="text-sm text-gray-600">
+        <span>
           Acepto el{' '}
           <a
             href="/privacy"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#4b207f] underline hover:text-[#e36520]"
+            className="text-denim hover:text-ink underline"
           >
             tratamiento de mis datos personales
           </a>
-        </label>
-      </div>
+        </span>
+      </label>
 
-      {/* Turnstile Widget */}
-      <div className="space-y-4">
-        <div className="flex justify-center">
-          <div
-            ref={turnstileRef}
-            id="turnstile-widget-container"
-            className="turnstile-widget"
-            style={{
-              minHeight: '65px',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          ></div>
-        </div>
-      </div>
+      <div className="border-line flex flex-col gap-5 border-t pt-6 md:col-span-2">
+        {/* Turnstile Widget */}
+        <div
+          ref={turnstileRef}
+          id="turnstile-widget-container"
+          className="turnstile-widget"
+          style={{ minHeight: '65px', display: 'flex', alignItems: 'center' }}
+        ></div>
 
-      <button
-        type="submit"
-        className="mt-4 rounded-full bg-[#4b207f] px-8 py-3 font-medium text-white shadow-md transition-colors hover:bg-[#2f557f]"
-        disabled={loading || !turnstileToken}
-      >
-        {loading ? 'Enviando...' : 'Enviar solicitud'}
-      </button>
-      {error && <div className="text-center font-semibold text-red-600">{error}</div>}
+        <Button
+          type="submit"
+          size="lg"
+          className="md:self-start"
+          disabled={loading || !turnstileToken}
+        >
+          {loading ? 'Enviando...' : 'Enviar solicitud'}
+        </Button>
+        {error && (
+          <div className="border-line flex items-center gap-3.5 rounded-xl border bg-white p-4 text-[15px] font-medium">
+            <AlertCircle className="h-5 w-5 flex-none text-[#b3261e]" strokeWidth={1.5} />
+            {error}
+          </div>
+        )}
+      </div>
     </form>
   );
 }

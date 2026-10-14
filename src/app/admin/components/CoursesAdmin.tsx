@@ -5,6 +5,17 @@ import AdminLayout from '@/app/admin/components/AdminLayout';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Checkbox } from '@/app/components/ui/checkbox';
+import { Textarea } from '@/app/components/ui/textarea';
+import {
+  ChevronDown,
+  Download,
+  GraduationCap,
+  ImagePlus,
+  Loader2,
+  Plus,
+  Users,
+  X,
+} from 'lucide-react';
 import { Course, CourseEnrollment, CourseEnrollmentStatus } from '@/app/types';
 import { calculateAge as calculateAgeAt, parseDateOnly } from '@/lib/age-classification';
 import { downloadCsv } from '@/lib/csv';
@@ -35,6 +46,22 @@ const COLOR_PALETTE = [
   '#4338ca', // Indigo
   '#15803d', // Emerald
 ];
+
+// Native select dressed as a kit field
+function SelectField(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <div className="relative">
+      <select
+        {...props}
+        className="text-ink focus-visible:border-denim focus-visible:outline-denim/25 h-12 w-full appearance-none rounded-xl border border-gray-300 bg-white pl-4 pr-11 text-base focus-visible:outline-2 focus-visible:outline-offset-2"
+      />
+      <ChevronDown
+        className="text-ink-soft pointer-events-none absolute right-3.5 top-1/2 h-5 w-5 -translate-y-1/2"
+        strokeWidth={1.5}
+      />
+    </div>
+  );
+}
 
 export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
   const [courses, setCourses] = useState<CourseWithCounts[]>([]);
@@ -410,9 +437,9 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
 
   const getStatusBadge = (status: CourseEnrollmentStatus) => {
     const styles = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      confirmed: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800',
+      pending: 'bg-warm-soft text-ink',
+      confirmed: 'bg-green-50 text-green-800',
+      rejected: 'bg-red-50 text-[#b3261e]',
     };
 
     const labels = {
@@ -423,7 +450,7 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
 
     return (
       <span
-        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${styles[status]}`}
+        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${styles[status]}`}
       >
         {labels[status]}
       </span>
@@ -480,7 +507,10 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
     return (
       <AdminLayout adminEmail={adminEmail}>
         <div className="flex min-h-screen items-center justify-center">
-          <div className="text-lg">Cargando...</div>
+          <div className="text-ink-soft flex items-center gap-2 text-lg">
+            <Loader2 className="text-ink h-5 w-5 animate-spin" strokeWidth={1.5} />
+            Cargando...
+          </div>
         </div>
       </AdminLayout>
     );
@@ -490,19 +520,22 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
     <AdminLayout adminEmail={adminEmail}>
       <div className="space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-[#4b207f]">Gestión de Cursos</h1>
-          <Button
-            onClick={() => setShowCourseForm(true)}
-            className="rounded-lg bg-[#4b207f] px-6 py-2 font-medium text-white hover:bg-[#4b207f]/90"
-          >
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-ink text-[40px] leading-[1.04]">Gestión de Cursos</h1>
+            <p className="text-ink-soft">
+              Crea cursos, revisa sus inscripciones y comparte el enlace de cada uno.
+            </p>
+          </div>
+          <Button onClick={() => setShowCourseForm(true)} className="self-start sm:self-auto">
+            <Plus className="h-5 w-5" strokeWidth={1.5} />
             Nuevo Curso
           </Button>
         </div>
 
         {/* Filters */}
-        <div className="rounded-lg bg-white p-6 shadow">
-          <h3 className="mb-4 text-lg font-medium text-gray-900">Filtros</h3>
+        <div className="border-line rounded-2xl border bg-white p-5 md:p-6">
+          <h3 className="text-ink mb-4 text-xl">Filtros</h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Buscar</label>
@@ -516,23 +549,23 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
             </div>
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">Estado</label>
-              <select
+              <SelectField
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#4b207f]"
               >
                 <option value="all">Todos</option>
                 <option value="active">Activos</option>
                 <option value="inactive">Inactivos</option>
-              </select>
+              </SelectField>
             </div>
             <div className="flex items-end">
               <Button
+                variant="outline"
                 onClick={() => {
                   setSearchTerm('');
                   setStatusFilter('all');
                 }}
-                className="w-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                className="h-12 w-full"
               >
                 Limpiar Filtros
               </Button>
@@ -541,100 +574,102 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
         </div>
 
         {/* Courses Table */}
-        <div className="overflow-hidden rounded-lg bg-white shadow">
-          <div className="border-b border-gray-200 px-6 py-4">
-            <h3 className="text-lg font-medium text-gray-900">
-              Cursos Registrados ({filteredCourses.length})
-            </h3>
+        <div className="border-line overflow-hidden rounded-2xl border bg-white">
+          <div className="border-line border-b px-5 py-4">
+            <h3 className="text-ink text-xl">Cursos Registrados ({filteredCourses.length})</h3>
           </div>
 
           {/* Desktop Table View */}
-          <div className="hidden overflow-x-auto md:block">
-            <table className="min-w-full divide-y divide-gray-200">
+          {/* inline-size containment keeps the wide table from stretching the admin main
+              column, so it scrolls inside the card on narrow screens instead */}
+          <div className="hidden overflow-x-auto [contain:inline-size] md:block">
+            <table className="divide-line min-w-full divide-y">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="text-ink-soft px-5 py-3 text-left text-xs font-semibold uppercase tracking-[.04em]">
                     Curso
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="text-ink-soft px-5 py-3 text-left text-xs font-semibold uppercase tracking-[.04em]">
                     Costo
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="text-ink-soft px-5 py-3 text-left text-xs font-semibold uppercase tracking-[.04em]">
                     Estado
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="text-ink-soft px-5 py-3 text-left text-xs font-semibold uppercase tracking-[.04em]">
                     Inscritos
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="text-ink-soft px-5 py-3 text-left text-xs font-semibold uppercase tracking-[.04em]">
                     Acciones
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
+              <tbody className="divide-line divide-y bg-white">
                 {filteredCourses.map((course) => (
                   <tr key={course.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-3">
+                    <td className="px-5 py-4">
+                      <div className="flex items-start gap-3">
                         <div
-                          className="h-4 w-4 rounded-full"
+                          className="mt-1.5 h-2.5 w-2.5 flex-none rounded-full"
                           style={{ backgroundColor: course.color }}
                         />
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{course.title}</div>
-                          <div className="max-w-xs truncate text-sm text-gray-500">
+                          <div className="text-ink text-[15px] font-medium">{course.title}</div>
+                          <div className="text-ink-soft max-w-56 truncate text-sm">
                             {course.description}
                           </div>
                           {(course.startDate || course.endDate) && (
-                            <div className="text-xs text-gray-400">
+                            <div className="text-ink-soft mt-0.5 text-xs">
                               {formatDate(course.startDate)} - {formatDate(course.endDate)}
                             </div>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                    <td className="text-ink whitespace-nowrap px-5 py-4 text-sm">
                       {course.cost > 0 ? formatCurrency(course.cost) : 'Gratis'}
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4">
+                    <td className="whitespace-nowrap px-5 py-4">
                       <span
-                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
                           course.isActive
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                            ? 'bg-green-50 text-green-800'
+                            : 'text-ink-soft bg-gray-100'
                         }`}
                       >
                         {course.isActive ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4">
+                    <td className="whitespace-nowrap px-5 py-4">
                       <div className="text-sm">
                         <span className="font-medium">{course._count.enrollments}</span> total
                       </div>
-                      <div className="flex space-x-2 text-xs">
-                        <span className="text-yellow-600">{course._count.pending} pend.</span>
-                        <span className="text-green-600">{course._count.confirmed} conf.</span>
+                      <div className="text-ink-soft mt-1 flex gap-3 text-xs">
+                        <span className="flex items-center gap-1.5">
+                          <span className="bg-warm h-1.5 w-1.5 rounded-full" />
+                          {course._count.pending} pend.
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-green-700" />
+                          {course._count.confirmed} conf.
+                        </span>
                       </div>
                     </td>
-                    <td className="space-x-2 whitespace-nowrap px-6 py-4 text-sm font-medium">
+                    <td className="space-x-2 whitespace-nowrap px-5 py-4 text-sm font-medium">
                       <Button
                         size="sm"
+                        variant="outline"
                         onClick={() => handleViewEnrollments(course)}
-                        className="border border-[#4b207f] bg-white text-[#4b207f] hover:bg-[#4b207f] hover:text-white"
                       >
                         Ver Inscritos
                       </Button>
                       <Button
                         size="sm"
+                        variant="secondary"
                         onClick={() => handleEditCourse(course)}
-                        className="border border-blue-600 bg-white text-blue-600 hover:bg-blue-600 hover:text-white"
                       >
                         Editar
                       </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => copyPublicUrl(course.slug)}
-                        className="border border-gray-400 bg-white text-gray-600 hover:bg-gray-100"
-                      >
+                      <Button size="sm" variant="ghost" onClick={() => copyPublicUrl(course.slug)}>
                         Copiar URL
                       </Button>
                     </td>
@@ -646,29 +681,29 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
 
           {/* Mobile Card View */}
           <div className="md:hidden">
-            <div className="divide-y divide-gray-200">
+            <div className="divide-line divide-y">
               {filteredCourses.map((course) => (
-                <div key={course.id} className="p-4 hover:bg-gray-50">
-                  <div className="mb-3 flex items-start justify-between">
-                    <div className="flex items-center space-x-2">
+                <div key={course.id} className="p-5">
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
                       <div
-                        className="h-3 w-3 rounded-full"
+                        className="h-2.5 w-2.5 flex-none rounded-full"
                         style={{ backgroundColor: course.color }}
                       />
-                      <h3 className="text-sm font-medium text-gray-900">{course.title}</h3>
+                      <h3 className="text-ink text-xl leading-tight">{course.title}</h3>
                     </div>
                     <span
-                      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                        course.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      className={`inline-flex flex-none rounded-full px-2.5 py-1 text-xs font-medium ${
+                        course.isActive ? 'bg-green-50 text-green-800' : 'text-ink-soft bg-gray-100'
                       }`}
                     >
                       {course.isActive ? 'Activo' : 'Inactivo'}
                     </span>
                   </div>
 
-                  <p className="mb-2 text-sm text-gray-500">{course.description}</p>
+                  <p className="text-ink-soft mb-3 text-sm">{course.description}</p>
 
-                  <div className="mb-3 flex items-center justify-between text-sm">
+                  <div className="text-ink mb-4 flex items-center justify-between text-sm">
                     <span className="font-medium">
                       {course.cost > 0 ? formatCurrency(course.cost) : 'Gratis'}
                     </span>
@@ -678,18 +713,10 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => handleViewEnrollments(course)}
-                      className="border border-[#4b207f] bg-white text-xs text-[#4b207f] hover:bg-[#4b207f] hover:text-white"
-                    >
+                    <Button variant="outline" onClick={() => handleViewEnrollments(course)}>
                       Ver Inscritos
                     </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => handleEditCourse(course)}
-                      className="border border-blue-600 bg-white text-xs text-blue-600 hover:bg-blue-600 hover:text-white"
-                    >
+                    <Button variant="secondary" onClick={() => handleEditCourse(course)}>
                       Editar
                     </Button>
                   </div>
@@ -699,8 +726,13 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
           </div>
 
           {filteredCourses.length === 0 && (
-            <div className="py-12 text-center text-gray-500">
-              No hay cursos registrados. Crea uno nuevo para empezar.
+            <div className="m-5 flex items-center gap-4 rounded-2xl border border-dashed border-gray-300 p-5">
+              <span className="bg-warm-soft flex h-11 w-11 flex-none items-center justify-center rounded-xl">
+                <GraduationCap className="text-ink h-5 w-5" strokeWidth={1.5} />
+              </span>
+              <p className="text-ink text-[15px] font-semibold">
+                No hay cursos registrados. Crea uno nuevo para empezar.
+              </p>
             </div>
           )}
         </div>
@@ -708,7 +740,7 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
         {/* Course Form Modal */}
         {showCourseForm && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            className="bg-ink/50 fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={() => {
               setShowCourseForm(false);
               setEditingCourse(null);
@@ -716,33 +748,26 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
             }}
           >
             <div
-              className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg"
+              className="border-line flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border bg-white"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-gray-200 p-4 md:p-6">
-                <h2 className="text-xl font-semibold text-[#4b207f]">
+              <div className="border-line flex items-center justify-between border-b p-4 md:p-6">
+                <h2 className="text-ink text-[28px] leading-tight">
                   {editingCourse ? 'Editar Curso' : 'Nuevo Curso'}
                 </h2>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Cerrar"
                   onClick={() => {
                     setShowCourseForm(false);
                     setEditingCourse(null);
                     resetCourseForm();
                   }}
-                  className="text-gray-500 hover:text-gray-700"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="h-6 w-6"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                  <X className="h-5 w-5" strokeWidth={1.5} />
+                </Button>
               </div>
 
               {/* Content */}
@@ -785,12 +810,12 @@ export default function CoursesAdmin({ adminEmail }: CoursesAdminProps) {
                     <label className="mb-2 block text-sm font-medium text-gray-700">
                       Detalles del Curso (Markdown) *
                     </label>
-                    <textarea
+                    <Textarea
                       value={courseFormData.content}
                       onChange={(e) =>
                         setCourseFormData((prev) => ({ ...prev, content: e.target.value }))
                       }
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[#4b207f]"
+                      className="font-mono text-sm"
                       rows={8}
                       required
                       placeholder={`## Instructor
@@ -807,7 +832,7 @@ Templo de la Iglesia El Jordán
 - Ser mayor de 15 años
 - Tener disponibilidad los sábados`}
                     />
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="text-ink-soft mt-2 text-[13px]">
                       Usa formato Markdown para dar formato al contenido
                     </p>
                   </div>
@@ -817,30 +842,30 @@ Templo de la Iglesia El Jordán
                     <label className="mb-2 block text-sm font-medium text-gray-700">
                       Color del Curso
                     </label>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap items-center gap-3">
                       {COLOR_PALETTE.map((color) => (
                         <button
                           key={color}
                           type="button"
                           onClick={() => setCourseFormData((prev) => ({ ...prev, color }))}
-                          className={`h-8 w-8 rounded-full border-2 transition-transform hover:scale-110 ${
-                            courseFormData.color === color
-                              ? 'border-gray-900 ring-2 ring-gray-400'
-                              : 'border-transparent'
+                          className={`h-9 w-9 rounded-full transition-transform hover:scale-110 ${
+                            courseFormData.color === color ? 'ring-ink ring-2 ring-offset-2' : ''
                           }`}
                           style={{ backgroundColor: color }}
                         />
                       ))}
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center gap-2">
                         <input
                           type="color"
                           value={courseFormData.color}
                           onChange={(e) =>
                             setCourseFormData((prev) => ({ ...prev, color: e.target.value }))
                           }
-                          className="h-8 w-8 cursor-pointer rounded border-0"
+                          className="h-9 w-9 cursor-pointer rounded-lg border border-gray-300 bg-white p-0.5"
                         />
-                        <span className="text-sm text-gray-500">{courseFormData.color}</span>
+                        <span className="text-ink-soft font-mono text-sm">
+                          {courseFormData.color}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -863,13 +888,13 @@ Templo de la Iglesia El Jordán
                       step="any"
                       placeholder="0 para cursos gratuitos"
                     />
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="text-ink-soft mt-2 text-[13px]">
                       Si el costo es mayor a 0, se pedirá comprobante de pago al inscribirse
                     </p>
                   </div>
 
                   {/* Dates */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                       <label className="mb-2 block text-sm font-medium text-gray-700">
                         Fecha de Inicio
@@ -925,7 +950,7 @@ Templo de la Iglesia El Jordán
                       }
                       placeholder="https://chat.whatsapp.com/..."
                     />
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="text-ink-soft mt-2 text-[13px]">
                       Si no se define, se usará el número por defecto (3153455511)
                     </p>
                   </div>
@@ -942,57 +967,37 @@ Templo de la Iglesia El Jordán
                         <img
                           src={imagePreview || courseFormData.imageUrl}
                           alt="Preview"
-                          className="h-40 w-auto rounded-lg object-cover shadow-md"
+                          className="border-line h-40 w-auto rounded-xl border object-cover"
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = 'none';
                           }}
                         />
                         {uploadingImage && (
-                          <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50">
-                            <div className="h-8 w-8 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
+                          <div className="bg-ink/50 absolute inset-0 flex items-center justify-center rounded-xl">
+                            <Loader2
+                              className="text-paper h-8 w-8 animate-spin"
+                              strokeWidth={1.5}
+                            />
                           </div>
                         )}
                         <button
                           type="button"
                           onClick={removeImage}
-                          className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white shadow-md hover:bg-red-600"
+                          aria-label="Quitar imagen"
+                          className="border-line text-ink absolute -right-2 -top-2 rounded-full border bg-white p-1.5 hover:bg-gray-100"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={2}
-                            stroke="currentColor"
-                            className="h-4 w-4"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
+                          <X className="h-4 w-4" strokeWidth={1.5} />
                         </button>
                       </div>
                     ) : (
-                      <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-6 transition-colors hover:border-[#4b207f] hover:bg-gray-100">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                          className="mb-2 h-10 w-10 text-gray-400"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-                          />
-                        </svg>
-                        <span className="text-sm font-medium text-gray-600">
+                      <label className="hover:border-ink flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white p-6 transition-colors hover:bg-gray-50">
+                        <span className="bg-warm-soft mb-3 flex h-11 w-11 items-center justify-center rounded-xl">
+                          <ImagePlus className="text-ink h-5 w-5" strokeWidth={1.5} />
+                        </span>
+                        <span className="text-ink text-[15px] font-semibold">
                           {uploadingImage ? 'Subiendo...' : 'Haz clic para subir imagen'}
                         </span>
-                        <span className="mt-1 text-xs text-gray-500">
+                        <span className="text-ink-soft mt-1 text-sm">
                           PNG, JPG, WebP (max. 10MB)
                         </span>
                         <input
@@ -1004,13 +1009,13 @@ Templo de la Iglesia El Jordán
                         />
                       </label>
                     )}
-                    <p className="mt-2 text-xs text-gray-500">
+                    <p className="text-ink-soft mt-2 text-[13px]">
                       Imagen para compartir en redes sociales (recomendado: 1200x630px)
                     </p>
                   </div>
 
                   {/* Active */}
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-3">
                     <Checkbox
                       id="isActive"
                       checked={courseFormData.isActive}
@@ -1024,23 +1029,19 @@ Templo de la Iglesia El Jordán
                   </div>
 
                   {/* Actions */}
-                  <div className="flex justify-end space-x-2 pt-4">
+                  <div className="flex justify-end gap-3 pt-4">
                     <Button
                       type="button"
+                      variant="outline"
                       onClick={() => {
                         setShowCourseForm(false);
                         setEditingCourse(null);
                         resetCourseForm();
                       }}
-                      className="border border-[#4b207f] bg-white text-[#4b207f] hover:bg-[#4b207f] hover:text-white"
                     >
                       Cancelar
                     </Button>
-                    <Button
-                      type="submit"
-                      disabled={savingCourse || uploadingImage}
-                      className="bg-[#4b207f] text-white hover:bg-[#4b207f]/90"
-                    >
+                    <Button type="submit" disabled={savingCourse || uploadingImage}>
                       {savingCourse ? 'Guardando...' : editingCourse ? 'Actualizar' : 'Crear'}
                     </Button>
                   </div>
@@ -1053,7 +1054,7 @@ Templo de la Iglesia El Jordán
         {/* Enrollments Modal */}
         {showEnrollmentsModal && selectedCourse && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            className="bg-ink/50 fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={() => {
               setShowEnrollmentsModal(false);
               setEnrollments([]);
@@ -1064,29 +1065,28 @@ Templo de la Iglesia El Jordán
             }}
           >
             <div
-              className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-white shadow-lg"
+              className="border-line flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border bg-white"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-gray-200 p-4 md:p-6">
+              <div className="border-line flex flex-col gap-4 border-b p-4 sm:flex-row sm:items-start sm:justify-between md:p-6">
                 <div>
-                  <h2 className="text-xl font-semibold text-[#4b207f]">
+                  <h2 className="text-ink text-[28px] leading-tight">
                     Inscritos en {selectedCourse.title}
                   </h2>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-ink-soft mt-1 text-sm">
                     {selectedCourse.cost > 0
                       ? `Curso de pago: ${formatCurrency(selectedCourse.cost)}`
                       : 'Curso gratuito'}
                   </p>
                 </div>
-                <div className="flex space-x-2">
-                  <Button
-                    onClick={() => downloadCSV(selectedCourse)}
-                    className="bg-green-600 text-white hover:bg-green-700"
-                  >
+                <div className="flex flex-none gap-2">
+                  <Button variant="outline" onClick={() => downloadCSV(selectedCourse)}>
+                    <Download className="h-4 w-4" strokeWidth={1.5} />
                     Descargar CSV
                   </Button>
                   <Button
+                    variant="secondary"
                     onClick={() => {
                       setShowEnrollmentsModal(false);
                       setEnrollments([]);
@@ -1095,7 +1095,6 @@ Templo de la Iglesia El Jordán
                       setEnrollmentStatusFilter('all');
                       setEnrollmentMemberFilter('all');
                     }}
-                    className="border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
                   >
                     Cerrar
                   </Button>
@@ -1105,7 +1104,7 @@ Templo de la Iglesia El Jordán
               {/* Content */}
               <div className="flex-1 overflow-y-auto p-4 md:p-6">
                 {/* Filters */}
-                <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-4">
                   <div className="md:col-span-2">
                     <label className="mb-2 block text-sm font-medium text-gray-700">
                       Buscar por nombre, documento o teléfono
@@ -1120,98 +1119,78 @@ Templo de la Iglesia El Jordán
                   </div>
                   <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700">Estado</label>
-                    <select
+                    <SelectField
                       value={enrollmentStatusFilter}
                       onChange={(e) =>
                         setEnrollmentStatusFilter(e.target.value as 'all' | CourseEnrollmentStatus)
                       }
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#4b207f]"
                     >
                       <option value="all">Todos</option>
                       <option value="pending">Pendientes</option>
                       <option value="confirmed">Confirmados</option>
                       <option value="rejected">Rechazados</option>
-                    </select>
+                    </SelectField>
                   </div>
                   <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700">Tipo</label>
-                    <select
+                    <SelectField
                       value={enrollmentMemberFilter}
                       onChange={(e) =>
                         setEnrollmentMemberFilter(e.target.value as 'all' | 'member' | 'non-member')
                       }
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#4b207f]"
                     >
                       <option value="all">Todos</option>
                       <option value="member">Miembros IASD</option>
                       <option value="non-member">Visitantes</option>
-                    </select>
+                    </SelectField>
                   </div>
                 </div>
 
                 {enrollmentSearchTerm ||
                 enrollmentStatusFilter !== 'all' ||
                 enrollmentMemberFilter !== 'all' ? (
-                  <p className="mb-4 text-sm text-gray-500">
+                  <p className="text-ink-soft mb-4 text-sm">
                     Mostrando {filteredEnrollments.length} de {enrollments.length} inscritos
                   </p>
                 ) : null}
 
                 {loadingEnrollments ? (
-                  <div className="py-8 text-center text-gray-500">
-                    <div className="inline-flex items-center">
-                      <svg
-                        className="mr-2 h-4 w-4 animate-spin text-gray-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
+                  <div className="text-ink-soft py-8 text-center">
+                    <div className="inline-flex items-center gap-2">
+                      <Loader2 className="text-ink h-4 w-4 animate-spin" strokeWidth={1.5} />
                       Cargando inscritos...
                     </div>
                   </div>
                 ) : (
                   <>
                     {/* Desktop Table View */}
-                    <div className="hidden overflow-x-auto lg:block">
-                      <table className="min-w-full divide-y divide-gray-200">
+                    <div className="border-line hidden overflow-x-auto rounded-2xl border lg:block">
+                      <table className="divide-line min-w-full divide-y">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                            <th className="text-ink-soft px-4 py-3 text-left text-xs font-semibold uppercase tracking-[.04em]">
                               Participante
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                            <th className="text-ink-soft px-4 py-3 text-left text-xs font-semibold uppercase tracking-[.04em]">
                               Contacto
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                            <th className="text-ink-soft px-4 py-3 text-left text-xs font-semibold uppercase tracking-[.04em]">
                               Edad
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                            <th className="text-ink-soft px-4 py-3 text-left text-xs font-semibold uppercase tracking-[.04em]">
                               Estado
                             </th>
                             {selectedCourse.cost > 0 && (
-                              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                              <th className="text-ink-soft px-4 py-3 text-left text-xs font-semibold uppercase tracking-[.04em]">
                                 Comprobante
                               </th>
                             )}
-                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                            <th className="text-ink-soft px-4 py-3 text-left text-xs font-semibold uppercase tracking-[.04em]">
                               Acciones
                             </th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200 bg-white">
+                        <tbody className="divide-line divide-y bg-white">
                           {filteredEnrollments.map((enrollment) => (
                             <tr key={enrollment.id} className="hover:bg-gray-50">
                               <td className="px-4 py-4">
@@ -1219,7 +1198,7 @@ Templo de la Iglesia El Jordán
                                   <div className="flex items-center gap-2 text-sm font-medium text-gray-900">
                                     {enrollment.fullName}
                                     {enrollment.isMember && (
-                                      <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+                                      <span className="border-line text-ink-soft rounded-full border px-2 py-0.5 text-xs font-medium">
                                         IASD
                                       </span>
                                     )}
@@ -1234,7 +1213,7 @@ Templo de la Iglesia El Jordán
                                   href={`https://wa.me/57${enrollment.phone.replace(/\D/g, '')}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-sm text-green-600 hover:text-green-800 hover:underline"
+                                  className="text-denim hover:text-ink text-sm hover:underline"
                                 >
                                   {enrollment.phone}
                                 </a>
@@ -1252,17 +1231,17 @@ Templo de la Iglesia El Jordán
                                       href={enrollment.paymentProofUrl}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="text-blue-600 hover:text-blue-800 hover:underline"
+                                      className="text-denim hover:text-ink hover:underline"
                                     >
                                       Ver comprobante
                                     </a>
                                   ) : (
-                                    <span className="text-gray-400">Sin comprobante</span>
+                                    <span className="text-gray-500">Sin comprobante</span>
                                   )}
                                 </td>
                               )}
                               <td className="whitespace-nowrap px-4 py-4">
-                                <div className="flex space-x-1">
+                                <div className="flex gap-2">
                                   {enrollment.status !== 'confirmed' && (
                                     <Button
                                       size="sm"
@@ -1270,7 +1249,7 @@ Templo de la Iglesia El Jordán
                                         handleUpdateEnrollmentStatus(enrollment.id, 'confirmed')
                                       }
                                       disabled={updatingStatus === enrollment.id}
-                                      className="bg-green-600 text-xs text-white hover:bg-green-700"
+                                      variant="outline"
                                     >
                                       {updatingStatus === enrollment.id ? '...' : 'Confirmar'}
                                     </Button>
@@ -1282,7 +1261,8 @@ Templo de la Iglesia El Jordán
                                         handleUpdateEnrollmentStatus(enrollment.id, 'rejected')
                                       }
                                       disabled={updatingStatus === enrollment.id}
-                                      className="bg-red-600 text-xs text-white hover:bg-red-700"
+                                      variant="secondary"
+                                      className="text-[#b3261e] hover:bg-red-50"
                                     >
                                       {updatingStatus === enrollment.id ? '...' : 'Rechazar'}
                                     </Button>
@@ -1294,7 +1274,7 @@ Templo de la Iglesia El Jordán
                                         handleUpdateEnrollmentStatus(enrollment.id, 'pending')
                                       }
                                       disabled={updatingStatus === enrollment.id}
-                                      className="border border-gray-300 bg-white text-xs text-gray-700 hover:bg-gray-50"
+                                      variant="secondary"
                                     >
                                       {updatingStatus === enrollment.id ? '...' : 'Pendiente'}
                                     </Button>
@@ -1312,16 +1292,16 @@ Templo de la Iglesia El Jordán
                       {filteredEnrollments.map((enrollment) => (
                         <div
                           key={enrollment.id}
-                          className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+                          className="border-line rounded-2xl border bg-white p-4"
                         >
                           <div className="mb-3 flex items-start justify-between">
                             <div>
                               <div className="flex items-center gap-2">
-                                <h3 className="text-sm font-medium text-gray-900">
+                                <h3 className="text-ink text-lg leading-tight">
                                   {enrollment.fullName}
                                 </h3>
                                 {enrollment.isMember && (
-                                  <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+                                  <span className="border-line text-ink-soft rounded-full border px-2 py-0.5 text-xs font-medium">
                                     IASD
                                   </span>
                                 )}
@@ -1340,7 +1320,7 @@ Templo de la Iglesia El Jordán
                                 href={`https://wa.me/57${enrollment.phone.replace(/\D/g, '')}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-green-600"
+                                className="text-denim hover:text-ink"
                               >
                                 {enrollment.phone}
                               </a>
@@ -1359,12 +1339,12 @@ Templo de la Iglesia El Jordán
                                   href={enrollment.paymentProofUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-blue-600"
+                                  className="text-denim hover:text-ink"
                                 >
                                   Ver
                                 </a>
                               ) : (
-                                <span className="text-gray-400">Sin comprobante</span>
+                                <span className="text-gray-500">Sin comprobante</span>
                               )}
                             </div>
                           )}
@@ -1372,24 +1352,23 @@ Templo de la Iglesia El Jordán
                           <div className="flex flex-wrap gap-2">
                             {enrollment.status !== 'confirmed' && (
                               <Button
-                                size="sm"
+                                variant="outline"
                                 onClick={() =>
                                   handleUpdateEnrollmentStatus(enrollment.id, 'confirmed')
                                 }
                                 disabled={updatingStatus === enrollment.id}
-                                className="bg-green-600 text-xs text-white hover:bg-green-700"
                               >
                                 Confirmar
                               </Button>
                             )}
                             {enrollment.status !== 'rejected' && (
                               <Button
-                                size="sm"
+                                variant="secondary"
                                 onClick={() =>
                                   handleUpdateEnrollmentStatus(enrollment.id, 'rejected')
                                 }
                                 disabled={updatingStatus === enrollment.id}
-                                className="bg-red-600 text-xs text-white hover:bg-red-700"
+                                className="text-[#b3261e] hover:bg-red-50"
                               >
                                 Rechazar
                               </Button>
@@ -1400,12 +1379,17 @@ Templo de la Iglesia El Jordán
                     </div>
 
                     {filteredEnrollments.length === 0 && (
-                      <div className="py-8 text-center text-gray-500">
-                        {enrollmentSearchTerm ||
-                        enrollmentStatusFilter !== 'all' ||
-                        enrollmentMemberFilter !== 'all'
-                          ? 'No se encontraron inscritos con los filtros aplicados'
-                          : 'No hay inscritos en este curso aún.'}
+                      <div className="flex items-center gap-4 rounded-2xl border border-dashed border-gray-300 p-5">
+                        <span className="bg-warm-soft flex h-11 w-11 flex-none items-center justify-center rounded-xl">
+                          <Users className="text-ink h-5 w-5" strokeWidth={1.5} />
+                        </span>
+                        <p className="text-ink text-[15px] font-semibold">
+                          {enrollmentSearchTerm ||
+                          enrollmentStatusFilter !== 'all' ||
+                          enrollmentMemberFilter !== 'all'
+                            ? 'No se encontraron inscritos con los filtros aplicados'
+                            : 'No hay inscritos en este curso aún.'}
+                        </p>
                       </div>
                     )}
                   </>
@@ -1413,8 +1397,9 @@ Templo de la Iglesia El Jordán
               </div>
 
               {/* Footer */}
-              <div className="flex justify-end border-t border-gray-200 p-4 md:p-6">
-                <button
+              <div className="border-line flex justify-end border-t p-4 md:p-6">
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setShowEnrollmentsModal(false);
                     setEnrollments([]);
@@ -1423,10 +1408,9 @@ Templo de la Iglesia El Jordán
                     setEnrollmentStatusFilter('all');
                     setEnrollmentMemberFilter('all');
                   }}
-                  className="rounded-lg bg-[#4b207f] px-4 py-2 text-white hover:bg-[#4b207f]/90"
                 >
                   Cerrar
-                </button>
+                </Button>
               </div>
             </div>
           </div>
