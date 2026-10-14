@@ -33,7 +33,7 @@ export default function ReloadInAppButton() {
         setReloading(true);
         window.location.reload();
       }}
-      className="rounded-lg p-3 text-white transition-colors hover:bg-white/10"
+      className="hover:bg-current/10 flex h-10 w-10 items-center justify-center rounded-xl text-inherit transition-colors"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

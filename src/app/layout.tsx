@@ -1,9 +1,20 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 import ServiceWorkerRegistrar from './components/ServiceWorkerRegistrar';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
+
+// Headings (El Jordán redesign). Only the two weights the design uses.
+const adventPro = localFont({
+  src: [
+    { path: '../../public/fonts/adventpro-semibold.ttf', weight: '600' },
+    { path: '../../public/fonts/adventpro-bold.ttf', weight: '700' },
+  ],
+  variable: '--font-advent',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Iglesia Jordan Ibagué',
@@ -38,13 +49,13 @@ export const metadata: Metadata = {
 
 // themeColor lives in the viewport export in Next 15+, not in metadata
 export const viewport: Viewport = {
-  themeColor: '#4b207f',
+  themeColor: '#faf8f4',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
-      <body className={inter.className}>
+    <html lang="es" className={`${inter.variable} ${adventPro.variable}`}>
+      <body className="font-sans antialiased">
         {children}
         <ServiceWorkerRegistrar />
       </body>
