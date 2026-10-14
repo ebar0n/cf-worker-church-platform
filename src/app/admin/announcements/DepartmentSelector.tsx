@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Check, ChevronDown } from 'lucide-react';
 import { DEPARTMENTS } from '@/lib/constants';
 
 interface DepartmentSelectorProps {
@@ -19,36 +20,32 @@ export default function DepartmentSelector({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-left focus:border-[#4b207f] focus:outline-none focus:ring-2 focus:ring-[#4b207f]/20"
+        className="focus-visible:border-denim focus-visible:outline-denim/25 flex h-12 w-full items-center justify-between rounded-xl border border-gray-300 bg-white px-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         <div className="flex items-center gap-3">
           {selectedDept ? (
             <>
-              <div
-                className="h-4 w-4 rounded-full shadow-sm"
+              <span
+                className="h-1.5 w-1.5 rounded-full"
                 style={{ backgroundColor: selectedDept.color }}
               />
-              <span className="text-sm font-medium text-gray-700">{selectedDept.name}</span>
+              <span className="text-ink text-base">{selectedDept.name}</span>
             </>
           ) : (
-            <span className="text-sm text-gray-500">Seleccionar departamento</span>
+            <span className="text-base text-gray-500">Seleccionar departamento</span>
           )}
         </div>
-        <svg
-          className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${
+        <ChevronDown
+          className={`text-ink-soft h-5 w-5 transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
           }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+          strokeWidth={1.5}
+        />
       </button>
 
       {/* Dropdown menu */}
       {isOpen && (
-        <div className="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg">
+        <div className="border-line absolute z-10 mt-1 w-full rounded-xl border bg-white shadow-[0_8px_24px_rgb(28_27_25/0.12)]">
           <div className="max-h-60 overflow-y-auto p-2">
             {DEPARTMENTS.map((dept) => (
               <button
@@ -58,29 +55,17 @@ export default function DepartmentSelector({
                   onSelectDepartment(dept.code);
                   setIsOpen(false);
                 }}
-                className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-gray-50 ${
-                  selectedDepartment === dept.code ? 'bg-[#4b207f]/10' : ''
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-gray-100 ${
+                  selectedDepartment === dept.code ? 'bg-warm-soft' : ''
                 }`}
               >
-                <div
-                  className="h-4 w-4 rounded-full shadow-sm"
+                <span
+                  className="h-1.5 w-1.5 flex-none rounded-full"
                   style={{ backgroundColor: dept.color }}
                 />
-                <span className="text-sm font-medium text-gray-700">{dept.name}</span>
+                <span className="text-ink text-sm font-medium">{dept.name}</span>
                 {selectedDepartment === dept.code && (
-                  <svg
-                    className="ml-auto h-4 w-4 text-[#4b207f]"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
+                  <Check className="text-ink ml-auto h-4 w-4" strokeWidth={1.5} />
                 )}
               </button>
             ))}

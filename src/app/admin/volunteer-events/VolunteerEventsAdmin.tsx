@@ -5,6 +5,23 @@ import VolunteersModal from './VolunteersModal';
 import MDEditor from '@uiw/react-md-editor';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import {
+  Bold,
+  Calendar,
+  HandHeart,
+  Heading,
+  Italic,
+  LinkIcon,
+  List,
+  Loader2,
+  Plus,
+  X,
+} from 'lucide-react';
+
+const TOOL_BUTTON =
+  'text-ink flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-200';
 
 interface VolunteerEvent {
   id: number;
@@ -242,58 +259,48 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
     return (
       <AdminLayout adminEmail={adminEmail}>
         <div className="flex justify-center py-8">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-[#4b207f] border-t-transparent"></div>
+          <Loader2 className="text-ink h-8 w-8 animate-spin" strokeWidth={1.5} />
         </div>
       </AdminLayout>
     );
   }
 
+  // Selected filter reads as a kit choice card
+  const filterClass = (status: FilterStatus) =>
+    `h-11 rounded-xl border px-4 text-sm font-medium transition-colors ${
+      filterStatus === status
+        ? 'border-ink bg-warm-soft text-ink'
+        : 'border-gray-300 bg-white text-ink-soft hover:bg-gray-100'
+    }`;
+
   return (
     <AdminLayout adminEmail={adminEmail}>
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-[#4b207f]">Gestión de Eventos de Voluntariado</h2>
-        <button
-          onClick={() => setShowModal(true)}
-          className="rounded-lg bg-[#4b207f] px-4 py-2 text-white hover:bg-[#4b207f]/90"
-        >
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-ink text-[40px] leading-[1.04]">
+            Gestión de Eventos de Voluntariado
+          </h1>
+          <p className="text-ink-soft">
+            Organiza los eventos, sus servicios y las personas que se inscriben para servir.
+          </p>
+        </div>
+        <Button onClick={() => setShowModal(true)} className="self-start sm:self-auto">
+          <Plus className="h-5 w-5" strokeWidth={1.5} />
           Nuevo Evento
-        </button>
+        </Button>
       </div>
 
       {/* Filter Section */}
-      <div className="mb-6 flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">Filtrar por estado:</span>
-        </div>
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <span className="text-ink text-sm font-medium">Filtrar por estado:</span>
         <div className="flex gap-2">
-          <button
-            onClick={() => setFilterStatus('active')}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              filterStatus === 'active'
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
+          <button onClick={() => setFilterStatus('active')} className={filterClass('active')}>
             Activos
           </button>
-          <button
-            onClick={() => setFilterStatus('all')}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              filterStatus === 'all'
-                ? 'bg-[#4b207f] text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
+          <button onClick={() => setFilterStatus('all')} className={filterClass('all')}>
             Todos
           </button>
-          <button
-            onClick={() => setFilterStatus('inactive')}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              filterStatus === 'inactive'
-                ? 'bg-gray-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
+          <button onClick={() => setFilterStatus('inactive')} className={filterClass('inactive')}>
             Inactivos
           </button>
         </div>
@@ -301,33 +308,32 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl">
-            <h3 className="mb-4 text-xl font-bold text-[#4b207f]">
+        <div className="bg-ink/50 fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="border-line max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border bg-white p-5 md:p-6">
+            <h2 className="text-ink mb-5 text-[28px] leading-tight">
               {editingEvent ? 'Editar Evento' : 'Nuevo Evento de Voluntariado'}
-            </h3>
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Título <span className="text-red-500">*</span>
+                  Título <span className="text-[#b3261e]">*</span>
                 </label>
-                <input
+                <Input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#4b207f] focus:outline-none"
                   placeholder="Ej: Jornada de limpieza comunitaria"
                 />
               </div>
 
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Descripción (Markdown) <span className="text-red-500">*</span>
+                  Descripción (Markdown) <span className="text-[#b3261e]">*</span>
                 </label>
                 <div data-color-mode="light" className="markdown-editor-container">
-                  <div className="rounded-lg border border-gray-300 focus-within:border-[#4b207f] focus-within:ring-2 focus-within:ring-[#4b207f]/20">
+                  <div className="focus-within:border-denim focus-within:outline-denim/25 overflow-hidden rounded-xl border border-gray-300 focus-within:outline-2 focus-within:outline-offset-2">
                     {/* Custom Toolbar */}
-                    <div className="flex items-center gap-1 border-b border-gray-200 bg-gray-50 p-2">
+                    <div className="border-line flex items-center gap-1 border-b bg-gray-50 p-2">
                       <button
                         type="button"
                         onClick={() => {
@@ -345,10 +351,10 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                             setFormData({ ...formData, description: newText });
                           }
                         }}
-                        className="rounded px-2 py-1 text-sm font-bold hover:bg-gray-200"
+                        className={TOOL_BUTTON}
                         title="Bold"
                       >
-                        B
+                        <Bold className="h-4 w-4" strokeWidth={1.5} />
                       </button>
                       <button
                         type="button"
@@ -367,10 +373,10 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                             setFormData({ ...formData, description: newText });
                           }
                         }}
-                        className="rounded px-2 py-1 text-sm italic hover:bg-gray-200"
+                        className={TOOL_BUTTON}
                         title="Italic"
                       >
-                        I
+                        <Italic className="h-4 w-4" strokeWidth={1.5} />
                       </button>
                       <div className="mx-1 h-4 w-px bg-gray-300"></div>
                       <button
@@ -388,10 +394,10 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                             setFormData({ ...formData, description: newText });
                           }
                         }}
-                        className="rounded px-2 py-1 text-sm hover:bg-gray-200"
+                        className={TOOL_BUTTON}
                         title="Heading"
                       >
-                        T
+                        <Heading className="h-4 w-4" strokeWidth={1.5} />
                       </button>
                       <button
                         type="button"
@@ -408,10 +414,10 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                             setFormData({ ...formData, description: newText });
                           }
                         }}
-                        className="rounded px-2 py-1 text-sm hover:bg-gray-200"
+                        className={TOOL_BUTTON}
                         title="List"
                       >
-                        •
+                        <List className="h-4 w-4" strokeWidth={1.5} />
                       </button>
                       <button
                         type="button"
@@ -430,10 +436,10 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                             setFormData({ ...formData, description: newText });
                           }
                         }}
-                        className="rounded px-2 py-1 text-sm hover:bg-gray-200"
+                        className={TOOL_BUTTON}
                         title="Link"
                       >
-                        🔗
+                        <LinkIcon className="h-4 w-4" strokeWidth={1.5} />
                       </button>
                     </div>
 
@@ -446,7 +452,7 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                       height={250}
                       preview="edit"
                       hideToolbar={true}
-                      className="border-0"
+                      className="rounded-none! border-0! shadow-none!"
                       textareaProps={{
                         placeholder:
                           'Describe el evento usando Markdown...\n\n**Negrita** *cursiva*\n\n- Listas\n- Con viñetas',
@@ -457,9 +463,11 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
 
                 {/* Preview */}
                 {formData.description && (
-                  <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
-                    <h4 className="mb-2 text-xs font-medium text-gray-700">Vista previa:</h4>
-                    <div className="max-h-32 overflow-y-auto rounded bg-white p-3">
+                  <div className="border-line mt-3 rounded-2xl border bg-gray-50 p-3">
+                    <h4 className="text-ink-soft mb-2 font-sans text-xs font-medium tracking-normal">
+                      Vista previa:
+                    </h4>
+                    <div className="border-line max-h-32 overflow-y-auto rounded-xl border bg-white p-3">
                       <div className="prose prose-sm max-w-none">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                           {formData.description}
@@ -472,22 +480,21 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Fecha del Evento <span className="text-red-500">*</span>
+                  Fecha del Evento <span className="text-[#b3261e]">*</span>
                 </label>
-                <input
+                <Input
                   type="date"
                   value={formData.eventDate}
                   onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#4b207f] focus:outline-none"
                 />
               </div>
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Servicios a Ofrecer <span className="text-red-500">*</span>
+                  Servicios a Ofrecer <span className="text-[#b3261e]">*</span>
                 </label>
                 <div className="flex gap-2">
-                  <input
+                  <Input
                     type="text"
                     value={serviceInput}
                     onChange={(e) => setServiceInput(e.target.value)}
@@ -497,43 +504,39 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                         addService();
                       }
                     }}
-                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:border-[#4b207f] focus:outline-none"
+                    className="flex-1"
                     placeholder="Ej: Limpieza, Cocina, Transporte..."
                   />
-                  <button
-                    type="button"
-                    onClick={addService}
-                    className="rounded-lg bg-[#e36520] px-4 py-2 text-white hover:bg-[#e36520]/90"
-                  >
+                  <Button type="button" variant="outline" onClick={addService} className="h-12">
                     Agregar
-                  </button>
+                  </Button>
                 </div>
                 {formData.services.length > 0 && (
                   <div className="mt-2 space-y-2">
                     {formData.services.map((service, index) => (
                       <div
                         key={index}
-                        className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3"
+                        className="border-line flex flex-wrap items-center gap-3 rounded-xl border bg-gray-50 p-3"
                       >
-                        <span className="flex-1 text-sm font-medium text-[#4b207f]">{service}</span>
+                        <span className="text-ink flex-1 text-sm font-medium">{service}</span>
                         <div className="flex items-center gap-2">
-                          <label className="text-xs text-gray-600">Capacidad máxima:</label>
+                          <label className="text-ink-soft text-xs">Capacidad máxima:</label>
                           <input
                             type="number"
                             min="1"
                             step="1"
                             value={formData.maxCapacities[index] ?? '1'}
                             onChange={(e) => updateMaxCapacity(index, e.target.value)}
-                            className="w-16 rounded border border-gray-300 px-2 py-1 text-center text-sm focus:border-[#4b207f] focus:outline-none"
+                            className="text-ink focus-visible:border-denim focus-visible:outline-denim/25 h-10 w-16 rounded-lg border border-gray-300 bg-white px-2 text-center text-sm focus-visible:outline-2 focus-visible:outline-offset-2"
                           />
                         </div>
                         <button
                           type="button"
                           onClick={() => removeService(service)}
-                          className="text-red-500 hover:text-red-700"
+                          className="text-ink-soft flex h-9 w-9 items-center justify-center rounded-lg hover:bg-red-50 hover:text-[#b3261e]"
                           title="Eliminar servicio"
                         >
-                          ×
+                          <X className="h-4 w-4" strokeWidth={1.5} />
                         </button>
                       </div>
                     ))}
@@ -545,47 +548,37 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                 <label className="mb-1 block text-sm font-medium text-gray-700">
                   URL del Grupo de WhatsApp (opcional)
                 </label>
-                <input
+                <Input
                   type="url"
                   value={formData.whatsappGroupUrl}
                   onChange={(e) => setFormData({ ...formData, whatsappGroupUrl: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#4b207f] focus:outline-none"
                   placeholder="https://chat.whatsapp.com/..."
                 />
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="text-ink-soft mt-2 text-[13px]">
                   Si no se define, se usará el número por defecto (3153455511)
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
                   id="isActive"
                   checked={formData.isActive}
                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                  className="h-4 w-4 rounded border-gray-300 text-[#4b207f] focus:ring-[#4b207f]"
+                  className="accent-ink h-5 w-5"
                 />
                 <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
                   Evento activo
                 </label>
               </div>
 
-              <div className="flex justify-end gap-2 pt-4">
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  disabled={isSubmitting}
-                  className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
+              <div className="flex justify-end gap-3 pt-4">
+                <Button type="button" variant="outline" onClick={resetForm} disabled={isSubmitting}>
                   Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="rounded-lg bg-[#4b207f] px-4 py-2 text-white hover:bg-[#4b207f]/90 disabled:cursor-not-allowed disabled:opacity-50"
-                >
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? 'Guardando...' : editingEvent ? 'Actualizar' : 'Crear'}
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -597,31 +590,31 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
         {events.map((event) => (
           <div
             key={event.id}
-            className={`rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 ${
+            className={`border-line rounded-2xl border bg-white p-5 md:p-6 ${
               !event.isActive ? 'opacity-75' : ''
             }`}
           >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="mb-2 flex items-center gap-2">
-                  <h3 className="text-lg font-semibold text-[#4b207f]">{event.title}</h3>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 flex-1">
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <h3 className="text-ink text-2xl leading-tight">{event.title}</h3>
                   {event.isActive ? (
-                    <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
+                    <span className="rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-800">
                       Activo
                     </span>
                   ) : (
-                    <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
+                    <span className="text-ink-soft rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium">
                       Inactivo
                     </span>
                   )}
                 </div>
-                <p className="mb-2 whitespace-pre-wrap text-sm text-gray-700">
+                <p className="text-ink-soft mb-3 whitespace-pre-wrap text-sm">
                   {event.description}
                 </p>
                 {event.services && (
-                  <div className="mb-2">
-                    <span className="text-sm font-medium text-gray-700">Servicios: </span>
-                    <div className="mt-1 flex flex-wrap gap-2">
+                  <div className="mb-3">
+                    <span className="text-ink text-sm font-medium">Servicios: </span>
+                    <div className="mt-2 flex flex-wrap gap-2">
                       {JSON.parse(event.services).map((service: string, index: number) => {
                         const maxCapacities = event.maxCapacities
                           ? JSON.parse(event.maxCapacities)
@@ -630,9 +623,10 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                         return (
                           <span
                             key={index}
-                            className="rounded-full bg-[#4b207f]/10 px-2 py-1 text-xs text-[#4b207f]"
+                            className="border-line text-ink inline-flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 text-[13px] font-medium"
                             title={`Capacidad máxima: ${capacity}`}
                           >
+                            <span className="bg-warm h-1.5 w-1.5 rounded-full" />
                             {service} {capacity !== 'Sin límite' && `(${capacity})`}
                           </span>
                         );
@@ -640,79 +634,66 @@ export default function VolunteerEventsAdmin({ adminEmail }: { adminEmail: strin
                     </div>
                   </div>
                 )}
-                <div className="text-sm text-gray-500">
+                <div className="text-ink-soft flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium">
+                  <Calendar className="h-4 w-4" strokeWidth={1.5} />
                   <span>
                     Fecha del evento:{' '}
                     {new Date(
                       new Date(event.eventDate).getTime() + new Date().getTimezoneOffset() * 60000
                     ).toLocaleDateString('es-ES')}
                   </span>
-                  <span className="mx-2">•</span>
+                  <span>•</span>
                   <span>Creado: {new Date(event.createdAt).toLocaleDateString('es-ES')}</span>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button
-                    onClick={() => handleViewVolunteers(event.id)}
-                    className="rounded-lg border border-green-600 bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
-                  >
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button variant="outline" onClick={() => handleViewVolunteers(event.id)}>
                     Ver Voluntarios
-                    {event._count && <span className="ml-1">({event._count.registrations})</span>}
-                  </button>
-                  <a
-                    href={`/admin/surveys/${event.id}`}
-                    className="rounded-lg border border-green-700 bg-white px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-700 hover:text-white"
-                  >
-                    Encuestas
-                    {event._count && <span className="ml-1">({event._count.healthSurveys})</span>}
-                  </a>
-                  <button
+                    {event._count && ` (${event._count.registrations})`}
+                  </Button>
+                  <Button asChild variant="secondary">
+                    <a href={`/admin/surveys/${event.id}`}>
+                      Encuestas
+                      {event._count && ` (${event._count.healthSurveys})`}
+                    </a>
+                  </Button>
+                  <Button
+                    variant="ghost"
                     onClick={() => copyRegistrationLink(event.id)}
-                    className="flex items-center gap-2 rounded-lg border border-[#4b207f] bg-white px-4 py-2 text-sm font-medium text-[#4b207f] hover:bg-[#4b207f]/10"
                     title="Copiar enlace de registro"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="h-4 w-4"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"
-                      />
-                    </svg>
+                    <LinkIcon className="h-4 w-4" strokeWidth={1.5} />
                     Copiar Enlace
-                  </button>
+                  </Button>
                 </div>
               </div>
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={() => handleEdit(event)}
-                  className="rounded-lg border border-[#4b207f] px-3 py-1 text-sm text-[#4b207f] hover:bg-[#4b207f]/10"
-                >
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={() => handleEdit(event)}>
                   Editar
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   onClick={() => handleDelete(event.id)}
-                  className="rounded-lg border border-red-500 px-3 py-1 text-sm text-red-500 hover:bg-red-50"
+                  className="text-[#b3261e] hover:bg-red-50"
                 >
                   Eliminar
-                </button>
+                </Button>
               </div>
             </div>
           </div>
         ))}
 
         {events.length === 0 && (
-          <div className="py-8 text-center text-gray-500">
-            {filterStatus === 'all'
-              ? 'No hay eventos registrados'
-              : filterStatus === 'active'
-                ? 'No hay eventos activos'
-                : 'No hay eventos inactivos'}
+          <div className="flex items-center gap-4 rounded-2xl border border-dashed border-gray-300 p-5">
+            <span className="bg-warm-soft flex h-11 w-11 flex-none items-center justify-center rounded-xl">
+              <HandHeart className="text-ink h-5 w-5" strokeWidth={1.5} />
+            </span>
+            <p className="text-ink text-[15px] font-semibold">
+              {filterStatus === 'all'
+                ? 'No hay eventos registrados'
+                : filterStatus === 'active'
+                  ? 'No hay eventos activos'
+                  : 'No hay eventos inactivos'}
+            </p>
           </div>
         )}
       </div>
