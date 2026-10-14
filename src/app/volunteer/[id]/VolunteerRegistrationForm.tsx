@@ -931,7 +931,7 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                       value="normal"
                       checked={formData.dietType === 'normal'}
                       onChange={(e) => setFormData({ ...formData, dietType: e.target.value })}
-                      className="h-4 w-4 border-gray-300 text-[#4b207f] focus:ring-[#4b207f]"
+                      className="h-4 w-4 border-gray-300 accent-ink"
                     />
                     <span className="ml-2 text-sm text-gray-700">Normal</span>
                   </label>
@@ -942,7 +942,7 @@ export default function VolunteerRegistrationForm({ event }: VolunteerRegistrati
                       value="vegetariana"
                       checked={formData.dietType === 'vegetariana'}
                       onChange={(e) => setFormData({ ...formData, dietType: e.target.value })}
-                      className="h-4 w-4 border-gray-300 text-[#4b207f] focus:ring-[#4b207f]"
+                      className="h-4 w-4 border-gray-300 accent-ink"
                     />
                     <span className="ml-2 text-sm text-gray-700">Vegetariana</span>
                   </label>

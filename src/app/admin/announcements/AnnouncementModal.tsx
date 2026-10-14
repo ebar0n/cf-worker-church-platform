@@ -4,7 +4,6 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { DEPARTMENTS } from '@/lib/constants';
 import DepartmentSelector from './DepartmentSelector';
-import styles from './AnnouncementModal.module.css';
 import { MarkdownImage } from '@/app/components/MarkdownImage';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
