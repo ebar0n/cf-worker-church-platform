@@ -1531,7 +1531,12 @@ export default function ProgramLandingPageClient() {
               <div className="border-line mt-4 flex items-start gap-3 rounded-xl border bg-white p-4">
                 <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#b3261e]" strokeWidth={1.5} />
                 <p className="flex-1 text-[15px] text-[#b3261e]">{error}</p>
-                <button onClick={clearError} className="text-ink-soft hover:text-ink">
+                <button
+                  type="button"
+                  onClick={clearError}
+                  aria-label="Cerrar mensaje"
+                  className="text-ink-soft hover:text-ink"
+                >
                   <X className="h-4 w-4" strokeWidth={1.5} />
                 </button>
               </div>

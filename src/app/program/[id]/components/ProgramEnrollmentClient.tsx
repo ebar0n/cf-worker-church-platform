@@ -649,7 +649,7 @@ function Modal({
       >
         <div className="border-line flex items-center justify-between gap-4 border-b py-3 pl-5 pr-3 md:pl-8">
           <h3 className="text-2xl leading-tight md:text-[28px]">{title}</h3>
-          <button onClick={onClose} className={ICON_BUTTON_CLASS} aria-label="Cerrar">
+          <button type="button" onClick={onClose} className={ICON_BUTTON_CLASS} aria-label="Cerrar">
             <X className="h-5 w-5" strokeWidth={1.5} />
           </button>
         </div>
