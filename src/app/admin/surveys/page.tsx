@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Calendar, ChevronRight, ClipboardList } from 'lucide-react';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import AccessLogoutButton from '@/app/admin/components/AccessLogoutButton';
 
@@ -31,35 +32,39 @@ export default async function SurveysEventPickerPage() {
   const rows = events.results ?? [];
 
   return (
-    <div className="min-h-screen bg-[#f7f6f3] font-sans">
-      <header className="flex items-center justify-between gap-4 bg-[#4b207f] px-4 py-5 text-white shadow-md md:px-8">
+    <div className="bg-paper min-h-screen">
+      <header className="border-line flex items-center justify-between gap-4 border-b bg-white px-5 py-4 md:px-8">
         <div>
-          <h1 className="font-['Advent_Pro'] text-2xl font-bold md:text-3xl">Encuestas de Salud</h1>
-          <p className="text-sm text-white/80 md:text-base">
+          <h1 className="text-[28px] leading-tight md:text-[32px]">Encuestas de Salud</h1>
+          <p className="text-ink-soft text-sm md:text-base">
             Elija la jornada en la que va a trabajar
           </p>
         </div>
         {/* A real session close, not just a navigation: on a shared iPad the
             next volunteer must not inherit the previous one's identity. */}
-        <AccessLogoutButton className="flex flex-shrink-0 items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-white hover:bg-white/20 disabled:opacity-60 md:px-4" />
+        <AccessLogoutButton className="border-line text-ink flex h-11 flex-shrink-0 items-center gap-2 rounded-xl border bg-white px-3 hover:bg-gray-100 md:px-4" />
       </header>
 
-      <main className="mx-auto max-w-3xl px-3 py-6 md:px-6">
+      <main className="mx-auto max-w-3xl px-5 py-8 md:px-6 md:py-12">
         {rows.length === 0 ? (
-          <p className="rounded-md border border-dashed border-gray-300 bg-white py-10 text-center text-gray-500">
-            No hay jornadas de voluntariado creadas.
-          </p>
+          <div className="flex items-center gap-4 rounded-2xl border border-dashed border-gray-300 p-5">
+            <div className="bg-warm-soft flex h-11 w-11 flex-none items-center justify-center rounded-xl">
+              <ClipboardList className="h-5 w-5" strokeWidth={1.5} />
+            </div>
+            <p className="text-[15px] font-semibold">No hay jornadas de voluntariado creadas.</p>
+          </div>
         ) : (
           <ul className="space-y-3">
             {rows.map((event) => (
               <li key={event.id}>
                 <Link
                   href={`/admin/surveys/${event.id}`}
-                  className="flex items-center justify-between gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-colors hover:border-[#4b207f]"
+                  className="border-line hover:border-ink flex items-center justify-between gap-4 rounded-2xl border bg-white p-5 transition-colors"
                 >
-                  <div>
-                    <p className="font-medium text-gray-900">{event.title}</p>
-                    <p className="text-sm text-gray-500">
+                  <div className="min-w-0">
+                    <p className="text-ink text-[17px] font-medium">{event.title}</p>
+                    <p className="text-ink-soft mt-1 flex items-center gap-2 text-sm font-medium">
+                      <Calendar className="h-4 w-4 flex-none" strokeWidth={1.5} />
                       {new Date(event.eventDate).toLocaleDateString('es-CO', {
                         day: '2-digit',
                         month: 'long',
@@ -69,8 +74,9 @@ export default async function SurveysEventPickerPage() {
                       {!event.isActive && ' · cerrada'}
                     </p>
                   </div>
-                  <span className="whitespace-nowrap text-sm font-medium text-[#4b207f]">
+                  <span className="text-ink flex items-center gap-1 whitespace-nowrap text-sm font-medium">
                     {event.surveys} {event.surveys === 1 ? 'encuesta' : 'encuestas'}
+                    <ChevronRight className="text-ink-soft h-5 w-5" strokeWidth={1.5} />
                   </span>
                 </Link>
               </li>
