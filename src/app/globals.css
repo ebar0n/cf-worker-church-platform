@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   /* Primary Colors */
@@ -32,6 +32,79 @@
   --color-foreground: var(--foreground);
   --font-sans: 'Advent Pro', Arial, Helvetica, sans-serif;
   --font-mono: 'Advent Pro', monospace;
+  /* Loaded with next/font only on the home, so it resolves just there */
+  --font-heading: var(--font-advent), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Home v2 palette (El Jordán redesign). Additive: interior pages keep the
+   default Tailwind colors until their own redesign lands. Warm is the only
+   accent and is never used for text on light backgrounds. */
+@theme {
+  --color-warm: #ffa92d;
+  --color-warm-hover: #f29a17;
+  --color-warm-soft: #fff4e3;
+  --color-ink: #1c1b19;
+  --color-ink-soft: #5c5852;
+  --color-ink-muted: #b9b3a9;
+  --color-ink-line: #3a3733;
+  --color-paper: #faf8f4;
+  --color-line: #e8e3da;
+  --color-denim: #2f557f;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Home v2 motion: staggered hero entrance, a slow zoom on the hero photo and
+   scroll reveals. RevealOnScroll only hides what is still below the fold after
+   hydration, so without JS everything is simply visible. */
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+
+@keyframes ken-burns {
+  to {
+    transform: scale(1.08);
+  }
+}
+
+.hero-in {
+  animation: hero-in 800ms var(--ease-out) both;
+}
+
+.ken-burns {
+  animation: ken-burns 18s ease-in-out infinite alternate;
+}
+
+[data-reveal] {
+  transition:
+    opacity 700ms var(--ease-out) var(--reveal-delay, 0ms),
+    transform 700ms var(--ease-out) var(--reveal-delay, 0ms);
+}
+
+[data-reveal='hidden'] {
+  opacity: 0;
+  transform: translateY(32px);
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-in,
+  .ken-burns {
+    animation: none;
+  }
+
+  [data-reveal] {
+    transition: none;
+  }
 }
 
 body {

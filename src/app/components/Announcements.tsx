@@ -1,474 +1,193 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import DepartmentBadge from './DepartmentBadge';
-import { getDepartmentImage, getDepartmentName, getDepartmentColor } from '@/lib/constants';
-import { MarkdownImage } from './MarkdownImage';
+import { ArrowRight, Calendar } from 'lucide-react';
+import { getDepartmentImage, getDepartmentName } from '@/lib/constants';
+import { parseDateOnly } from '@/lib/age-classification';
 
 interface Announcement {
   id: number;
   title: string;
   content: string;
   announcementDate: string;
-  department?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  department?: string | null;
+}
+
+const MONTHS = [
+  'ene',
+  'feb',
+  'mar',
+  'abr',
+  'may',
+  'jun',
+  'jul',
+  'ago',
+  'sept',
+  'oct',
+  'nov',
+  'dic',
+];
+const WEEKDAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+// The first image in the markdown is the announcement's own photo; otherwise
+// its department illustration stands in.
+function coverImage({ content, department }: Announcement): string {
+  const match = /!\[[^\]]*\]\(\s*([^)\s]+)/.exec(content);
+  return match?.[1] || (department && getDepartmentImage(department)) || '/home/congregacion.jpg';
+}
+
+// Plain-text preview of the markdown body for the featured card
+function excerpt(content: string): string {
+  return content
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/^\s{0,3}(#{1,6}|>|[-*+]|\d+\.)\s+/gm, '')
+    .replace(/[*_`~]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function Dated({ date, department }: { date: Date; department?: string | null }) {
+  const day = `${WEEKDAYS[date.getDay()]} ${date.getDate()} ${MONTHS[date.getMonth()]}`;
+  return (
+    <p className="text-ink-soft m-0 flex items-center gap-2 text-xs leading-none lg:text-[13px] lg:font-medium">
+      <Calendar className="hidden h-3.5 w-3.5 lg:block" strokeWidth={1.5} />
+      {department ? `${day} · ${getDepartmentName(department)}` : day}
+    </p>
+  );
 }
 
 export default function Announcements() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [truncatedStates, setTruncatedStates] = useState<boolean[]>([]);
-  const contentRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[] | null>(null);
 
   useEffect(() => {
-    const fetchAnnouncements = async () => {
-      try {
-        const response = await fetch('/api/announcements/latest');
-        if (response.ok) {
-          const data = (await response.json()) as Announcement[];
-          setAnnouncements(data);
-          setTruncatedStates(new Array(data.length).fill(false));
-          contentRefs.current = new Array(data.length).fill(null);
-        }
-      } catch (error) {
-        console.error('Error fetching announcements:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAnnouncements();
+    fetch('/api/announcements/latest')
+      .then((response) => (response.ok ? (response.json() as Promise<Announcement[]>) : []))
+      .then((data) => setAnnouncements(data.slice(0, 3)))
+      .catch(() => setAnnouncements([]));
   }, []);
 
-  useEffect(() => {
-    // Check if content is truncated after render
-    const checkTruncation = () => {
-      const newTruncatedStates = contentRefs.current.map((ref, index) => {
-        if (ref) {
-          const isTruncated = ref.scrollHeight > ref.clientHeight;
-          return isTruncated;
-        }
-        return false;
-      });
-      setTruncatedStates(newTruncatedStates);
-    };
-
-    // Check after a short delay to ensure content is rendered
-    const timeoutId = setTimeout(checkTruncation, 100);
-    return () => clearTimeout(timeoutId);
-  }, [announcements, currentIndex]);
-
-  // Auto-rotate carousel
-  useEffect(() => {
-    if (announcements.length <= 1) return;
-
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % announcements.length);
-    }, 5000); // Change slide every 5 seconds
-
-    return () => clearInterval(interval);
-  }, [announcements.length]);
-
-  const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % announcements.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + announcements.length) % announcements.length);
-  };
-
-  if (loading) {
-    return (
-      <div className="relative h-96 w-full overflow-hidden rounded-3xl bg-gradient-to-br from-[#f5f0ff] via-[#ede9f6] to-[#f8f5ff]">
-        <div className="flex h-full items-center justify-center">
-          <div className="h-16 w-16 animate-spin rounded-full border-4 border-[#4b207f] border-t-transparent"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (announcements.length === 0) {
-    return (
-      <div className="relative h-96 w-full overflow-hidden rounded-3xl bg-gradient-to-br from-[#f5f0ff] via-[#ede9f6] to-[#f8f5ff]">
-        <div className="flex h-full items-center justify-center">
-          <p className="text-lg text-gray-600">No hay anuncios disponibles</p>
-        </div>
-      </div>
-    );
-  }
+  const [featured, ...rest] = announcements ?? [];
+  const featuredDate = featured && parseDateOnly(featured.announcementDate.slice(0, 10));
 
   return (
-    <div className="bg-white py-16">
-      <div className="container mx-auto px-4">
-        <div className="mb-12 text-center">
-          <h2 className="mb-4 text-3xl font-bold text-[#4b207f]">Anuncios de la Semana</h2>
-          <p className="text-lg text-gray-600">
-            Mantente informado sobre las últimas noticias y eventos de nuestra iglesia
+    <section
+      id="anuncios"
+      aria-labelledby="anuncios-title"
+      className="mx-auto flex w-full max-w-[75rem] scroll-mt-6 flex-col gap-4 px-5 pb-16 md:px-8 lg:gap-10 lg:pb-32 xl:px-0"
+    >
+      <div className="flex items-end justify-between">
+        <div className="flex flex-col gap-3.5">
+          <p className="text-ink-soft m-0 hidden items-center gap-2 text-[13px] font-semibold uppercase leading-none tracking-[.06em] lg:flex">
+            <span className="bg-warm h-0.5 w-6" />
+            Esta semana
           </p>
-          <Link
-            href="/announcements"
-            className="mt-4 inline-flex items-center gap-2 text-[#4b207f] transition-colors hover:text-[#e36520]"
+          <h2
+            id="anuncios-title"
+            className="font-heading m-0 text-[40px] font-bold leading-none tracking-[-0.02em] lg:text-[64px]"
           >
-            <span>Ver todos los anuncios</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="h-4 w-4"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-              />
-            </svg>
-          </Link>
+            Anuncios
+          </h2>
         </div>
-
-        {/* Carousel Container */}
-        <div className="relative mx-auto max-w-5xl">
-          <div className="overflow-hidden rounded-2xl shadow-2xl">
-            <div
-              className="flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-            >
-              {announcements.map((announcement, index) => (
-                <div
-                  key={announcement.id}
-                  className="relative w-full flex-shrink-0 overflow-hidden bg-white"
-                >
-                  {/* Department background image if available */}
-                  {announcement.department && getDepartmentImage(announcement.department) && (
-                    <div className="absolute inset-0 opacity-15 transition-opacity duration-500 group-hover:opacity-25">
-                      <img
-                        src={getDepartmentImage(announcement.department)}
-                        alt="Department background"
-                        className="h-full w-full object-cover"
-                      />
-                      {/* Enhanced color overlay based on department */}
-                      <div
-                        className="absolute inset-0 opacity-30 transition-opacity duration-500 group-hover:opacity-40"
-                        style={{
-                          background: `linear-gradient(135deg, ${getDepartmentColor(announcement.department)}40, ${getDepartmentColor(announcement.department)}25, ${getDepartmentColor(announcement.department)}10)`,
-                        }}
-                      />
-                    </div>
-                  )}
-
-                  {/* Subtle pattern overlay */}
-                  <div className="opacity-8 absolute inset-0 transition-opacity duration-500 group-hover:opacity-15">
-                    <div
-                      className="h-full w-full"
-                      style={{
-                        backgroundImage: `radial-gradient(circle at 25% 25%, ${announcement.department ? getDepartmentColor(announcement.department) : '#4b207f'} 1px, transparent 1px)`,
-                        backgroundSize: '20px 20px',
-                      }}
-                    ></div>
-                  </div>
-                  <div className="flex min-h-[400px] flex-col p-8 md:min-h-[450px] md:p-12 lg:min-h-[500px] lg:p-16">
-                    {/* Department image badge - Top right corner */}
-                    {announcement.department && getDepartmentImage(announcement.department) && (
-                      <div className="absolute right-6 top-6 z-10">
-                        <div className="flex flex-col items-end gap-2">
-                          <span
-                            className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white shadow-lg"
-                            style={{ backgroundColor: getDepartmentColor(announcement.department) }}
-                          >
-                            {getDepartmentName(announcement.department)}
-                          </span>
-                          <div className="h-28 w-28 overflow-hidden rounded-xl border-2 border-white/80 bg-white/95 shadow-xl backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-2xl">
-                            <img
-                              src={getDepartmentImage(announcement.department)}
-                              alt={getDepartmentName(announcement.department)}
-                              className="h-full w-full object-cover opacity-90 transition-opacity hover:opacity-100"
-                            />
-                            <div
-                              className="absolute inset-0 opacity-30"
-                              style={{
-                                backgroundColor: getDepartmentColor(announcement.department),
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    {/* Date badge - moved to top like in other page */}
-                    <div className="w-fit">
-                      <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-gray-100/80 px-3 py-1.5 text-xs font-medium text-gray-600">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                          className="h-3 w-3"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
-                          />
-                        </svg>
-                        {new Date(announcement.announcementDate + 'T00:00:00').toLocaleDateString(
-                          'es-ES',
-                          {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          }
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="mb-6 flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="mb-4 mt-8 text-2xl font-bold text-[#4b207f] sm:mt-10 md:text-3xl">
-                          {announcement.title}
-                        </h3>
-                      </div>
-                    </div>
-
-                    {/* Enhanced content with react-markdown */}
-                    <div className="prose prose-lg relative mb-6 max-w-none">
-                      <div
-                        ref={(el) => {
-                          contentRefs.current[index] = el;
-                        }}
-                        className="md:line-clamp-8 relative line-clamp-6 text-lg leading-relaxed text-gray-700"
-                      >
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          components={{
-                            // Customize link styling and make them clickable
-                            a: ({ node, href, children, ...props }) => (
-                              <a
-                                {...props}
-                                href={href}
-                                className="relative z-10 cursor-pointer text-[#4b207f] underline transition-colors duration-200 hover:text-[#e36520]"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  if (href) {
-                                    window.open(href, '_blank', 'noopener,noreferrer');
-                                  }
-                                }}
-                              >
-                                {children}
-                              </a>
-                            ),
-                            // Customize heading styles
-                            h1: ({ node, ...props }) => (
-                              <h1 {...props} className="mb-2 text-2xl font-bold text-[#4b207f]" />
-                            ),
-                            h2: ({ node, ...props }) => (
-                              <h2 {...props} className="mb-2 text-xl font-bold text-[#4b207f]" />
-                            ),
-                            h3: ({ node, ...props }) => (
-                              <h3 {...props} className="mb-2 text-lg font-bold text-[#4b207f]" />
-                            ),
-                            h4: ({ node, ...props }) => (
-                              <h4 {...props} className="mb-2 text-base font-bold text-[#4b207f]" />
-                            ),
-                            h5: ({ node, ...props }) => (
-                              <h5 {...props} className="mb-2 text-sm font-bold text-[#4b207f]" />
-                            ),
-                            h6: ({ node, ...props }) => (
-                              <h6 {...props} className="mb-2 text-xs font-bold text-[#4b207f]" />
-                            ),
-                            // Customize paragraph styling
-                            p: ({ node, ...props }) => <p {...props} className="mb-2" />,
-                            // Customize strong/bold styling
-                            strong: ({ node, ...props }) => (
-                              <strong {...props} className="font-bold" />
-                            ),
-                            // Customize emphasis/italic styling
-                            em: ({ node, ...props }) => <em {...props} className="italic" />,
-                            // Customize list styling
-                            ul: ({ node, ...props }) => (
-                              <ul {...props} className="mb-2 ml-6 list-disc space-y-1" />
-                            ),
-                            ol: ({ node, ...props }) => (
-                              <ol {...props} className="mb-2 ml-6 list-decimal space-y-1" />
-                            ),
-                            li: ({ node, ...props }) => <li {...props} className="text-gray-700" />,
-                            // Customize code styling
-                            code: ({ node, inline, ...props }: any) => {
-                              if (inline) {
-                                return (
-                                  <code
-                                    {...props}
-                                    className="rounded bg-gray-100 px-2 py-1 font-mono text-sm text-gray-800"
-                                  />
-                                );
-                              }
-                              return (
-                                <code
-                                  {...props}
-                                  className="block overflow-x-auto rounded bg-gray-100 p-4 font-mono text-sm text-gray-800"
-                                />
-                              );
-                            },
-                            pre: ({ node, ...props }) => (
-                              <pre
-                                {...props}
-                                className="mb-2 overflow-x-auto rounded bg-gray-100 p-3"
-                              />
-                            ),
-                            // Customize blockquote styling
-                            blockquote: ({ node, ...props }) => (
-                              <blockquote
-                                {...props}
-                                className="mb-2 border-l-4 border-[#4b207f] bg-gray-50 pl-4 italic text-gray-700"
-                              />
-                            ),
-                            // Customize table styling
-                            table: ({ node, ...props }) => (
-                              <div className="mb-2 overflow-x-auto">
-                                <table
-                                  {...props}
-                                  className="min-w-full border-collapse border border-gray-300"
-                                />
-                              </div>
-                            ),
-                            thead: ({ node, ...props }) => (
-                              <thead {...props} className="bg-gray-100" />
-                            ),
-                            tbody: ({ node, ...props }) => <tbody {...props} />,
-                            tr: ({ node, ...props }) => (
-                              <tr {...props} className="border-b border-gray-300" />
-                            ),
-                            th: ({ node, ...props }) => (
-                              <th
-                                {...props}
-                                className="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700"
-                              />
-                            ),
-                            td: ({ node, ...props }) => (
-                              <td
-                                {...props}
-                                className="border border-gray-300 px-3 py-2 text-gray-700"
-                              />
-                            ),
-                            // Customize horizontal rule
-                            hr: ({ node, ...props }) => (
-                              <hr {...props} className="my-4 border-gray-300" />
-                            ),
-                            // Customize image styling
-                            img: (props) => <MarkdownImage {...props} size="lg" />,
-                          }}
-                        >
-                          {announcement.content}
-                        </ReactMarkdown>
-                      </div>
-                    </div>
-
-                    {/* Read More Button - Only show if content is truncated */}
-                    {truncatedStates[index] && (
-                      <div className="relative z-20 mb-6">
-                        <Link
-                          href={`/announcements/${announcement.id}`}
-                          className="relative z-10 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#4b207f] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#4b207f]/90"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            window.location.href = `/announcements/${announcement.id}`;
-                          }}
-                        >
-                          <span>Leer más</span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={2}
-                            stroke="currentColor"
-                            className="h-4 w-4"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                            />
-                          </svg>
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Navigation Arrows */}
-          {announcements.length > 1 && (
-            <>
-              <button
-                onClick={prevSlide}
-                className="absolute -left-6 top-1/2 -translate-y-1/2 rounded-full border border-gray-200 bg-white p-4 text-[#4b207f] shadow-xl transition-all duration-200 hover:scale-110 hover:bg-gray-50"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className="h-6 w-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15.75 19.5L8.25 12l7.5-7.5"
-                  />
-                </svg>
-              </button>
-              <button
-                onClick={nextSlide}
-                className="absolute -right-6 top-1/2 -translate-y-1/2 rounded-full border border-gray-200 bg-white p-4 text-[#4b207f] shadow-xl transition-all duration-200 hover:scale-110 hover:bg-gray-50"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className="h-6 w-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8.25 4.5l7.5 7.5-7.5 7.5"
-                  />
-                </svg>
-              </button>
-            </>
-          )}
-
-          {/* Dots Indicator */}
-          {announcements.length > 1 && (
-            <div className="mt-6 flex justify-center space-x-2">
-              {announcements.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentIndex(index)}
-                  className={`h-3 w-3 rounded-full transition-all duration-200 ${
-                    index === currentIndex
-                      ? 'scale-125 bg-[#4b207f]'
-                      : 'bg-gray-300 hover:bg-gray-400'
-                  }`}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        <Link
+          href="/announcements"
+          className="text-denim lg:border-ink lg:text-ink flex h-8 items-center gap-1.5 text-sm font-medium no-underline lg:h-12 lg:gap-2 lg:rounded-xl lg:border lg:px-5 lg:text-[15px] lg:transition-colors lg:hover:bg-[#f0ece5]"
+        >
+          <span className="lg:hidden">Ver todos</span>
+          <span className="hidden lg:inline">Ver todos los anuncios</span>
+          <ArrowRight className="h-3.5 w-3.5 lg:h-4 lg:w-4" strokeWidth={1.5} />
+        </Link>
       </div>
-    </div>
+
+      {announcements === null ? (
+        <div aria-hidden className="grid gap-4 lg:grid-cols-12 lg:gap-6">
+          <div className="bg-line/70 h-[420px] animate-pulse rounded-[18px] lg:col-span-7 lg:h-[620px] lg:rounded-[20px]" />
+          <div className="hidden flex-col gap-6 lg:col-span-5 lg:flex">
+            <div className="bg-line/70 flex-1 animate-pulse rounded-[20px]" />
+            <div className="bg-line/70 flex-1 animate-pulse rounded-[20px]" />
+          </div>
+        </div>
+      ) : !featured ? (
+        <p className="border-line text-ink-soft m-0 rounded-[18px] border bg-white p-8">
+          No hay anuncios esta semana.{' '}
+          <Link href="/announcements" className="text-denim">
+            Ver anuncios anteriores
+          </Link>
+        </p>
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
+          <Link
+            href={`/announcements/${featured.id}`}
+            // Activating an announcement retires older ones, so often it is the
+            // only one: then it takes the full row, photo beside the text.
+            className={`border-line text-ink flex flex-col overflow-hidden rounded-[18px] border bg-white no-underline transition duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_20px_40px_-20px_rgba(28,27,25,.25)] lg:rounded-[20px] ${rest.length ? 'lg:col-span-7' : 'lg:col-span-12 lg:grid lg:grid-cols-[7fr_5fr]'}`}
+          >
+            <div
+              className={`relative h-[220px] overflow-hidden ${rest.length ? 'lg:h-[400px]' : 'lg:h-full lg:min-h-[440px]'}`}
+            >
+              <img
+                src={coverImage(featured)}
+                alt=""
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
+              <span className="bg-paper absolute left-3.5 top-3.5 flex h-[60px] w-14 flex-col items-center justify-center rounded-xl lg:left-5 lg:top-5 lg:h-[72px] lg:w-[68px] lg:rounded-[14px]">
+                <span className="text-ink-soft text-[10px] font-semibold uppercase leading-none tracking-[.06em] lg:text-[11px]">
+                  {MONTHS[featuredDate.getMonth()]}
+                </span>
+                <span className="font-heading text-[26px] font-bold leading-none lg:text-[32px]">
+                  {featuredDate.getDate()}
+                </span>
+              </span>
+            </div>
+            <div className="flex flex-col gap-2.5 p-5 lg:justify-center lg:gap-3.5 lg:p-8">
+              {featured.department && (
+                <span className="border-line hidden items-center gap-2 self-start rounded-full border px-3 py-1.5 text-[13px] font-medium leading-tight lg:inline-flex">
+                  <span className="bg-warm h-1.5 w-1.5 rounded-full" />
+                  {getDepartmentName(featured.department)}
+                </span>
+              )}
+              <h3 className="font-heading m-0 text-[28px] font-bold leading-[1.1] lg:text-[40px] lg:leading-[1.05] lg:tracking-[-0.015em]">
+                {featured.title}
+              </h3>
+              <p className="text-ink-soft m-0 line-clamp-3 text-[15px] leading-relaxed lg:text-[17px]">
+                {excerpt(featured.content)}
+              </p>
+              <span className="text-denim hidden items-center gap-1.5 pt-1 text-[15px] font-medium lg:flex">
+                Leer más <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
+              </span>
+            </div>
+          </Link>
+
+          {rest.length > 0 && (
+            <div className="flex flex-col gap-4 lg:col-span-5 lg:gap-6">
+              {rest.map((announcement) => (
+                <Link
+                  key={announcement.id}
+                  href={`/announcements/${announcement.id}`}
+                  className="border-line text-ink flex items-center gap-3.5 overflow-hidden rounded-[18px] border bg-white p-2.5 no-underline transition duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_20px_40px_-20px_rgba(28,27,25,.25)] lg:flex-1 lg:flex-col lg:items-stretch lg:gap-0 lg:rounded-[20px] lg:p-0"
+                >
+                  <img
+                    src={coverImage(announcement)}
+                    alt=""
+                    loading="lazy"
+                    className="h-24 w-24 flex-none rounded-xl object-cover lg:h-[200px] lg:w-full lg:rounded-none"
+                  />
+                  <div className="flex flex-col gap-1.5 lg:gap-2.5 lg:p-6">
+                    <Dated
+                      date={parseDateOnly(announcement.announcementDate.slice(0, 10))}
+                      department={announcement.department}
+                    />
+                    <h3 className="font-heading m-0 text-[21px] font-bold leading-[1.1] lg:text-[28px]">
+                      {announcement.title}
+                    </h3>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </section>
   );
 }
