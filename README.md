@@ -12,7 +12,7 @@ This project is the official website for El Jordan Seventh-day Adventist Church 
 
 ## System Design
 
-The visual design and user experience follow the official Seventh-day Adventist Church global guidelines: [adventist.design](https://www.adventist.design/). We use their colors, typography (Advent Sans/Advent Pro), iconography, and accessibility principles to maintain global consistency and professionalism.
+The visual design and user experience follow the official Seventh-day Adventist Church global guidelines: [adventist.design](https://www.adventist.design/). We use their colors, typography (Advent Sans), iconography, and accessibility principles to maintain global consistency and professionalism.
 
 ## Project Architecture
 
@@ -129,7 +129,7 @@ For local development, you can copy `.dev.vars.example` to `.dev.vars` and updat
 ## Credits and License
 
 - Visual design based on [adventist.design](https://www.adventist.design/)
-- Advent Sans/Advent Pro typography under SIL Open Font License
+- Advent Sans typography under SIL Open Font License
 - Code under MIT license
 
 ---

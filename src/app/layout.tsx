@@ -6,12 +6,12 @@ import ServiceWorkerRegistrar from './components/ServiceWorkerRegistrar';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 
-// Headings (El Jordán redesign). Only the two weights the design uses.
-const adventPro = localFont({
-  src: [
-    { path: '../../public/fonts/adventpro-semibold.ttf', weight: '600' },
-    { path: '../../public/fonts/adventpro-bold.ttf', weight: '700' },
-  ],
+// Headings: Advent Sans, the church's official typeface (adventist.design),
+// subset to Latin. It ships one weight; the full range stops the browser
+// from faking bold on font-semibold/font-bold headings.
+const adventSans = localFont({
+  src: '../../public/fonts/advent-sans-logo.woff2',
+  weight: '100 900',
   variable: '--font-advent',
   display: 'swap',
 });
@@ -54,7 +54,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${inter.variable} ${adventPro.variable}`}>
+    <html lang="es" className={`${inter.variable} ${adventSans.variable}`}>
       <body className="font-sans antialiased">
         {children}
         <ServiceWorkerRegistrar />
