@@ -107,7 +107,7 @@
     color: var(--foreground);
   }
 
-  /* Advent Pro for every heading; utilities still override size and weight */
+  /* Advent Sans for every heading; utilities still override size */
   h1,
   h2,
   h3,

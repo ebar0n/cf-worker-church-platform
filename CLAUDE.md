@@ -148,7 +148,7 @@ const result = await env.DB.prepare(
 ### Styling Conventions
 
 - TailwindCSS with custom church colors: `#4b207f` (primary purple)
-- Advent Pro font family for headings
+- Advent Sans (official Adventist typeface, `public/fonts/advent-sans-logo.woff2`) for headings
 - Responsive design with mobile-first approach
 - Consistent spacing and component sizing
 
