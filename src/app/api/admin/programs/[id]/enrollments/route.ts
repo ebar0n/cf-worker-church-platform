@@ -77,8 +77,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       })
     );
 
-    // Family-enrollment programs also enroll the responsible adults; the
-    // admin list renders them through `member`.
+    // Adults enrolled directly (family responsibles, or attendees of adult
+    // programs); the admin list renders them through `member`.
     const adults = await env.DB.prepare(
       `
       SELECT pae.id, pae.programId, pae.memberId, pae.createdAt, pae.updatedAt,

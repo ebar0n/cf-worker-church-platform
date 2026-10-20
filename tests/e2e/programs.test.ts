@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { E2E_PREFIX, DOC_IDS } from './config';
-import { getRes, postJson, putJson, del, ANY_TOKEN } from './helpers';
+import { getRes, postJson, putJson, del, expectJson, ANY_TOKEN } from './helpers';
 
 let programId: number;
 
@@ -92,5 +92,65 @@ describe('admin program CRUD', () => {
     const check = await getRes(`/api/programs/${programId}`);
     const program = (await check.json()) as { title: string };
     expect(program.title).toContain('Renombrado');
+  });
+});
+
+describe('adult program enrollment (document ID only)', () => {
+  let adultProgramId: number;
+  const register = (body: Record<string, string>) =>
+    postJson(`/api/programs/${adultProgramId}/register`, { ...body, token: ANY_TOKEN });
+
+  beforeAll(async () => {
+    const res = await postJson('/api/admin/programs', {
+      title: `${E2E_PREFIX}Programa Mujer`,
+      department: 'ministerio-mujer',
+      eventDate: '2026-11-15',
+      eventTime: '19:00',
+      imageUrl: '/api/files/programs/e2e.png',
+      isActive: true,
+    });
+    adultProgramId = (await expectJson<{ id: number }>(res, 201)).id;
+  });
+
+  it('returns the event date, time and image', async () => {
+    const program = await expectJson(await getRes(`/api/programs/${adultProgramId}`), 200);
+    expect(program).toMatchObject({
+      eventDate: '2026-11-15',
+      eventTime: '19:00',
+      imageUrl: '/api/files/programs/e2e.png',
+    });
+  });
+
+  it('renders the document-only landing, not the child flow', async () => {
+    const html = await (await getRes(`/program/${adultProgramId}`)).text();
+    expect(html).toContain('Ingresa tu número de documento');
+    expect(html).not.toContain('Documento del Niño');
+  });
+
+  it('asks for name and phone when the document is unknown', async () => {
+    const res = await register({ documentID: DOC_IDS.adultProgram });
+    expect(await expectJson(res, 200)).toEqual({ needsDetails: true });
+  });
+
+  it('enrolls a newcomer with name and phone', async () => {
+    const res = await register({
+      documentID: DOC_IDS.adultProgram,
+      name: 'E2E Hermana',
+      phone: '3040006666',
+    });
+    expect(await expectJson(res, 201)).toEqual({ name: 'E2E Hermana', alreadyEnrolled: false });
+  });
+
+  it('recognizes a known member by document alone', async () => {
+    const res = await register({ documentID: DOC_IDS.adultProgram });
+    expect(await expectJson(res, 200)).toEqual({ name: 'E2E Hermana', alreadyEnrolled: true });
+  });
+
+  it('admin sees the adult enrollment', async () => {
+    const enrollments = await expectJson<{ member: { documentID: string } | null }[]>(
+      await getRes(`/api/admin/programs/${adultProgramId}/enrollments`),
+      200
+    );
+    expect(enrollments.map((e) => e.member?.documentID)).toEqual([DOC_IDS.adultProgram]);
   });
 });

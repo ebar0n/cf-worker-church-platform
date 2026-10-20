@@ -99,6 +99,9 @@ model Program {
   title       String   // e.g., "Club de Aventureros 2024"
   department  String   // e.g., "club-aventureros"
   content     String?  // Optional: details, directors, organizers, etc.
+  eventDate   String?  // Local date as entered (YYYY-MM-DD)
+  eventTime   String?  // Local time as entered (HH:MM)
+  imageUrl    String?  // Cover image (/api/files/programs/...)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
