@@ -25,4 +25,5 @@ export const DOC_IDS = {
   adultOnlyPartner: '9900110035',
   adultOnlyThird: '9900110036',
   adultOnlyChild: '9900110037',
+  adultProgram: '9900110038',
 };

@@ -26,6 +26,9 @@ export async function GET() {
       title: program.title,
       department: program.department,
       content: program.content,
+      eventDate: program.eventDate,
+      eventTime: program.eventTime,
+      imageUrl: program.imageUrl,
       isActive: program.isActive === 1,
       createdAt: program.createdAt,
       updatedAt: program.updatedAt,
@@ -50,9 +53,12 @@ export async function POST(request: NextRequest) {
       title: string;
       department: string;
       content?: string;
+      eventDate?: string;
+      eventTime?: string;
+      imageUrl?: string;
       isActive: boolean;
     };
-    const { title, department, content, isActive } = body;
+    const { title, department, content, eventDate, eventTime, imageUrl, isActive } = body;
 
     // Validate required fields
     if (!title || !department) {
@@ -69,9 +75,20 @@ export async function POST(request: NextRequest) {
 
     // Insert new program
     const result = await env.DB.prepare(
-      'INSERT INTO Program (title, department, content, isActive, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)'
+      `INSERT INTO Program (title, department, content, eventDate, eventTime, imageUrl, isActive, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
-      .bind(title, department, content || null, isActive ? 1 : 0, now, now)
+      .bind(
+        title,
+        department,
+        content || null,
+        eventDate || null,
+        eventTime || null,
+        imageUrl || null,
+        isActive ? 1 : 0,
+        now,
+        now
+      )
       .run();
 
     // Get the newly created program
@@ -88,6 +105,9 @@ export async function POST(request: NextRequest) {
       title: newProgram.title,
       department: newProgram.department,
       content: newProgram.content,
+      eventDate: newProgram.eventDate,
+      eventTime: newProgram.eventTime,
+      imageUrl: newProgram.imageUrl,
       isActive: newProgram.isActive === 1,
       createdAt: newProgram.createdAt,
       updatedAt: newProgram.updatedAt,

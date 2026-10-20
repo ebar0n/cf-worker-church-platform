@@ -13,9 +13,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       title: string;
       department: string;
       content?: string;
+      eventDate?: string;
+      eventTime?: string;
+      imageUrl?: string;
       isActive: boolean;
     };
-    const { title, department, content, isActive } = body;
+    const { title, department, content, eventDate, eventTime, imageUrl, isActive } = body;
 
     if (isNaN(programId)) {
       return NextResponse.json({ error: 'Invalid program ID' }, { status: 400 });
@@ -36,9 +39,20 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     // Update the program
     await env.DB.prepare(
-      'UPDATE Program SET title = ?, department = ?, content = ?, isActive = ?, updatedAt = ? WHERE id = ?'
+      `UPDATE Program SET title = ?, department = ?, content = ?, eventDate = ?, eventTime = ?,
+       imageUrl = ?, isActive = ?, updatedAt = ? WHERE id = ?`
     )
-      .bind(title, department, content || null, isActive ? 1 : 0, now, programId)
+      .bind(
+        title,
+        department,
+        content || null,
+        eventDate || null,
+        eventTime || null,
+        imageUrl || null,
+        isActive ? 1 : 0,
+        now,
+        programId
+      )
       .run();
 
     // Get the updated program
@@ -55,6 +69,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       title: updatedProgram.title,
       department: updatedProgram.department,
       content: updatedProgram.content,
+      eventDate: updatedProgram.eventDate,
+      eventTime: updatedProgram.eventTime,
+      imageUrl: updatedProgram.imageUrl,
       isActive: updatedProgram.isActive === 1,
       createdAt: updatedProgram.createdAt,
       updatedAt: updatedProgram.updatedAt,

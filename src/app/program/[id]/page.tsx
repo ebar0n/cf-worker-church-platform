@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 import { getDepartmentImage, getDepartmentName, getDepartmentColor } from '@/lib/constants';
 import ProgramLandingPageClient from '@/app/program/[id]/components/ProgramLandingPageClient';
 import ProgramEnrollmentClient from '@/app/program/[id]/components/ProgramEnrollmentClient';
-import { usesFamilyEnrollment } from '@/lib/constants';
+import ProgramAdultEnrollmentClient from '@/app/program/[id]/components/ProgramAdultEnrollmentClient';
+import { usesChildEnrollment, usesFamilyEnrollment } from '@/lib/constants';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import Footer from '@/app/components/Footer';
 import Header from '@/app/components/Header';
@@ -85,13 +86,15 @@ export async function generateMetadata({
         url: `https://iglesiajordanibague.org/program/${id}`,
         siteName: 'Iglesia Adventista del 7mo día',
         images: [
-          {
-            url: departmentImage,
-            width: 400,
-            height: 400,
-            alt: `Logo ${departmentName}`,
-            type: 'image/png',
-          },
+          program.imageUrl
+            ? { url: program.imageUrl, alt: formattedProgram.title }
+            : {
+                url: departmentImage,
+                width: 400,
+                height: 400,
+                alt: `Logo ${departmentName}`,
+                type: 'image/png',
+              },
         ],
         locale: 'es_ES',
       },
@@ -99,7 +102,7 @@ export async function generateMetadata({
         card: 'summary_large_image',
         title: formattedProgram.title,
         description,
-        images: [departmentImage],
+        images: [program.imageUrl || departmentImage],
       },
       other: {
         'theme-color': departmentColor,
@@ -120,13 +123,14 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
   const { id } = await params;
   const programId = parseInt(id);
 
-  // Family-enrollment programs use the family-group flow; everything else
-  // keeps the per-child landing
+  // Clubs use the family-group flow, children's ministry the per-child
+  // landing, and every other department enrolls adults by document ID
   if (!isNaN(programId)) {
     try {
       const { env } = getCloudflareContext();
       const program = (await env.DB.prepare(
-        'SELECT id, title, content, department FROM Program WHERE id = ? AND isActive = 1'
+        `SELECT id, title, content, department, eventDate, eventTime, imageUrl
+         FROM Program WHERE id = ? AND isActive = 1`
       )
         .bind(programId)
         .first()) as {
@@ -134,6 +138,9 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
         title: string;
         content: string | null;
         department: string;
+        eventDate: string | null;
+        eventTime: string | null;
+        imageUrl: string | null;
       } | null;
 
       if (program && usesFamilyEnrollment(program.department)) {
@@ -145,6 +152,24 @@ export default async function ProgramPage({ params }: { params: Promise<{ id: st
             programColor={getDepartmentColor(program.department)}
             departmentName={getDepartmentName(program.department)}
             departmentImage={getDepartmentImage(program.department)}
+            imageUrl={program.imageUrl}
+            eventDate={program.eventDate}
+            eventTime={program.eventTime}
+          />
+        );
+      }
+
+      if (program && !usesChildEnrollment(program.department)) {
+        return withSiteChrome(
+          <ProgramAdultEnrollmentClient
+            programId={program.id}
+            programTitle={program.title}
+            programContent={program.content}
+            departmentName={getDepartmentName(program.department)}
+            departmentImage={getDepartmentImage(program.department)}
+            imageUrl={program.imageUrl}
+            eventDate={program.eventDate}
+            eventTime={program.eventTime}
           />
         );
       }

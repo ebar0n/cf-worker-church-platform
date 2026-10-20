@@ -9,6 +9,9 @@ export interface Program {
   title: string;
   department: string;
   content?: string; // Optional: details, directors, organizers, etc.
+  eventDate?: string | null; // YYYY-MM-DD
+  eventTime?: string | null; // HH:MM
+  imageUrl?: string | null;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

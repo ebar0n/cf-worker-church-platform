@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import AdminLayout from '@/app/admin/components/AdminLayout';
-import { ChevronDown, Loader2, X } from 'lucide-react';
+import { ChevronDown, ImagePlus, Loader2, X } from 'lucide-react';
 import { Button, buttonVariants } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
@@ -31,12 +31,8 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
   const [editingProgram, setEditingProgram] = useState<Program | null>(null);
   const [loadingEnrollments, setLoadingEnrollments] = useState(false);
   const [savingProgram, setSavingProgram] = useState(false);
-  const [programFormData, setProgramFormData] = useState({
-    title: '',
-    department: '',
-    content: '',
-    isActive: true,
-  });
+  const [programFormData, setProgramFormData] = useState(EMPTY_PROGRAM_FORM);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -92,8 +88,30 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'programs');
+      const response = await fetch('/api/admin/upload', { method: 'POST', body: formData });
+      const data = (await response.json()) as { url?: string; error?: string };
+      if (!response.ok || !data.url) throw new Error(data.error);
+      setProgramFormData((prev) => ({ ...prev, imageUrl: data.url! }));
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert((error as Error).message || 'Error al subir la imagen');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleProgramSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Submitting mid-upload would save without the image
+    if (uploadingImage) return;
     // Disables the submit button meanwhile, so a double click can't create
     // two identical programs.
     setSavingProgram(true);
@@ -114,7 +132,7 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
       if (response.ok) {
         setShowProgramForm(false);
         setEditingProgram(null);
-        setProgramFormData({ title: '', department: '', content: '', isActive: true });
+        setProgramFormData(EMPTY_PROGRAM_FORM);
         fetchData();
       } else {
         const error = (await response.json()) as { error?: string; message?: string };
@@ -134,6 +152,9 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
       title: program.title,
       department: program.department,
       content: program.content || '',
+      eventDate: program.eventDate || '',
+      eventTime: program.eventTime || '',
+      imageUrl: program.imageUrl || '',
       isActive: program.isActive,
     });
     setShowProgramForm(true);
@@ -528,12 +549,7 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
             onClick={() => {
               setShowProgramForm(false);
               setEditingProgram(null);
-              setProgramFormData({
-                title: '',
-                department: '',
-                content: '',
-                isActive: true,
-              });
+              setProgramFormData(EMPTY_PROGRAM_FORM);
             }}
           >
             <div
@@ -549,12 +565,7 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                   onClick={() => {
                     setShowProgramForm(false);
                     setEditingProgram(null);
-                    setProgramFormData({
-                      title: '',
-                      department: '',
-                      content: '',
-                      isActive: true,
-                    });
+                    setProgramFormData(EMPTY_PROGRAM_FORM);
                   }}
                   className={closeButtonClass}
                 >
@@ -615,6 +626,84 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                     </p>
                   </div>
 
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="eventDate" className={labelClass}>
+                        Fecha
+                      </label>
+                      <Input
+                        id="eventDate"
+                        type="date"
+                        value={programFormData.eventDate}
+                        onChange={(e) =>
+                          setProgramFormData((prev) => ({ ...prev, eventDate: e.target.value }))
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="eventTime" className={labelClass}>
+                        Hora
+                      </label>
+                      <Input
+                        id="eventTime"
+                        type="time"
+                        value={programFormData.eventTime}
+                        onChange={(e) =>
+                          setProgramFormData((prev) => ({ ...prev, eventTime: e.target.value }))
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>Imagen del Programa</label>
+                    {programFormData.imageUrl ? (
+                      <div className="relative inline-block">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={programFormData.imageUrl}
+                          alt="Imagen del programa"
+                          className="border-line h-40 w-auto rounded-xl border object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setProgramFormData((prev) => ({ ...prev, imageUrl: '' }))}
+                          aria-label="Quitar imagen"
+                          className="border-line text-ink absolute -right-2 -top-2 rounded-full border bg-white p-1.5 hover:bg-gray-100"
+                        >
+                          <X className="h-4 w-4" strokeWidth={1.5} />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="hover:border-ink flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white p-6 transition-colors hover:bg-gray-50">
+                        <span className="bg-warm-soft mb-3 flex h-11 w-11 items-center justify-center rounded-xl">
+                          {uploadingImage ? (
+                            <Loader2 className="text-ink h-5 w-5 animate-spin" strokeWidth={1.5} />
+                          ) : (
+                            <ImagePlus className="text-ink h-5 w-5" strokeWidth={1.5} />
+                          )}
+                        </span>
+                        <span className="text-ink text-[15px] font-semibold">
+                          {uploadingImage ? 'Subiendo...' : 'Haz clic para subir imagen'}
+                        </span>
+                        <span className="text-ink-soft mt-1 text-sm">
+                          PNG, JPG, WebP (max. 10MB)
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/gif"
+                          onChange={handleImageUpload}
+                          disabled={uploadingImage}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
+                    <p className="text-ink-soft mt-2 text-[13px]">
+                      Se muestra en la página del programa y al compartir el enlace (recomendado:
+                      1200x630px)
+                    </p>
+                  </div>
+
                   <div className="flex items-center gap-3">
                     <Checkbox
                       id="isActive"
@@ -635,17 +724,12 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
                       onClick={() => {
                         setShowProgramForm(false);
                         setEditingProgram(null);
-                        setProgramFormData({
-                          title: '',
-                          department: '',
-                          content: '',
-                          isActive: true,
-                        });
+                        setProgramFormData(EMPTY_PROGRAM_FORM);
                       }}
                     >
                       Cancelar
                     </Button>
-                    <Button type="submit" disabled={savingProgram}>
+                    <Button type="submit" disabled={savingProgram || uploadingImage}>
                       {editingProgram ? 'Actualizar' : 'Crear'}
                     </Button>
                   </div>
@@ -895,6 +979,16 @@ export default function ProgramsAdmin({ adminEmail }: ProgramsAdminProps) {
     </AdminLayout>
   );
 }
+
+const EMPTY_PROGRAM_FORM = {
+  title: '',
+  department: '',
+  content: '',
+  eventDate: '',
+  eventTime: '',
+  imageUrl: '',
+  isActive: true,
+};
 
 const labelClass = 'text-ink mb-2 block text-sm font-medium';
 const closeButtonClass =

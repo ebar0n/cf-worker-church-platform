@@ -16,6 +16,7 @@ import {
 import { Button } from '@/app/components/ui/button';
 import { classify } from '@/lib/age-classification';
 import PdfFilePreview from '@/app/components/PdfFilePreview';
+import ProgramEventInfo from '@/app/program/[id]/components/ProgramEventInfo';
 import { printableImage } from '@/lib/printable-image';
 
 interface Props {
@@ -25,6 +26,9 @@ interface Props {
   programColor: string;
   departmentName: string;
   departmentImage: string;
+  imageUrl?: string | null;
+  eventDate?: string | null;
+  eventTime?: string | null;
 }
 
 interface HealthValues {
@@ -676,6 +680,9 @@ export default function ProgramEnrollmentClient({
   programContent,
   departmentName,
   departmentImage,
+  imageUrl,
+  eventDate,
+  eventTime,
 }: Props) {
   const [step, setStep] = useState<'identify' | 'adult' | 'dashboard'>('identify');
   const [error, setError] = useState<string | null>(null);
@@ -1263,6 +1270,12 @@ export default function ProgramEnrollmentClient({
             Inscripción familiar: como padre, madre, tutor o guía mayor registras y gestionas a tu
             grupo familiar.
           </p>
+          <ProgramEventInfo
+            title={programTitle}
+            imageUrl={imageUrl}
+            eventDate={eventDate}
+            eventTime={eventTime}
+          />
 
           {programContent && (
             <div className={CARD_CLASS}>

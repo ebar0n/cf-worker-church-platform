@@ -19,9 +19,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    const fileName = await uploadFileToR2(env.UPLOADS, file, 'courses');
+    // Only the public image folders served by /api/files
+    const folder = formData.get('folder') === 'programs' ? 'programs' : 'courses';
+    const fileName = await uploadFileToR2(env.UPLOADS, file, folder);
 
-    // Course images are public, served via the public files route
+    // Course and program images are public, served via the public files route
     return NextResponse.json({
       success: true,
       url: `/api/files/${fileName}`,

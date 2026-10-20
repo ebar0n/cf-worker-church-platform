@@ -121,6 +121,13 @@ export const FAMILY_ENROLLMENT_DEPARTMENTS = ['club-aventureros', 'club-conquist
 export const usesFamilyEnrollment = (code: string): boolean =>
   FAMILY_ENROLLMENT_DEPARTMENTS.includes(code);
 
+// Programs in these departments enroll children one by one; every other
+// department enrolls adults by their document ID alone
+export const CHILD_ENROLLMENT_DEPARTMENTS = ['ministerio-infantil-adolescente'];
+
+export const usesChildEnrollment = (code: string): boolean =>
+  CHILD_ENROLLMENT_DEPARTMENTS.includes(code);
+
 export const getDepartmentByCode = (code: string): Department | undefined => {
   return DEPARTMENTS.find((dept) => dept.code === code);
 };
