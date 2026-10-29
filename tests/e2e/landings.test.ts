@@ -14,6 +14,7 @@ const STATIC_PAGES = [
   '/privacy',
   '/announcements',
   '/clubes/especialidades/inteligencia-artificial',
+  '/todo-nuevo',
 ];
 
 const ADMIN_PAGES = [

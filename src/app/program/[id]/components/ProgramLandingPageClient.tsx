@@ -8,6 +8,7 @@ import { Input } from '@/app/components/ui/input';
 import { Checkbox } from '@/app/components/ui/checkbox';
 import { Program } from '@/app/types';
 import { getDepartmentImage, getDepartmentName } from '@/lib/constants';
+import ProgramEventInfo from '@/app/program/[id]/components/ProgramEventInfo';
 
 const STEP_LABELS = [
   'Documento del Niño',
@@ -819,6 +820,12 @@ export default function ProgramLandingPageClient() {
           <p className="text-ink-soft max-w-[640px] text-lg leading-relaxed">
             ¡Únete a esta increíble aventura! Completa el formulario para inscribir a tu hijo/a.
           </p>
+          <ProgramEventInfo
+            title={program.title}
+            imageUrl={program.imageUrl}
+            eventDate={program.eventDate}
+            eventTime={program.eventTime}
+          />
 
           {/* Program Content */}
           {program.content && (

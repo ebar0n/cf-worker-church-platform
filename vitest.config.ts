@@ -13,6 +13,9 @@ import react from '@vitejs/plugin-react';
 // are covered by the e2e suite against the rendered pages.
 export default defineConfig({
   plugins: [react()],
+  // CSS modules only need their class names in tests: an inline (empty)
+  // PostCSS config stops Vite from loading Next's Tailwind postcss.config.mjs
+  css: { postcss: {} },
   resolve: {
     tsconfigPaths: true,
   },

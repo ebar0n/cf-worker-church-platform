@@ -3,7 +3,7 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 // Prefixes that may be served publicly. Sensitive files (payment proofs)
 // are only available through /api/admin/files, behind Cloudflare Access.
-const PUBLIC_PREFIXES = ['courses/'];
+const PUBLIC_PREFIXES = ['courses/', 'programs/'];
 
 // GET /api/files/[...path] - Serve public files from R2
 export async function GET(
