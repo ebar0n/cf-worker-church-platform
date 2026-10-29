@@ -1,0 +1,710 @@
+/* "Todo Nuevo" invitation: a concert ticket that tears off its stub and flips
+   to show the flyer. Every accent derives from --hue, which drifts between
+   gold, rose, violet and sky blue. */
+
+@property --hue {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 80;
+}
+
+/* iOS overscroll shows the html background: keep it night instead of paper */
+:global(html):has(.page) {
+  background: #0a1526;
+  scroll-behavior: smooth;
+}
+
+.page {
+  --night: #0a1526;
+  --paper: #f5eedf;
+  --mist: #a9b5c7;
+  --line: rgb(245 238 223 / 0.14);
+  --accent: oklch(0.84 0.12 var(--hue));
+  --accent-soft: oklch(0.84 0.12 var(--hue) / 0.45);
+  --ease: cubic-bezier(0.65, 0, 0.25, 1);
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  position: relative;
+  min-height: 100svh;
+  overflow: clip; /* the rays must never widen or lengthen the page */
+  background: var(--night);
+  color: var(--paper);
+  font-family: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  /* steps(): ten color changes per second look continuous and keep the
+     full-screen repaint cheap on phones */
+  animation: hue 36s steps(120) infinite alternate;
+}
+
+/* Ambient light that takes the current color */
+.page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(90% 55% at 50% 0%, oklch(0.5 0.12 var(--hue) / 0.38), transparent 70%),
+    radial-gradient(
+      80% 45% at 50% 100%,
+      oklch(0.45 0.1 calc(var(--hue) - 50) / 0.26),
+      transparent 70%
+    );
+}
+
+@keyframes hue {
+  0% {
+    --hue: 80;
+  }
+  33% {
+    --hue: 15;
+  }
+  66% {
+    --hue: -55;
+  }
+  100% {
+    --hue: -130;
+  }
+}
+
+/* ---------- Stage and ticket ---------- */
+
+.stage {
+  position: relative;
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+}
+
+.float {
+  /* Card width: fits the phone screen with the stub and hint below it */
+  --w: min(19rem, 78vw, max(12rem, calc((100svh - 15rem) * 0.5625)));
+  position: relative;
+  width: var(--w);
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  50% {
+    translate: 0 -8px;
+  }
+}
+
+.ticket {
+  --rx: 0deg;
+  --ry: 0deg;
+  --flip: 0deg;
+  container-type: inline-size;
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ticket:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 10px;
+  border-radius: 6cqi;
+}
+
+/* Soft shadow under the card: static blur, so it is rasterized only once */
+.ticket::before {
+  content: '';
+  position: absolute;
+  inset: 8cqi 4cqi 14cqi;
+  z-index: -1;
+  border-radius: 6cqi;
+  background: rgb(0 0 0 / 0.55);
+  filter: blur(22px);
+  translate: 0 6cqi;
+  transition: opacity 0.3s ease;
+}
+
+/* Edge-on during the flip this shadow reads as a dark slab: the poster face
+   brings its own */
+.page[data-opened] .ticket::before {
+  opacity: 0;
+}
+
+.card {
+  position: relative;
+  display: block;
+  aspect-ratio: 9 / 16;
+  transform-style: preserve-3d;
+  transform: perspective(1400px) rotateX(var(--rx)) rotateY(calc(var(--ry) + var(--flip)));
+  transition: transform 0.5s var(--ease-out);
+}
+
+.page[data-opened] .card {
+  --flip: 180deg;
+  transition: transform 1.2s var(--ease) 0.3s;
+}
+
+.page[data-opened][data-front] .card {
+  --flip: 0deg;
+  transition-delay: 0s;
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* The front shares its bottom edge with the stub: notches mark the tear line */
+.front {
+  padding: 7cqi 7cqi 6cqi;
+  border: 1px solid var(--accent-soft);
+  border-bottom: 0;
+  border-radius: 4.5cqi 4.5cqi 0 0;
+  background: linear-gradient(160deg, #1b3456 0%, #0c1a30 55%, #12253f 100%);
+  -webkit-mask:
+    radial-gradient(circle at 0 100%, transparent 3.2cqi, #000 calc(3.2cqi + 0.5px)) left / 51% 100%
+      no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 3.2cqi, #000 calc(3.2cqi + 0.5px)) right / 51%
+      100% no-repeat;
+  mask:
+    radial-gradient(circle at 0 100%, transparent 3.2cqi, #000 calc(3.2cqi + 0.5px)) left / 51% 100%
+      no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 3.2cqi, #000 calc(3.2cqi + 0.5px)) right / 51%
+      100% no-repeat;
+}
+
+/* Inner frame */
+.front::before {
+  content: '';
+  position: absolute;
+  inset: 3cqi 3cqi 0;
+  border: 1px solid oklch(0.84 0.12 var(--hue) / 0.22);
+  border-bottom: 0;
+  border-radius: 2.5cqi 2.5cqi 0 0;
+  pointer-events: none;
+}
+
+/* Holographic foil: a color wheel that turns with the hue and follows the mouse */
+.front::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: conic-gradient(
+    from calc(var(--hue) * 1deg) at var(--mx, 50%) var(--my, 40%),
+    oklch(0.8 0.14 var(--hue) / 0.2),
+    oklch(0.8 0.14 calc(var(--hue) + 90) / 0.07),
+    oklch(0.8 0.14 calc(var(--hue) + 180) / 0.2),
+    oklch(0.8 0.14 calc(var(--hue) + 270) / 0.07),
+    oklch(0.8 0.14 var(--hue) / 0.2)
+  );
+}
+
+.sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 38%,
+    rgb(255 255 255 / 0.16) 50%,
+    transparent 62%
+  );
+  translate: -120% 0;
+  animation: sheen 6s ease-in-out 1.2s infinite;
+}
+
+@keyframes sheen {
+  45%,
+  100% {
+    translate: 120% 0;
+  }
+}
+
+.church {
+  display: flex;
+  align-items: center;
+  gap: 2.8cqi;
+  font-size: 3.6cqi;
+  line-height: 1.35;
+  text-align: left;
+  color: var(--mist);
+}
+
+.logo {
+  flex: none;
+  width: 10cqi;
+  height: 10cqi;
+  fill: var(--paper);
+}
+
+.kicker {
+  margin-top: auto;
+  font-size: 3.6cqi;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.title {
+  margin-top: 3cqi;
+  font-family: var(--font-bodoni), Didot, Georgia, serif;
+  font-size: 21cqi;
+  font-weight: 600;
+  line-height: 0.88;
+  text-transform: uppercase;
+  background: linear-gradient(
+      100deg,
+      #fff6e0 0%,
+      oklch(0.86 0.13 var(--hue)) 35%,
+      #fff 50%,
+      oklch(0.8 0.14 calc(var(--hue) - 40)) 70%,
+      #fff6e0 100%
+    )
+    0 0 / 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: foil 7s ease-in-out infinite alternate;
+}
+
+@keyframes foil {
+  to {
+    background-position: 100% 0;
+  }
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3.4cqi 4cqi;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 4.4cqi;
+  border-top: 1px solid var(--line);
+  text-align: left;
+  font-size: 4.4cqi;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 1cqi;
+}
+
+.factEnd {
+  text-align: right;
+}
+
+.factWide {
+  grid-column: 1 / -1;
+}
+
+.factLabel {
+  font-size: 3.2cqi;
+  font-weight: 400;
+  color: var(--mist);
+}
+
+.back {
+  transform: rotateY(180deg);
+  border-radius: 4.5cqi;
+  background: #0b1726;
+  box-shadow: 0 30px 60px rgb(0 0 0 / 0.5);
+}
+
+.poster {
+  object-fit: cover;
+}
+
+.stub {
+  display: flex;
+  height: 21cqi;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4cqi;
+  padding: 0 7cqi;
+  border: 1px solid var(--accent-soft);
+  border-top: 0;
+  border-radius: 0 0 4.5cqi 4.5cqi;
+  background:
+    radial-gradient(circle, rgb(245 238 223 / 0.4) 0.7cqi, transparent 0.9cqi) 0 0 / 4cqi 2cqi
+      repeat-x,
+    linear-gradient(160deg, #13284a, #0c1a30);
+  transform-origin: 12% 0;
+  -webkit-mask:
+    radial-gradient(circle at 0 0, transparent 3.2cqi, #000 calc(3.2cqi + 0.5px)) left / 51% 100%
+      no-repeat,
+    radial-gradient(circle at 100% 0, transparent 3.2cqi, #000 calc(3.2cqi + 0.5px)) right / 51%
+      100% no-repeat;
+  mask:
+    radial-gradient(circle at 0 0, transparent 3.2cqi, #000 calc(3.2cqi + 0.5px)) left / 51% 100%
+      no-repeat,
+    radial-gradient(circle at 100% 0, transparent 3.2cqi, #000 calc(3.2cqi + 0.5px)) right / 51%
+      100% no-repeat;
+}
+
+.stubText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6cqi;
+  text-align: left;
+}
+
+.forYou {
+  font-family: var(--font-bodoni), Didot, Georgia, serif;
+  font-size: 6.6cqi;
+  font-style: italic;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.barcode {
+  width: 28cqi;
+  height: 10cqi;
+  opacity: 0.7;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--paper) 0 1px,
+    transparent 1px 3px,
+    var(--paper) 3px 5px,
+    transparent 5px 6px,
+    var(--paper) 6px 7px,
+    transparent 7px 10px,
+    var(--paper) 10px 13px,
+    transparent 13px 15px
+  );
+}
+
+/* ---------- Opening: tear, flip, light ---------- */
+
+.page[data-opened] .stub {
+  animation: tear 0.8s cubic-bezier(0.5, 0, 0.75, 0.2) forwards;
+}
+
+@keyframes tear {
+  20% {
+    transform: translateY(0.8cqi) rotate(2deg);
+  }
+  100% {
+    transform: translate(6%, 160%) rotate(14deg);
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.rays,
+.burst {
+  position: absolute;
+  top: calc(var(--w) * 0.8889);
+  left: 50%;
+  z-index: -1;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* Rays stay warm white: tinting them would repaint a huge layer every step */
+.rays {
+  width: 150vmax;
+  background: repeating-conic-gradient(rgb(255 240 210 / 0.1) 0deg 3deg, transparent 3deg 15deg);
+  -webkit-mask: radial-gradient(closest-side, #000 15%, transparent 70%);
+  mask: radial-gradient(closest-side, #000 15%, transparent 70%);
+  transition: opacity 1.6s ease 0.8s;
+}
+
+.page[data-opened] .rays {
+  opacity: 1;
+  animation: spin 90s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+.burst {
+  width: calc(var(--w) * 1.6);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, oklch(0.9 0.1 var(--hue) / 0.9), transparent);
+}
+
+.page[data-opened] .burst {
+  animation: burst 1.3s ease-out 0.75s;
+}
+
+@keyframes burst {
+  from {
+    opacity: 0.9;
+    scale: 0.3;
+  }
+  to {
+    opacity: 0;
+    scale: 2.4;
+  }
+}
+
+.hint,
+.cue {
+  margin: 1.5rem 0 0;
+  font-size: 0.9375rem;
+  color: var(--mist);
+}
+
+.hint {
+  animation: breathe 2.8s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.cue {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0 1rem;
+  text-decoration: none;
+  animation: fade-in 0.6s ease 1.6s both;
+}
+
+.cue svg {
+  animation: bob 1.8s ease-in-out infinite;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes bob {
+  50% {
+    translate: 0 3px;
+  }
+}
+
+/* ---------- Details ---------- */
+
+.details {
+  position: relative;
+  width: min(100%, 26rem);
+  margin: 0 auto;
+  padding: 0 16px calc(2rem + env(safe-area-inset-bottom));
+  text-align: center;
+  animation: rise 0.9s var(--ease-out) 1.3s both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 24px;
+  }
+}
+
+/* Sections are separated like the perforations of the ticket */
+.details > * {
+  margin: 0;
+  padding: 2.5rem 0;
+}
+
+.details > * + * {
+  background: radial-gradient(circle, rgb(245 238 223 / 0.28) 1.5px, transparent 2px) 0 0 / 12px 4px
+    repeat-x;
+}
+
+.date {
+  margin: 0;
+  font-family: var(--font-bodoni), Didot, Georgia, serif;
+  font-size: 1.625rem;
+  font-weight: 500;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+.clock {
+  display: flex;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.digits {
+  display: block;
+  font-family: var(--font-bodoni), Didot, Georgia, serif;
+  font-size: clamp(2.5rem, 12vw, 3.25rem);
+  line-height: 1;
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--accent);
+}
+
+.unit {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--mist);
+}
+
+.status {
+  margin: 1rem 0 0;
+  font-size: 1.125rem;
+  color: var(--accent);
+}
+
+.label {
+  margin: 0 0 0.75rem;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--mist);
+}
+
+.address {
+  font-family: var(--font-bodoni), Didot, Georgia, serif;
+  font-size: 1.75rem;
+  font-style: normal;
+  line-height: 1.2;
+}
+
+.muted {
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--mist);
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    scale 0.15s ease,
+    background-color 0.2s ease,
+    filter 0.2s ease;
+}
+
+.primary {
+  width: 100%;
+  min-height: 3.25rem;
+  margin-top: 1.5rem;
+  padding: 0 1.25rem;
+  border: 0;
+  background: var(--accent);
+  color: var(--night);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.primary:hover {
+  filter: brightness(1.08);
+}
+
+.secondary {
+  min-height: 3rem;
+  padding: 0 1rem;
+  border: 1px solid var(--accent-soft);
+  background: none;
+  color: var(--paper);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.secondary:hover {
+  background: rgb(245 238 223 / 0.06);
+}
+
+.primary:active,
+.secondary:active {
+  scale: 0.97;
+}
+
+.primary:focus-visible,
+.secondary:focus-visible,
+.cue:focus-visible,
+.footer a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.row {
+  display: grid;
+  gap: 0.625rem;
+}
+
+.verse p {
+  margin: 0;
+  font-family: var(--font-bodoni), Didot, Georgia, serif;
+  font-size: 1.75rem;
+  font-style: italic;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+.verse cite {
+  display: block;
+  margin-top: 0.75rem;
+  font-size: 0.9375rem;
+  font-style: normal;
+  color: var(--accent);
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--mist);
+}
+
+.footer a {
+  color: inherit;
+  text-underline-offset: 4px;
+}
+
+.footerLogo {
+  width: 2rem;
+  height: 2rem;
+  fill: var(--mist);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(html):has(.page) {
+    scroll-behavior: auto;
+  }
+
+  .page,
+  .page *,
+  .page::before {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .page[data-opened] .stub {
+    visibility: hidden;
+  }
+}
