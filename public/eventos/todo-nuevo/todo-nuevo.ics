@@ -1,0 +1,23 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Iglesia Adventista El Jordan//Invitaciones//ES
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:todo-nuevo-20261030@iglesiajordanibague.org
+DTSTAMP:20261029T120000Z
+DTSTART:20261031T000000Z
+DTEND:20261031T020000Z
+SUMMARY:Concierto Todo Nuevo
+LOCATION:Iglesia Adventista El Jordán\, Manzana 3 Casa 12\, Jordán 4.ª Etap
+ a\, Ibagué
+DESCRIPTION:Concierto musical Todo Nuevo. Invitación: https://iglesiajordani
+ bague.org/todo-nuevo
+URL:https://iglesiajordanibague.org/todo-nuevo
+BEGIN:VALARM
+TRIGGER:-PT2H
+ACTION:DISPLAY
+DESCRIPTION:Concierto Todo Nuevo en 2 horas
+END:VALARM
+END:VEVENT
+END:VCALENDAR
